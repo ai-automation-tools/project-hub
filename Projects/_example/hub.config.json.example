@@ -1,0 +1,11 @@
+{
+  "//": "One folder per project under Projects/. Copy this to Projects/<Name>/hub.config.json.",
+
+  "name": "My_Workspace",
+
+  "//dir": "Absolute path to the project workspace. Normally under the hub's `base`.",
+  "dir": "D:/Work/Projects/My_Workspace",
+
+  "//repoScope": "Which repos reach the overview table. `groups` matches Repos/<group>/ names; `pathPrefix` matches the id prefix, for workspaces with no group tier. Omit for all. The two are mutually exclusive.",
+  "repoScope": { "groups": ["Live_Apps", "Tools"] }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "project-hub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "One config-driven server that scans a project workspace plus Documents and serves the Project Hub navigation UI. Zero runtime dependencies.",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "test": "node --test hub.test.mjs reports.test.mjs pictures.test.mjs",
+    "scan": "node hub.mjs --scan --config ../Project-Hub/hub.config.json",
+    "start": "node hub.mjs --config ../Project-Hub/hub.config.json"
+  }
+}

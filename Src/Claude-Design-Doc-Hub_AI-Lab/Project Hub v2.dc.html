@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<![CDATA[<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; background:#0a0c0e; }
+  body { font-family:'IBM Plex Sans', ui-sans-serif, sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#5fe3a1; text-decoration:none; }
+  a:hover { color:#8ff0c0; text-decoration:underline; }
+  * { box-sizing:border-box; }
+  ::-webkit-scrollbar { width:9px; height:9px; }
+  ::-webkit-scrollbar-track { background:#0a0c0e; }
+  ::-webkit-scrollbar-thumb { background:#252b33; }
+  ::-webkit-scrollbar-thumb:hover { background:#333b45; }
+  input::placeholder { color:#4e5762; }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100%; background:#0a0c0e; color:#dbe1e8; font-size:13px; overflow:hidden">
+
+  <!-- EXPLORER -->
+  <aside style="width:284px; flex:0 0 284px; border-right:1px solid #22272e; background:#0c0f12; display:flex; flex-direction:column; overflow:hidden">
+    <div style="padding:11px 12px 10px; border-bottom:1px solid #1a1f25; display:flex; align-items:center; gap:8px">
+      <div style="width:17px; height:17px; border:1px solid #5fe3a1; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5fe3a1; font-weight:600">/</div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#79838f; flex:1">Explorer</div>
+      <div onClick="{{ collapseAll }}" style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762; cursor:pointer" style-hover="color:#5fe3a1">collapse</div>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:6px 0 16px">
+      <sc-for list="{{ tree }}" as="n" hint-placeholder-count="24">
+        <div onClick="{{ n.go }}" style="display:flex; align-items:center; gap:6px; height:22px; padding-right:10px; padding-left:{{ n.pad }}px; cursor:pointer; background:{{ n.bg }}; border-left:2px solid {{ n.bar }}" style-hover="background:#14181d">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; width:8px; flex:0 0 8px; color:#4e5762">{{ n.chev }}</span>
+          <span style="width:7px; height:7px; flex:0 0 7px; background:{{ n.tint }}; border-radius:{{ n.radius }}"></span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:{{ n.fg }}">{{ n.name }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#3c444e">{{ n.badge }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border-top:1px solid #1a1f25; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">
+      <span>index.html</span>
+      <span style="color:#5fe3a1">● scanned 09:41</span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column; overflow:hidden">
+
+    <header style="height:42px; flex:0 0 42px; border-bottom:1px solid #22272e; background:#0c0f12; display:flex; align-items:center; gap:14px; padding:0 16px">
+      <div style="display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; min-width:0; overflow:hidden">
+        <sc-for list="{{ crumbs }}" as="c" hint-placeholder-count="3">
+          <span onClick="{{ c.go }}" style="cursor:pointer; color:{{ c.color }}; white-space:nowrap" style-hover="color:#5fe3a1">{{ c.label }}</span>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex; align-items:center; gap:6px; border:1px solid #22272e; background:#101317; padding:4px 8px; width:290px">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">⌕</span>
+        <input ref="{{ searchRef }}" value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search repos, skills, commands, agents, docs" style="flex:1; background:transparent; border:none; outline:none; color:#dbe1e8; font-family:'IBM Plex Mono',monospace; font-size:11.5px" />
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#3c444e; border:1px solid #22272e; padding:1px 4px">⌘K</span>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:4px 9px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">↻ rescan</div>
+    </header>
+
+    <div style="flex:1; overflow-y:auto">
+
+      <!-- SEARCH -->
+      <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:20px 24px 44px; max-width:1200px">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; margin-bottom:12px">{{ resultCount }} matches for “{{ query }}”</div>
+          <div style="display:flex; flex-direction:column; gap:1px">
+            <sc-for list="{{ results }}" as="hit" hint-placeholder-count="6">
+              <div onClick="{{ hit.go }}" style="display:grid; grid-template-columns:96px 220px 1fr 180px; gap:14px; align-items:center; padding:8px 11px; border:1px solid #1a1f25; background:#0e1114; cursor:pointer" style-hover="border-color:#2f6b52; background:#12161a">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ hit.tint }}">{{ hit.kind }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e7ecf1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ hit.name }}</span>
+                <span style="font-size:11.5px; color:#79838f; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ hit.desc }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ hit.where }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- WORKSPACE OVERVIEW -->
+      <sc-if value="{{ isWorkspace }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:22px 24px 48px; max-width:1200px; display:flex; flex-direction:column; gap:22px">
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap">
+            <div style="display:flex; flex-direction:column; gap:7px">
+              <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:600; letter-spacing:-0.02em; color:#f0f4f8">Mikes_AI_Lab</h1>
+              <p style="margin:0; font-size:12.5px; color:#79838f; max-width:660px; text-wrap:pretty">Four CLI agent runtimes, thirteen application repos, and the skills, commands, sub-agents, and hooks they share. Regenerated on every scan.</p>
+            </div>
+            <div style="display:flex; gap:8px">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#0a0c0e; background:#5fe3a1; padding:5px 11px; cursor:pointer; font-weight:500" style-hover="background:#8ff0c0">open workspace</div>
+              <div onClick="{{ copyRoot }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:5px 11px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">{{ rootCopyLabel }}</div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:1px; background:#1a1f25; border:1px solid #1a1f25">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="6">
+              <div style="background:#0e1114; padding:11px 13px; display:flex; flex-direction:column; gap:4px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762">{{ s.label }}</div>
+                <div style="display:flex; align-items:baseline; gap:6px">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:600; color:{{ s.color }}; letter-spacing:-0.02em">{{ s.value }}</span>
+                  <span style="font-size:10.5px; color:#4e5762">{{ s.note }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:9px">
+            <h2 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.13em; text-transform:uppercase; color:#79838f">Agents · CLI runtimes</h2>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(268px, 1fr)); gap:10px">
+              <sc-for list="{{ runtimes }}" as="r" hint-placeholder-count="4">
+                <div onClick="{{ r.go }}" style="border:1px solid #22272e; background:#0e1114; padding:12px 13px; display:flex; flex-direction:column; gap:9px; cursor:pointer" style-hover="border-color:#2f6b52; background:#12161a">
+                  <div style="display:flex; align-items:center; gap:8px">
+                    <span style="width:8px; height:8px; background:{{ r.tint }}"></span>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e7ecf1; flex:1">{{ r.name }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">{{ r.config }}</span>
+                  </div>
+                  <p style="margin:0; font-size:11.5px; line-height:1.5; color:#79838f; text-wrap:pretty">{{ r.desc }}</p>
+                  <div style="display:flex; gap:12px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762; border-top:1px solid #1a1f25; padding-top:8px">
+                    <span><span style="color:#5fe3a1">{{ r.nSkills }}</span> skills</span>
+                    <span><span style="color:#e0a458">{{ r.nCommands }}</span> cmds</span>
+                    <span><span style="color:#b48ce8">{{ r.nAgents }}</span> agents</span>
+                    <span><span style="color:#6aa9f0">{{ r.nHooks }}</span> hooks</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:9px">
+            <div style="display:flex; align-items:baseline; justify-content:space-between">
+              <h2 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.13em; text-transform:uppercase; color:#79838f">Repos</h2>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762">Live_Apps · Other_Apps · Tools · Draft</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1.5fr 0.8fr 0.6fr 0.9fr 1.5fr; gap:14px; padding:7px 12px; border:1px solid #22272e; background:#0c0f12; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#4e5762">
+              <span>repository</span><span>group</span><span>branch</span><span>state</span><span>last commit</span>
+            </div>
+            <div style="display:flex; flex-direction:column; margin-top:-9px">
+              <sc-for list="{{ repoRows }}" as="r" hint-placeholder-count="13">
+                <div onClick="{{ r.go }}" style="display:grid; grid-template-columns:1.5fr 0.8fr 0.6fr 0.9fr 1.5fr; gap:14px; align-items:center; padding:7px 12px; border:1px solid #1a1f25; border-top:none; background:#0e1114; cursor:pointer" style-hover="background:#14181d">
+                  <div style="display:flex; align-items:center; gap:8px; min-width:0">
+                    <span style="width:5px; height:5px; border-radius:50%; flex:0 0 5px; background:{{ r.dot }}"></span>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#e7ecf1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ r.name }}</span>
+                  </div>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#79838f">{{ r.group }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6aa9f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ r.branch }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{{ r.dot }}">{{ r.state }}</span>
+                  <span style="font-size:11px; color:#79838f; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ r.commit }} <span style="color:#4e5762">· {{ r.ago }}</span></span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+            <sc-for list="{{ rootDocs }}" as="d" hint-placeholder-count="2">
+              <div onClick="{{ d.go }}" style="border:1px solid #22272e; background:#0e1114; padding:12px 13px; display:flex; flex-direction:column; gap:6px; cursor:pointer" style-hover="border-color:#2f6b52; background:#12161a">
+                <div style="display:flex; align-items:center; justify-content:space-between">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e7ecf1">{{ d.name }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">{{ d.where }}</span>
+                </div>
+                <span style="font-size:11.5px; color:#79838f; line-height:1.45; text-wrap:pretty">{{ d.desc }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CLI RUNTIME -->
+      <sc-if value="{{ isCli }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 48px; max-width:1200px; display:flex; flex-direction:column; gap:18px">
+          <div style="display:flex; flex-direction:column; gap:9px">
+            <div style="display:flex; align-items:center; gap:11px; flex-wrap:wrap">
+              <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">{{ cli.name }}</h1>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#5fe3a1; border:1px solid #1e3a2c; background:#0b1512; padding:2px 7px">CLI runtime</span>
+              <div style="flex:1"></div>
+              <div onClick="{{ cli.copy }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:4px 9px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">{{ cli.copyLabel }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#0a0c0e; background:#5fe3a1; padding:4px 9px; cursor:pointer; font-weight:500" style-hover="background:#8ff0c0">code .</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">{{ cli.path }}</div>
+            <p style="margin:0; font-size:12.5px; color:#a7b0ba; max-width:680px; line-height:1.6; text-wrap:pretty">{{ cli.desc }}</p>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <sc-for list="{{ cli.configs }}" as="f" hint-placeholder-count="5">
+              <div onClick="{{ f.go }}" style="display:flex; align-items:center; gap:7px; border:1px solid #22272e; background:#0e1114; padding:5px 9px; cursor:pointer" style-hover="border-color:#2f6b52">
+                <span style="width:6px; height:6px; background:{{ f.tint }}"></span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#dbe1e8">{{ f.name }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#4e5762">{{ f.size }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:12px; align-items:start">
+            <sc-for list="{{ cli.groups }}" as="g" hint-placeholder-count="4">
+              <div style="border:1px solid #22272e; background:#0e1114">
+                <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid #1a1f25; background:#0c0f12">
+                  <span style="width:7px; height:7px; background:{{ g.tint }}"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#dbe1e8; flex:1">{{ g.label }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">{{ g.dir }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:{{ g.tint }}">{{ g.count }}</span>
+                </div>
+                <div style="display:flex; flex-direction:column">
+                  <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="5">
+                    <div onClick="{{ it.go }}" style="padding:8px 12px; border-bottom:1px solid #14181d; cursor:pointer; display:flex; flex-direction:column; gap:3px" style-hover="background:#14181d">
+                      <div style="display:flex; align-items:center; gap:8px">
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:{{ g.tint }}; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ it.name }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#3c444e">{{ it.tag }}</span>
+                      </div>
+                      <span style="font-size:11px; color:#79838f; line-height:1.4; text-wrap:pretty">{{ it.desc }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- FOLDER -->
+      <sc-if value="{{ isFolder }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 48px; max-width:1200px; display:flex; flex-direction:column; gap:16px">
+          <div style="display:flex; flex-direction:column; gap:7px">
+            <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">{{ folder.name }}</h1>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">{{ folder.path }}</div>
+            <p style="margin:0; font-size:12.5px; color:#79838f; max-width:660px; line-height:1.55; text-wrap:pretty">{{ folder.desc }}</p>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(272px, 1fr)); gap:10px">
+            <sc-for list="{{ folder.children }}" as="c" hint-placeholder-count="6">
+              <div onClick="{{ c.go }}" style="border:1px solid #22272e; background:#0e1114; padding:11px 12px; display:flex; flex-direction:column; gap:7px; cursor:pointer" style-hover="border-color:#2f6b52; background:#12161a">
+                <div style="display:flex; align-items:center; gap:8px">
+                  <span style="width:7px; height:7px; flex:0 0 7px; background:{{ c.tint }}; border-radius:{{ c.radius }}"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e7ecf1; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ c.name }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase; color:#4e5762">{{ c.kind }}</span>
+                </div>
+                <span style="font-size:11.5px; color:#79838f; line-height:1.45; text-wrap:pretty">{{ c.desc }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- REPO -->
+      <sc-if value="{{ isRepo }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 48px; max-width:1200px; display:flex; flex-direction:column; gap:16px">
+          <div style="display:flex; flex-direction:column; gap:9px">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
+              <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">{{ repo.name }}</h1>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6aa9f0; border:1px solid #1e3550; background:#0e1620; padding:2px 7px">{{ repo.branch }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{{ repo.dot }}">{{ repo.state }}</span>
+              <div style="flex:1"></div>
+              <div onClick="{{ repo.copy }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:4px 9px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">{{ repo.copyLabel }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#0a0c0e; background:#5fe3a1; padding:4px 9px; cursor:pointer; font-weight:500" style-hover="background:#8ff0c0">code .</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">{{ repo.path }}</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 296px; gap:14px; align-items:start">
+            <div style="border:1px solid #22272e; background:#0e1114">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; border-bottom:1px solid #1a1f25; background:#0c0f12">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f">README.md</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">rendered</span>
+              </div>
+              <div style="padding:16px 18px; display:flex; flex-direction:column; gap:12px">
+                <h2 style="margin:0; font-size:16px; font-weight:600; color:#f0f4f8; letter-spacing:-0.01em">{{ repo.name }}</h2>
+                <p style="margin:0; font-size:12.5px; line-height:1.6; color:#a7b0ba; text-wrap:pretty">{{ repo.desc }}</p>
+                <div style="height:1px; background:#1a1f25"></div>
+                <h3 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#79838f">Run it</h3>
+                <div style="background:#080a0c; border:1px solid #1a1f25; padding:10px 12px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; line-height:1.8; color:#a7b0ba; overflow-x:auto">
+                  <sc-for list="{{ repo.cmds }}" as="line" hint-placeholder-count="3">
+                    <div><span style="color:#4e5762">$</span> {{ line }}</div>
+                  </sc-for>
+                </div>
+                <h3 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#79838f">Agent notes</h3>
+                <p style="margin:0; font-size:12.5px; line-height:1.6; color:#a7b0ba; text-wrap:pretty">{{ repo.notes }}</p>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px">
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Git</div>
+                <div style="display:flex; flex-direction:column; gap:7px">
+                  <sc-for list="{{ repo.meta }}" as="m" hint-placeholder-count="5">
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
+                      <span style="font-size:11.5px; color:#79838f">{{ m.k }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#dbe1e8; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ m.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Skills scoped here</div>
+                <div style="display:flex; flex-direction:column; gap:5px">
+                  <sc-for list="{{ repo.skillLinks }}" as="s" hint-placeholder-count="3">
+                    <div onClick="{{ s.go }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5fe3a1; cursor:pointer" style-hover="color:#8ff0c0">{{ s.name }}</div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Files</div>
+                <div style="display:flex; flex-direction:column; gap:4px; font-family:'IBM Plex Mono',monospace; font-size:11px">
+                  <sc-for list="{{ repo.files }}" as="f" hint-placeholder-count="6">
+                    <div style="display:flex; align-items:center; gap:7px; color:#79838f; cursor:pointer" style-hover="color:#5fe3a1">
+                      <span style="color:#3c444e">{{ f.glyph }}</span><span>{{ f.name }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ENTITY: skill / command / sub-agent / hook -->
+      <sc-if value="{{ isEntity }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 48px; max-width:960px; display:flex; flex-direction:column; gap:16px">
+          <div style="display:flex; flex-direction:column; gap:9px">
+            <div style="display:flex; align-items:center; gap:11px; flex-wrap:wrap">
+              <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">{{ entity.name }}</h1>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{{ entity.tint }}; border:1px solid #22272e; padding:2px 7px">{{ entity.kind }}</span>
+              <div style="flex:1"></div>
+              <div onClick="{{ entity.copy }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:4px 9px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">{{ entity.copyLabel }}</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">{{ entity.path }}</div>
+          </div>
+
+          <sc-if value="{{ entity.hasUsage }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#080a0c; border:1px solid #1a1f25; padding:11px 13px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#a7b0ba; overflow-x:auto">
+              <span style="color:#4e5762">$</span> {{ entity.usage }}
+            </div>
+          </sc-if>
+
+          <div style="display:grid; grid-template-columns:1fr 268px; gap:14px; align-items:start">
+            <div style="border:1px solid #22272e; background:#0e1114">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; border-bottom:1px solid #1a1f25; background:#0c0f12">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f">{{ entity.docName }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">rendered</span>
+              </div>
+              <div style="padding:16px 18px; display:flex; flex-direction:column; gap:13px">
+                <p style="margin:0; font-size:12.5px; line-height:1.65; color:#a7b0ba; text-wrap:pretty">{{ entity.desc }}</p>
+                <sc-for list="{{ entity.sections }}" as="sec" hint-placeholder-count="3">
+                  <div style="display:flex; flex-direction:column; gap:6px">
+                    <h3 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#79838f">{{ sec.h }}</h3>
+                    <p style="margin:0; font-size:12.5px; line-height:1.6; color:#a7b0ba; text-wrap:pretty">{{ sec.p }}</p>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px">
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Frontmatter</div>
+                <div style="display:flex; flex-direction:column; gap:7px">
+                  <sc-for list="{{ entity.meta }}" as="m" hint-placeholder-count="4">
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
+                      <span style="font-size:11.5px; color:#79838f">{{ m.k }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#dbe1e8; text-align:right">{{ m.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Touches</div>
+                <div style="display:flex; flex-direction:column; gap:5px">
+                  <sc-for list="{{ entity.links }}" as="l" hint-placeholder-count="3">
+                    <div onClick="{{ l.go }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6aa9f0; cursor:pointer" style-hover="color:#9cc7f7">{{ l.name }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- FILE / DOC -->
+      <sc-if value="{{ isFile }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 60px; max-width:880px; display:flex; flex-direction:column; gap:13px">
+          <div style="display:flex; align-items:center; gap:11px">
+            <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; color:#f0f4f8">{{ file.name }}</h1>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762">{{ file.size }}</span>
+            <div style="flex:1"></div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:4px 9px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">open in editor</div>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">{{ file.path }}</div>
+          <div style="border:1px solid #22272e; background:#0e1114; padding:20px 22px; display:flex; flex-direction:column; gap:13px">
+            <p style="margin:0; font-size:13px; line-height:1.65; color:#a7b0ba; text-wrap:pretty">{{ file.desc }}</p>
+            <div style="height:1px; background:#1a1f25"></div>
+            <sc-for list="{{ file.sections }}" as="sec" hint-placeholder-count="4">
+              <div style="display:flex; flex-direction:column; gap:7px">
+                <h3 style="margin:0; font-size:13.5px; font-weight:600; color:#e7ecf1">{{ sec.h }}</h3>
+                <p style="margin:0; font-size:12.5px; line-height:1.65; color:#a7b0ba; text-wrap:pretty">{{ sec.p }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>]]>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.searchRef = React.createRef();
+    this.state = {
+      sel: "root",
+      query: "",
+      copied: null,
+      open: {
+        root: true, "root/Agents": true, "root/Agents/Claude": true,
+        "root/Agents/Claude/.claude": true, "root/Repos": true,
+        "root/Repos/Live_Apps": true, "root/Repos/Other_Apps": true, docs: true
+      }
+    };
+  }
+
+  componentDidMount() {
+    this._key = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (this.searchRef.current) this.searchRef.current.focus();
+      }
+      if (e.key === "Escape") this.setState({ query: "" });
+    };
+    window.addEventListener("keydown", this._key);
+  }
+  componentWillUnmount() { window.removeEventListener("keydown", this._key); }
+
+  sel(id) { return () => this.setState({ sel: id, query: "" }); }
+  hit(id) {
+    return () => {
+      const open = Object.assign({}, this.state.open);
+      const parts = id.split("/");
+      for (let i = 1; i <= parts.length; i++) open[parts.slice(0, i).join("/")] = true;
+      const node = this.index()[id];
+      if (node && node.children && node.children.length) open[id] = !this.state.open[id] || this.state.sel !== id ? true : false;
+      this.setState({ sel: id, query: "", open });
+    };
+  }
+  copy(text, key) {
+    return (e) => {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+      this.setState({ copied: key });
+      clearTimeout(this._ct);
+      this._ct = setTimeout(() => this.setState({ copied: null }), 1400);
+    };
+  }
+
+  // ---------- data ----------
+  raw() {
+    if (this._raw) return this._raw;
+    const ROOT = "C:\\Users\\Mike\\Mikes_AI_Lab";
+
+    const skills = [
+      { name: "ai-automation-library", desc: "Build, deploy and operate the content automations on the Hetzner agent-runner box and the n8n digest workflows.", tag: "3.2 kB", meta: [["allowed-tools", "Bash, Read, Write"], ["scope", "AI-Automation-Library"], ["invoked", "142×"]], links: ["AI-Automation-Library", "cronsole"], sections: [["When to use", "Any request to create a scheduled job, change a cadence, deploy a wrapper, SSH into the box, or debug a failed run."], ["Conventions", "Every automation's artifacts land under My-Library/ with a wrapper, a prompt, and a runbook. The box is the sole runner."]] },
+      { name: "obsidian-markdown", desc: "Author and edit Obsidian Flavored Markdown — wikilinks, embeds, callouts, properties.", tag: "2.1 kB", meta: [["allowed-tools", "Read, Write, Edit"], ["scope", "Documents"], ["invoked", "89×"]], links: ["Documents", "My-Documents"], sections: [["When to use", "Working with .md files in the Obsidian vault, or when wikilinks, callouts, frontmatter, tags, or embeds come up."]] },
+      { name: "agentmail", desc: "Give agents their own inboxes via the AgentMail API — send, receive, label, draft for approval.", tag: "4.4 kB", meta: [["allowed-tools", "Bash, WebFetch"], ["scope", "Agent-Chat"], ["invoked", "31×"]], links: ["Agent-Chat"], sections: [["When to use", "Building email agents, handling attachments, or wiring webhooks for real-time inbox notifications."], ["Multi-tenant", "Pods isolate inboxes per tenant; never share an inbox id across pods."]] },
+      { name: "ax-platform-mcp", desc: "Work AX Platform workspaces over MCP — messages, tasks, search, agents, spaces, shared context.", tag: "5.8 kB", meta: [["allowed-tools", "MCP"], ["scope", "global"], ["invoked", "204×"]], links: ["enclave", "Agent-Chat"], sections: [["When to use", "Coordinating work across the team, storing shared project data, or configuring personal agent preferences."]] },
+      { name: "skill-writer", desc: "Guide the authoring of new Agent Skills — SKILL.md structure, frontmatter, packaging.", tag: "2.7 kB", meta: [["allowed-tools", "Read, Write"], ["scope", "global"], ["invoked", "27×"]], links: ["my-prompt-library"], sections: [["When to use", "Any request to create, write, or design a new skill."]] },
+      { name: "frontend-design", desc: "Distinctive production-grade frontend work; avoids generic AI aesthetics.", tag: "6.1 kB", meta: [["allowed-tools", "Read, Write, Edit"], ["scope", "Live_Apps"], ["invoked", "63×"]], links: ["Edge-Radar", "michaelschecht.github.io"], sections: [["When to use", "Building web components, pages, or applications where design quality matters."]] },
+      { name: "workspace-cookbook-builder", desc: "Generate complete AX workspace setup docs: agents, tools, workflows, configuration.", tag: "3.9 kB", meta: [["allowed-tools", "Read, Write"], ["scope", "enclave"], ["invoked", "12×"]], links: ["enclave"], sections: [["When to use", "Standing up a new multi-agent collaboration scenario end to end."]] },
+      { name: "mcp-integration-guides", desc: "Write integration guides for connecting MCP clients to the AX Platform server.", tag: "3.3 kB", meta: [["allowed-tools", "Read, Write, WebFetch"], ["scope", "enclave"], ["invoked", "8×"]], links: ["enclave"], sections: [["When to use", "Documenting how a new tool or client connects to the MCP server."]] }
+    ];
+
+    const commands = [
+      { name: "/scan", desc: "Rescan the lab and rebuild this hub", usage: "claude /scan --all --emit html", tag: "global", meta: [["argument-hint", "[--all] [--emit html]"], ["writes", "index.html"]], links: ["Mikes_AI_Lab"] },
+      { name: "/status", desc: "Git state across all 13 repos", usage: "claude /status --short", tag: "global", meta: [["argument-hint", "[--short] [--dirty]"], ["writes", "nothing"]], links: ["Repos"] },
+      { name: "/digest", desc: "Run the n8n text digest workflow now", usage: "claude /digest --source rss --send", tag: "automation", meta: [["argument-hint", "--source <name>"], ["writes", "n8n run log"]], links: ["AI-Automation-Library"] },
+      { name: "/deploy-job", desc: "Ship a wrapper plus crontab entry to the box", usage: "claude /deploy-job <job> --cron \"0 6 * * *\"", tag: "automation", meta: [["argument-hint", "<job> --cron <expr>"], ["writes", "agent-runner"]], links: ["AI-Automation-Library", "cronsole"] },
+      { name: "/ssh-box", desc: "Open a shell on the Hetzner agent-runner", usage: "claude /ssh-box --tail runner.log", tag: "automation", meta: [["argument-hint", "[--tail <file>]"], ["writes", "nothing"]], links: ["cronsole"] },
+      { name: "/prompt-add", desc: "File a prompt into my-prompt-library with tags", usage: "claude /prompt-add \"<title>\" --tags research,writing", tag: "library", meta: [["argument-hint", "<title> --tags a,b"], ["writes", "my-prompt-library"]], links: ["my-prompt-library"] },
+      { name: "/obsidian-sync", desc: "Reconcile Agent-Resources notes with repo READMEs", usage: "claude /obsidian-sync --check", tag: "docs", meta: [["argument-hint", "[--check] [--apply]"], ["writes", "Documents"]], links: ["Documents", "Agent-Resources"] },
+      { name: "/skill-new", desc: "Scaffold a new skill folder with SKILL.md", usage: "claude /skill-new <name> --scope global", tag: "meta", meta: [["argument-hint", "<name> --scope <s>"], ["writes", ".claude/skills"]], links: ["skill-writer"] },
+      { name: "/handoff", desc: "Package a repo for developer handoff", usage: "claude /handoff <repo> --zip", tag: "global", meta: [["argument-hint", "<repo> [--zip]"], ["writes", "temp/"]], links: ["Repos"] }
+    ];
+
+    const subagents = [
+      { name: "automation-builder", desc: "Builds and deploys cron jobs on the runner box. Owns wrappers and runbooks.", tag: "sonnet", meta: [["model", "sonnet-4.5"], ["tools", "Bash, Read, Write"], ["writes", "AI-Automation-Library"]], links: ["AI-Automation-Library", "cronsole"] },
+      { name: "doc-scribe", desc: "Keeps READMEs and the Obsidian vault honest. Never touches source.", tag: "haiku", meta: [["model", "haiku-4.5"], ["tools", "Read, Write, Edit"], ["writes", "Documents"]], links: ["Documents"] },
+      { name: "repo-scout", desc: "Reads across all 13 repos and reports where a thing lives before any edit.", tag: "sonnet", meta: [["model", "sonnet-4.5"], ["tools", "Read, Grep, Glob"], ["writes", "nothing"]], links: ["Repos"] },
+      { name: "prompt-curator", desc: "Dedupes, tags, and rewrites entries in my-prompt-library.", tag: "haiku", meta: [["model", "haiku-4.5"], ["tools", "Read, Write"], ["writes", "my-prompt-library"]], links: ["my-prompt-library"] },
+      { name: "infra-operator", desc: "Provisioning and recovery on the box. Plans only unless explicitly told to apply.", tag: "opus", meta: [["model", "opus-4.1"], ["tools", "Bash, Read"], ["writes", "enclave"]], links: ["enclave"] }
+    ];
+
+    const hooks = [
+      { name: "pre-commit-guard", desc: "Blocks writes to main and any generated path before a commit lands.", tag: "PreToolUse", meta: [["event", "PreToolUse"], ["matcher", "Bash(git commit*)"]], links: ["Repos"] },
+      { name: "session-start-context", desc: "Injects the lab README and current git state at session start.", tag: "SessionStart", meta: [["event", "SessionStart"], ["matcher", "*"]], links: ["Mikes_AI_Lab"] },
+      { name: "post-tool-log", desc: "Appends every tool call to temp/tool-audit.jsonl for later triage.", tag: "PostToolUse", meta: [["event", "PostToolUse"], ["matcher", "*"]], links: ["cronsole"] }
+    ];
+
+    const repos = [
+      { name: "Agent-Chat", group: "Live_Apps", branch: "main", state: "clean", commit: "inbox threading fix", ago: "3h", desc: "Chat surface for talking to the lab's agents, with AgentMail-backed inboxes per agent." },
+      { name: "AI-Automation-Library", group: "Live_Apps", branch: "main", state: "dirty", commit: "wip: media job wrapper", ago: "22m", desc: "Wrappers, prompts, helpers, and runbooks for every scheduled automation on the runner box." },
+      { name: "cronsole", group: "Live_Apps", branch: "main", state: "clean", commit: "run history pagination", ago: "1d", desc: "Web console for the cron fleet — schedules, last run, exit codes, log tail." },
+      { name: "Edge-Radar", group: "Live_Apps", branch: "feat/alerts", state: "dirty", commit: "threshold alert rules", ago: "6h", desc: "Monitoring dashboard for edge signals with alerting on threshold breach." },
+      { name: "edge-spectrum", group: "Live_Apps", branch: "main", state: "behind", commit: "release 0.4.0", ago: "5d", desc: "Signal processing library that Edge-Radar consumes." },
+      { name: "enclave", group: "Live_Apps", branch: "main", state: "clean", commit: "MCP server auth scopes", ago: "2d", desc: "AX Platform workspace server and the MCP surface agents connect through." },
+      { name: "michaelschecht.github.io", group: "Live_Apps", branch: "main", state: "clean", commit: "writing index", ago: "4d", desc: "Personal site and writing, published from main on push." },
+      { name: "my-prompt-library", group: "Live_Apps", branch: "main", state: "dirty", commit: "wip: retag research prompts", ago: "40m", desc: "Canonical prompt collection, tagged and versioned; source for /prompt-add." },
+      { name: "BotArena-Retro-FB", group: "Other_Apps", branch: "main", state: "clean", commit: "sprite batching", ago: "3w", desc: "Retro bot-battle sandbox. Experimental, not wired to anything else." },
+      { name: "heartland-table", group: "Other_Apps", branch: "main", state: "clean", commit: "menu data model", ago: "2w", desc: "Restaurant site and table-booking prototype." },
+      { name: "hoarder", group: "Other_Apps", branch: "main", state: "behind", commit: "bump deps", ago: "1w", desc: "Self-hosted bookmark and archive service." },
+      { name: "IIQ", group: "Other_Apps", branch: "main", state: "conflict", commit: "merge conflict in schema.sql", ago: "9h", desc: "Inventory intelligence experiment; schema mid-migration." },
+      { name: "stellar_media_server", group: "Other_Apps", branch: "main", state: "clean", commit: "transcode queue", ago: "10d", desc: "Media server with a transcode queue the runner feeds." }
+    ];
+
+    this._raw = { ROOT, skills, commands, subagents, hooks, repos };
+    return this._raw;
+  }
+
+  tree() {
+    if (this._tree) return this._tree;
+    const { skills, commands, subagents, hooks, repos } = this.raw();
+    const T = { folder: "#6aa9f0", cli: "#5fe3a1", repo: "#b48ce8", file: "#79838f", md: "#e0a458", cfg: "#5fe3a1", skill: "#5fe3a1", cmd: "#e0a458", agent: "#b48ce8", hook: "#6aa9f0", vault: "#e0625f" };
+    const ent = (arr, kind, tint, dir) => arr.map((x) => ({ name: x.name, kind, tint, entity: Object.assign({ dir }, x) }));
+
+    const cliChildren = (label) => ([
+      { name: ".claude", kind: "folder", tint: T.cli, children: [
+        { name: "skills", kind: "folder", tint: T.skill, children: ent(skills, "skill", T.skill, ".claude/skills") },
+        { name: "commands", kind: "folder", tint: T.cmd, children: ent(commands, "command", T.cmd, ".claude/commands") },
+        { name: "agents", kind: "folder", tint: T.agent, children: ent(subagents, "sub-agent", T.agent, ".claude/agents") },
+        { name: "hooks", kind: "folder", tint: T.hook, children: ent(hooks, "hook", T.hook, ".claude/hooks") },
+        { name: "settings.json", kind: "file", tint: T.cfg }
+      ]},
+      { name: ".playwright-mcp", kind: "folder", tint: T.folder },
+      { name: "temp", kind: "folder", tint: T.folder },
+      { name: ".env", kind: "file", tint: T.cfg },
+      { name: ".env.cloud", kind: "file", tint: T.cfg },
+      { name: ".mcp.json", kind: "file", tint: T.cfg },
+      { name: ".mcp.json.bak", kind: "file", tint: T.file },
+      { name: label.toUpperCase() + ".md", kind: "file", tint: T.md },
+      { name: "dl.json", kind: "file", tint: T.cfg },
+      { name: "README.md", kind: "file", tint: T.md }
+    ]);
+
+    const repoNode = (r) => ({ name: r.name, kind: "repo", tint: T.repo, repo: r });
+
+    const nodes = [
+      { name: "Mikes_AI_Lab", kind: "workspace", tint: T.cli, children: [
+        { name: "Agents", kind: "folder", tint: T.agent, desc: "One folder per CLI agent runtime. Each carries its own config, skills, commands, sub-agents, and hooks.", children: [
+          { name: "Antigravity", kind: "cli", tint: T.cli, children: cliChildren("agents") },
+          { name: "Claude", kind: "cli", tint: T.cli, children: cliChildren("claude") },
+          { name: "Codex", kind: "cli", tint: T.cli, children: cliChildren("agents") },
+          { name: "OpenCode", kind: "cli", tint: T.cli, children: cliChildren("agents") },
+          { name: "Other", kind: "folder", tint: T.folder, desc: "Runtimes tried and parked — kept for reference, not on the active path." },
+          { name: "Specialized", kind: "folder", tint: T.folder, desc: "Single-purpose runtimes pinned to one job each." },
+          { name: "README.md", kind: "file", tint: T.md }
+        ]},
+        { name: "Repos", kind: "folder", tint: T.repo, desc: "Thirteen application repositories in four groups. Nothing is a submodule — each has its own remote.", children: [
+          { name: "Draft", kind: "folder", tint: T.folder, desc: "Unpromoted ideas. No agent writes here without being told to." },
+          { name: "Live_Apps", kind: "folder", tint: T.repo, desc: "Deployed and load-bearing. Changes here need the full gate.", children: repos.filter((r) => r.group === "Live_Apps").map(repoNode) },
+          { name: "Other_Apps", kind: "folder", tint: T.repo, desc: "Side projects and experiments. Green gate still applies, review bar is lower.", children: repos.filter((r) => r.group === "Other_Apps").map(repoNode) },
+          { name: "Tools", kind: "folder", tint: T.folder, desc: "Local scripts and one-off utilities that never ship." },
+          { name: "README.md", kind: "file", tint: T.md }
+        ]},
+        { name: "Resources", kind: "folder", tint: T.folder, desc: "Shared reference material: schemas, brand assets, fixture data." },
+        { name: "README.md", kind: "file", tint: T.md }
+      ]},
+      { name: "Documents", kind: "workspace", tint: T.vault, desc: "The Obsidian vault the agents read from and write notes back into.", children: [
+        { name: ".obsidian", kind: "folder", tint: T.folder },
+        { name: "Agent-Resources", kind: "folder", tint: T.md, desc: "Prompt notes, skill drafts, and agent runbooks kept as linked markdown." },
+        { name: "Dev", kind: "folder", tint: T.folder },
+        { name: "Doc-Templates", kind: "folder", tint: T.folder },
+        { name: "Finance", kind: "folder", tint: T.folder },
+        { name: "Github", kind: "folder", tint: T.folder },
+        { name: "Guides", kind: "folder", tint: T.folder },
+        { name: "IAM", kind: "folder", tint: T.folder },
+        { name: "Mikes-AI-Lab", kind: "folder", tint: T.folder, desc: "Vault-side mirror of the lab: architecture notes and decisions." },
+        { name: "My-Documents", kind: "folder", tint: T.folder },
+        { name: "README.md", kind: "file", tint: T.md }
+      ]}
+    ];
+
+    const index = {};
+    const walk = (n, parentId, parentPath, depth) => {
+      n.id = parentId ? parentId + "/" + n.name : (depth === 0 && n.name === "Documents" ? "docs" : "root");
+      n.depth = depth;
+      n.fsPath = parentPath ? parentPath + "\\" + n.name : n.name;
+      n.parentId = parentId;
+      index[n.id] = n;
+      (n.children || []).forEach((c) => walk(c, n.id, n.fsPath, depth + 1));
+    };
+    nodes.forEach((n) => walk(n, null, null, 0));
+    this._tree = { nodes, index };
+    return this._tree;
+  }
+  index() { return this.tree().index; }
+
+  flat() {
+    const out = [];
+    const push = (n) => {
+      out.push(n);
+      if (this.state.open[n.id]) (n.children || []).forEach(push);
+    };
+    this.tree().nodes.forEach(push);
+    return out;
+  }
+
+  // ---------- render ----------
+  renderVals() {
+    const { ROOT, skills, commands, subagents, hooks, repos } = this.raw();
+    const idx = this.index();
+    const node = idx[this.state.sel] || idx.root;
+    const q = this.state.query.trim().toLowerCase();
+    const isSearch = q.length > 0;
+    const DOT = { clean: "#5fe3a1", dirty: "#e0a458", behind: "#6aa9f0", conflict: "#e0625f" };
+    const fsPath = (n) => (n.id === "docs" || n.id.indexOf("docs/") === 0 ? "C:\\Users\\Mike\\" + n.fsPath : "C:\\Users\\Mike\\" + n.fsPath);
+
+    const tree = this.flat().map((n) => {
+      const active = !isSearch && n.id === this.state.sel;
+      const kids = n.children && n.children.length;
+      return {
+        name: n.name, pad: 6 + n.depth * 13,
+        chev: kids ? (this.state.open[n.id] ? "▾" : "▸") : "",
+        tint: n.tint, radius: n.kind === "repo" || n.kind === "workspace" ? "50%" : "0",
+        fg: active ? "#f0f4f8" : n.kind === "file" ? "#79838f" : "#c4ccd5",
+        bg: active ? "#16202b" : "transparent",
+        bar: active ? "#5fe3a1" : "transparent",
+        badge: kids ? String(n.children.length) : "",
+        go: this.hit(n.id)
+      };
+    });
+
+    const crumbs = [];
+    let c = node;
+    while (c) { crumbs.unshift(c); c = c.parentId ? idx[c.parentId] : null; }
+    const crumbList = [];
+    crumbs.forEach((n, i) => {
+      if (i > 0) crumbList.push({ label: "/", color: "#333b45", go: () => {} });
+      crumbList.push({ label: n.name, color: i === crumbs.length - 1 ? "#dbe1e8" : "#4e5762", go: this.sel(n.id) });
+    });
+
+    const goTo = (name) => {
+      const found = Object.keys(idx).find((k) => idx[k].name === name);
+      return this.sel(found || "root");
+    };
+
+    // entity view
+    const e = node.entity;
+    const entity = e ? {
+      name: e.name, kind: node.kind, tint: node.tint,
+      path: ROOT + "\\Agents\\Claude\\" + e.dir.split("/").join("\\") + "\\" + (node.kind === "skill" ? e.name + "\\SKILL.md" : e.name.replace("/", "") + ".md"),
+      docName: node.kind === "skill" ? "SKILL.md" : e.name.replace("/", "") + ".md",
+      desc: e.desc,
+      hasUsage: !!e.usage, usage: e.usage || "",
+      copyLabel: this.state.copied === "ent" ? "✓ copied" : (e.usage ? "copy invocation" : "copy path"),
+      copy: this.copy(e.usage || e.name, "ent"),
+      meta: (e.meta || []).map((m) => ({ k: m[0], v: m[1] })),
+      sections: (e.sections || []).map((s) => ({ h: s[0], p: s[1] })),
+      links: (e.links || []).map((l) => ({ name: l, go: goTo(l) }))
+    } : null;
+
+    // cli view
+    const cliName = node.kind === "cli" ? node.name : "Claude";
+    const cliKids = (node.children || []);
+    const dotClaude = cliKids.find((k) => k.name === ".claude");
+    const grpOf = (dirName, label, tint, arr) => {
+      const dirNode = dotClaude ? (dotClaude.children || []).find((k) => k.name === dirName) : null;
+      return {
+        label, tint, dir: ".claude/" + dirName, count: String(arr.length),
+        items: arr.map((x, i) => ({
+          name: x.name, tag: x.tag, desc: x.desc,
+          go: dirNode ? this.hit(dirNode.id + "/" + x.name) : this.sel("root")
+        }))
+      };
+    };
+    const cli = {
+      name: cliName, path: node.fsPath ? "C:\\Users\\Mike\\" + node.fsPath : ROOT,
+      desc: cliName === "Claude"
+        ? "Primary runtime. Everything the lab automates runs through here: eight skills, nine slash commands, five sub-agents, and three hooks, plus the MCP servers wired in .mcp.json."
+        : cliName + " keeps the same folder contract as Claude — its own config, skills, commands, sub-agents, and hooks — so a skill can be lifted between runtimes without rewriting paths.",
+      copyLabel: this.state.copied === "cli" ? "✓ copied" : "copy path",
+      copy: this.copy("C:\\Users\\Mike\\" + (node.fsPath || ""), "cli"),
+      configs: cliKids.filter((k) => k.kind === "file").map((k) => ({ name: k.name, tint: k.tint, size: "", go: this.hit(k.id) })),
+      groups: [
+        grpOf("skills", "Skills", "#5fe3a1", skills),
+        grpOf("commands", "Commands", "#e0a458", commands),
+        grpOf("agents", "Sub-agents", "#b48ce8", subagents),
+        grpOf("hooks", "Hooks", "#6aa9f0", hooks)
+      ]
+    };
+
+    // folder view
+    const folder = {
+      name: node.name, path: "C:\\Users\\Mike\\" + (node.fsPath || ""),
+      desc: node.desc || "Folder in the lab. Contents below.",
+      children: (node.children || []).map((k) => ({
+        name: k.name, kind: k.kind, tint: k.tint,
+        radius: k.kind === "repo" || k.kind === "workspace" ? "50%" : "0",
+        desc: k.desc || (k.repo ? k.repo.desc : k.entity ? k.entity.desc : k.kind === "file" ? "Markdown or config file." : "—"),
+        go: this.hit(k.id)
+      }))
+    };
+
+    // repo view
+    const r = node.repo || repos[1];
+    const repo = {
+      name: r.name, branch: r.branch, state: r.state, dot: DOT[r.state], desc: r.desc,
+      path: "C:\\Users\\Mike\\" + (node.repo ? node.fsPath : "Mikes_AI_Lab\\Repos\\Live_Apps\\" + r.name),
+      copyLabel: this.state.copied === "repo" ? "✓ copied" : "copy path",
+      copy: this.copy(r.name, "repo"),
+      cmds: ["git -C " + r.name + " pull", "pnpm install", "pnpm dev"],
+      notes: "Inherits Agents\\Claude\\CLAUDE.md. Repo-local overrides live in .claude\\overrides.md and win on conflict, except the hard prohibitions: no direct commits to main, no writes to generated paths, no secret values in tracked files.",
+      meta: [
+        { k: "group", v: r.group }, { k: "branch", v: r.branch }, { k: "state", v: r.state },
+        { k: "last commit", v: r.ago + " ago" },
+        { k: "ahead / behind", v: r.state === "behind" ? "0 / 4" : "2 / 0" },
+        { k: "remote", v: "origin" }
+      ],
+      skillLinks: skills.filter((s) => s.links.indexOf(r.name) >= 0 || s.meta[1][1] === "global").slice(0, 4).map((s) => ({ name: s.name, go: goTo(s.name) })),
+      files: [{ glyph: "▸", name: "src/" }, { glyph: "▸", name: ".claude/" }, { glyph: "▸", name: "tests/" }, { glyph: "·", name: "README.md" }, { glyph: "·", name: "package.json" }, { glyph: "·", name: ".env.example" }]
+    };
+
+    // file view
+    const fileDocs = {
+      "README.md": { desc: "What Mikes_AI_Lab is, how Agents and Repos relate, and the order to read things in.", sections: [["Layout", "Agents holds one folder per CLI runtime. Repos holds thirteen independent repositories in four groups. Resources is shared reference material. Documents is a separate Obsidian vault the agents read and write."], ["Where to start", "Agents\\Claude is the active runtime — its .claude folder defines every skill, command, sub-agent, and hook. Repos\\Live_Apps is what actually ships."], ["Regenerating this hub", "Run /scan. The repo-scan skill walks every folder, reads git state, and rewrites index.html in place."]] },
+      "CLAUDE.md": { desc: "The contract this runtime inherits before it may act anywhere in the lab.", sections: [["Precedence", "Root CLAUDE.md, then repo-local .claude\\overrides.md, then the loaded skill's own rules. Later wins on conflict, except the hard prohibitions."], ["Hard prohibitions", "No direct commits to main. No writes to generated paths. No secret values in tracked files — reference the vault key instead."], ["Before any diff", "Read the repo README, run its lint and test gate, and state the blast radius in one sentence."], ["Escalation", "A change spanning more than three repos is a human decision. Stop and ask."]] },
+      ".mcp.json": { desc: "MCP servers available to this runtime.", sections: [["Servers", "ax-platform (workspace messages, tasks, context), playwright (browser automation, cached under .playwright-mcp), and the local filesystem server scoped to the lab root."], ["Secrets", "Values come from .env and .env.cloud; the committed file holds keys only."]] },
+      ".env": { desc: "Local secrets for this runtime. Never committed, never read into a diff.", sections: [["Contents", "API keys for the MCP servers, the AgentMail token, and the SSH target for the runner box."]] },
+      "settings.json": { desc: "Runtime settings: permissions, hook registrations, and the default model.", sections: [["Permissions", "Allowlist for Bash patterns; everything else prompts."], ["Hooks", "Registers pre-commit-guard, session-start-context, and post-tool-log."]] }
+    };
+    const fd = fileDocs[node.name] || { desc: (node.desc || "File in the lab."), sections: [] };
+    const file = { name: node.name, path: "C:\\Users\\Mike\\" + (node.fsPath || ""), size: "", desc: fd.desc, sections: fd.sections.map((s) => ({ h: s[0], p: s[1] })) };
+
+    // search
+    const hits = [];
+    if (isSearch) {
+      const seen = {};
+      const runtimeOf = (n) => {
+        let p = n;
+        while (p) { if (p.kind === "cli") return p.name; p = p.parentId ? idx[p.parentId] : null; }
+        return null;
+      };
+      Object.keys(idx).forEach((k) => {
+        const n = idx[k];
+        const blurb = n.desc || (n.repo ? n.repo.desc : n.entity ? n.entity.desc : "");
+        if ((n.name + " " + blurb).toLowerCase().indexOf(q) < 0) return;
+        if (hits.length > 40) return;
+        const rt = runtimeOf(n);
+        if (rt && rt !== "Claude" && (n.entity || n.kind === "file")) return;
+        const dedupe = n.kind + "|" + n.name + "|" + (rt || "");
+        if (seen[dedupe]) return;
+        seen[dedupe] = true;
+        const parent = n.parentId ? idx[n.parentId].name : "root";
+        const inDotClaude = rt && n.id.indexOf("/" + rt + "/.claude/") >= 0;
+        const fileBlurb = { "README.md": "Runtime overview and folder contract.", "CLAUDE.md": "The contract every agent inherits before it may act.", ".mcp.json": "MCP servers wired into this runtime.", ".mcp.json.bak": "Previous MCP server config, kept as a fallback.", ".env": "Local secrets — never committed.", ".env.cloud": "Secrets for the runner box, never committed.", "settings.json": "Permissions, hook registrations, default model.", "dl.json": "Download manifest used by the media automations.", "AGENTS.md": "Runtime contract for the non-Claude CLIs." };
+        hits.push({
+          kind: n.kind, tint: n.tint, name: n.name,
+          desc: blurb || fileBlurb[n.name] || "—",
+          where: rt ? rt + (inDotClaude ? " · .claude/" + parent : "") : parent,
+          go: this.hit(n.id)
+        });
+      });
+      hits.sort((a, b) => a.name.toLowerCase().indexOf(q) - b.name.toLowerCase().indexOf(q));
+    }
+
+    const dirty = repos.filter((x) => x.state === "dirty").length;
+
+    return {
+      tree, crumbs: crumbList,
+      searchRef: this.searchRef, query: this.state.query,
+      onQuery: (ev) => this.setState({ query: ev.target.value }),
+      collapseAll: () => this.setState({ open: { root: true, docs: true } }),
+      isSearch, results: hits, resultCount: String(hits.length),
+      isWorkspace: !isSearch && node.kind === "workspace" && node.id === "root",
+      isCli: !isSearch && node.kind === "cli",
+      isFolder: !isSearch && (node.kind === "folder" || (node.kind === "workspace" && node.id !== "root")),
+      isRepo: !isSearch && node.kind === "repo",
+      isEntity: !isSearch && !!e,
+      isFile: !isSearch && node.kind === "file",
+      cli, folder, repo, entity: entity || { meta: [], sections: [], links: [], hasUsage: false }, file,
+      rootCopyLabel: this.state.copied === "root" ? "✓ copied" : "copy root path",
+      copyRoot: this.copy(ROOT, "root"),
+      runtimes: ["Antigravity", "Claude", "Codex", "OpenCode"].map((n) => ({
+        name: n, tint: "#5fe3a1", config: n === "Claude" ? "CLAUDE.md" : "AGENTS.md",
+        desc: n === "Claude" ? "Primary runtime — all eight skills, nine commands, five sub-agents, three hooks." : n === "Codex" ? "Secondary runtime, same folder contract; used for long refactors." : n === "OpenCode" ? "Open-source runtime kept in sync for portability checks." : "Experimental runtime; skills mirrored read-only.",
+        nSkills: n === "Claude" ? "8" : n === "Codex" ? "6" : "4",
+        nCommands: n === "Claude" ? "9" : "5", nAgents: n === "Claude" ? "5" : "2", nHooks: n === "Claude" ? "3" : "1",
+        go: goTo(n)
+      })),
+      repoRows: repos.map((x) => ({
+        name: x.name, group: x.group, branch: x.branch, state: x.state, dot: DOT[x.state], commit: x.commit, ago: x.ago,
+        go: goTo(x.name)
+      })),
+      rootDocs: [
+        { name: "README.md", where: "Mikes_AI_Lab", desc: "What the lab is and the order to read it in.", go: this.hit("root/README.md") },
+        { name: "CLAUDE.md", where: "Agents\\Claude", desc: "The contract every agent inherits before it may act.", go: this.hit("root/Agents/Claude/CLAUDE.md") }
+      ],
+      stats: [
+        { label: "CLI runtimes", value: "4", note: "", color: "#e7ecf1" },
+        { label: "repos", value: "13", note: "4 groups", color: "#e7ecf1" },
+        { label: "skills", value: String(skills.length), note: "", color: "#5fe3a1" },
+        { label: "commands", value: String(commands.length), note: "", color: "#e0a458" },
+        { label: "sub-agents / hooks", value: "5", note: "· 3", color: "#b48ce8" },
+        { label: "uncommitted", value: String(dirty), note: "+1 conflict", color: "#e0a458" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail" data-bg-color="#0a0c0e">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#0a0c0e"/>
+    <rect x="150" y="220" width="180" height="360" fill="#0c0f12" stroke="#22272e" stroke-width="4"/>
+    <rect x="330" y="220" width="720" height="360" fill="#0e1114" stroke="#22272e" stroke-width="4"/>
+    <g fill="#5fe3a1">
+      <rect x="180" y="260" width="90" height="10"/>
+      <circle cx="185" cy="320" r="7"/>
+      <circle cx="185" cy="356" r="7"/>
+      <circle cx="185" cy="392" r="7"/>
+    </g>
+    <g fill="#22272e">
+      <rect x="205" y="315" width="95" height="10"/>
+      <rect x="205" y="351" width="80" height="10"/>
+      <rect x="205" y="387" width="88" height="10"/>
+      <rect x="370" y="330" width="640" height="8"/>
+      <rect x="370" y="370" width="640" height="8"/>
+      <rect x="370" y="410" width="640" height="8"/>
+      <rect x="370" y="450" width="440" height="8"/>
+    </g>
+    <text x="370" y="290" font-family="ui-monospace, monospace" font-size="42" font-weight="600" fill="#f0f4f8">/My-Library</text>
+  </svg>
+</template>
+</head>
+<body>
+<x-dc>
+<![CDATA[<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; background:#0a0c0e; }
+  body { font-family:'IBM Plex Sans', ui-sans-serif, sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#5fe3a1; text-decoration:none; }
+  a:hover { color:#8ff0c0; text-decoration:underline; }
+  * { box-sizing:border-box; }
+  ::-webkit-scrollbar { width:9px; height:9px; }
+  ::-webkit-scrollbar-track { background:#0a0c0e; }
+  ::-webkit-scrollbar-thumb { background:#252b33; border-radius:0; }
+  ::-webkit-scrollbar-thumb:hover { background:#333b45; }
+  input::placeholder { color:#4e5762; }
+</style>
+</helmet>
+
+<div style="display:flex; height:100vh; width:100%; background:#0a0c0e; color:#dbe1e8; font-size:13px; overflow:hidden">
+
+  <!-- SIDEBAR -->
+  <aside style="width:252px; flex:0 0 252px; border-right:1px solid #22272e; background:#0c0f12; display:flex; flex-direction:column; overflow:hidden">
+    <div style="padding:14px 14px 12px; border-bottom:1px solid #1a1f25; display:flex; flex-direction:column; gap:6px">
+      <div style="display:flex; align-items:center; gap:8px">
+        <div style="width:18px; height:18px; border:1px solid #5fe3a1; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5fe3a1; font-weight:600">/</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; letter-spacing:-0.01em; color:#e7ecf1">My-Library</div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762; letter-spacing:-0.01em">C:\dev\My-Library</div>
+    </div>
+
+    <nav style="flex:1; overflow-y:auto; padding:10px 8px; display:flex; flex-direction:column; gap:14px">
+      <div style="display:flex; flex-direction:column; gap:1px">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#4e5762; padding:4px 6px 6px">Project</div>
+        <sc-for list="{{ nav }}" as="item" hint-placeholder-count="4">
+          <div onClick="{{ item.go }}" style="display:flex; align-items:center; gap:8px; padding:5px 6px; cursor:pointer; border-left:2px solid {{ item.bar }}; background:{{ item.bg }}; color:{{ item.fg }}" style-hover="background:#14181d; color:#dbe1e8">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; width:12px; color:#4e5762">{{ item.glyph }}</span>
+            <span style="font-size:12.5px; flex:1">{{ item.label }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762">{{ item.count }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:1px">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; padding:4px 6px 6px">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#4e5762">Repositories</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#3c444e">10</span>
+        </div>
+        <sc-for list="{{ repos }}" as="r" hint-placeholder-count="10">
+          <div onClick="{{ r.go }}" style="display:flex; align-items:center; gap:7px; padding:4px 6px; cursor:pointer; border-left:2px solid {{ r.bar }}; background:{{ r.bg }}" style-hover="background:#14181d">
+            <span style="width:5px; height:5px; border-radius:50%; flex:0 0 5px; background:{{ r.dot }}"></span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:{{ r.fg }}">{{ r.name }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">{{ r.short }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </nav>
+
+    <div style="border-top:1px solid #1a1f25; padding:9px 14px; display:flex; align-items:center; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">
+      <span>index.html</span>
+      <span style="color:#5fe3a1">● live</span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main style="flex:1; min-width:0; display:flex; flex-direction:column; overflow:hidden">
+
+    <!-- TOPBAR -->
+    <header style="height:44px; flex:0 0 44px; border-bottom:1px solid #22272e; background:#0c0f12; display:flex; align-items:center; gap:14px; padding:0 16px">
+      <div style="display:flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#79838f; min-width:0">
+        <span style="color:#4e5762">My-Library</span>
+        <span style="color:#333b45">/</span>
+        <span style="color:#dbe1e8">{{ crumb }}</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex; align-items:center; gap:6px; border:1px solid #22272e; background:#101317; padding:4px 8px; width:280px" style-focus="border-color:#2f6b52">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">⌕</span>
+        <input ref="{{ searchRef }}" value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search repos, skills, commands, agents" style="flex:1; background:transparent; border:none; outline:none; color:#dbe1e8; font-family:'IBM Plex Mono',monospace; font-size:11.5px" />
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#3c444e; border:1px solid #22272e; padding:1px 4px">⌘K</span>
+      </div>
+      <div style="display:flex; gap:6px">
+        <div onClick="{{ noop }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:4px 9px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">↻ rescan</div>
+      </div>
+    </header>
+
+    <div style="flex:1; overflow-y:auto">
+
+      <!-- SEARCH RESULTS -->
+      <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:20px 24px 40px; max-width:1180px">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; margin-bottom:14px">{{ resultCount }} results for “{{ query }}”</div>
+          <div style="display:flex; flex-direction:column; gap:1px">
+            <sc-for list="{{ results }}" as="hit" hint-placeholder-count="6">
+              <div onClick="{{ hit.go }}" style="display:grid; grid-template-columns:88px 1fr 220px; gap:14px; align-items:center; padding:8px 10px; border:1px solid #1a1f25; background:#0e1114; cursor:pointer" style-hover="border-color:#2f6b52; background:#12161a">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:{{ hit.kindColor }}">{{ hit.kind }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e7ecf1">{{ hit.name }}</span>
+                <span style="font-size:11.5px; color:#79838f; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ hit.desc }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- OVERVIEW -->
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:22px 24px 44px; max-width:1180px; display:flex; flex-direction:column; gap:22px">
+
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap">
+            <div style="display:flex; flex-direction:column; gap:7px">
+              <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:600; letter-spacing:-0.02em; color:#f0f4f8">My-Library</h1>
+              <p style="margin:0; font-size:12.5px; color:#79838f; max-width:620px; text-wrap:pretty">Local monorepo of 10 independent Git repositories, one shared agent contract, and the skills, commands, and agents the CLI operates with. This page is regenerated on every scan.</p>
+            </div>
+            <div style="display:flex; gap:8px">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#0a0c0e; background:#5fe3a1; padding:5px 11px; cursor:pointer; font-weight:500" style-hover="background:#8ff0c0">open in VS Code</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:5px 11px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">copy root path</div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1px; background:#1a1f25; border:1px solid #1a1f25">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+              <div style="background:#0e1114; padding:12px 14px; display:flex; flex-direction:column; gap:5px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762">{{ s.label }}</div>
+                <div style="display:flex; align-items:baseline; gap:7px">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:{{ s.color }}; letter-spacing:-0.02em">{{ s.value }}</span>
+                  <span style="font-size:11px; color:#4e5762">{{ s.note }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px">
+            <sc-for list="{{ rootDocs }}" as="d" hint-placeholder-count="3">
+              <div onClick="{{ d.go }}" style="border:1px solid #22272e; background:#0e1114; padding:12px 13px; display:flex; flex-direction:column; gap:6px; cursor:pointer" style-hover="border-color:#2f6b52; background:#12161a">
+                <div style="display:flex; align-items:center; justify-content:space-between">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e7ecf1">{{ d.name }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">{{ d.size }}</span>
+                </div>
+                <span style="font-size:11.5px; color:#79838f; line-height:1.45; text-wrap:pretty">{{ d.desc }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; padding-bottom:9px">
+              <h2 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.13em; text-transform:uppercase; color:#79838f">Repositories</h2>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762">scanned {{ scannedAt }}</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1.4fr 0.9fr 0.5fr 1.6fr 0.6fr; gap:14px; padding:7px 12px; border:1px solid #22272e; background:#0c0f12; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#4e5762">
+              <span>repository</span><span>branch</span><span>state</span><span>last commit</span><span style="text-align:right">skills</span>
+            </div>
+            <sc-for list="{{ repos }}" as="r" hint-placeholder-count="10">
+              <div onClick="{{ r.go }}" style="display:grid; grid-template-columns:1.4fr 0.9fr 0.5fr 1.6fr 0.6fr; gap:14px; align-items:center; padding:8px 12px; border:1px solid #1a1f25; border-top:none; background:#0e1114; cursor:pointer" style-hover="background:#14181d">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0">
+                  <span style="width:5px; height:5px; border-radius:50%; flex:0 0 5px; background:{{ r.dot }}"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e7ecf1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ r.name }}</span>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6aa9f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ r.branch }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{{ r.dot }}">{{ r.state }}</span>
+                <span style="font-size:11.5px; color:#79838f; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ r.commit }} <span style="color:#4e5762">· {{ r.ago }}</span></span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; text-align:right">{{ r.skills }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- REPO DETAIL -->
+      <sc-if value="{{ isRepo }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 44px; max-width:1180px; display:flex; flex-direction:column; gap:18px">
+          <div style="display:flex; flex-direction:column; gap:10px">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
+              <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">{{ repo.name }}</h1>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6aa9f0; border:1px solid #1e3550; background:#0e1620; padding:2px 7px">{{ repo.branch }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{{ repo.dot }}">{{ repo.state }}</span>
+              <div style="flex:1"></div>
+              <div onClick="{{ repo.copy }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; border:1px solid #22272e; padding:4px 9px; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">{{ copyLabel }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#0a0c0e; background:#5fe3a1; padding:4px 9px; cursor:pointer; font-weight:500" style-hover="background:#8ff0c0">code .</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#4e5762">{{ repo.path }}</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 300px; gap:14px; align-items:start">
+            <div style="border:1px solid #22272e; background:#0e1114">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; border-bottom:1px solid #1a1f25; background:#0c0f12">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f">README.md</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762">rendered</span>
+              </div>
+              <div style="padding:16px 18px; display:flex; flex-direction:column; gap:12px">
+                <h2 style="margin:0; font-size:16px; font-weight:600; color:#f0f4f8; letter-spacing:-0.01em">{{ repo.name }}</h2>
+                <p style="margin:0; font-size:12.5px; line-height:1.6; color:#a7b0ba; text-wrap:pretty">{{ repo.desc }}</p>
+                <div style="height:1px; background:#1a1f25"></div>
+                <h3 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#79838f">Quick start</h3>
+                <div style="background:#080a0c; border:1px solid #1a1f25; padding:10px 12px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; line-height:1.8; color:#a7b0ba; overflow-x:auto">
+                  <div><span style="color:#4e5762">$</span> git clone {{ repo.remote }}</div>
+                  <div><span style="color:#4e5762">$</span> cd {{ repo.name }} <span style="color:#4e5762">&amp;&amp;</span> pnpm install</div>
+                  <div><span style="color:#4e5762">$</span> pnpm dev</div>
+                </div>
+                <h3 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#79838f">Agent contract</h3>
+                <p style="margin:0; font-size:12.5px; line-height:1.6; color:#a7b0ba; text-wrap:pretty">Inherits the root <a href="#">AGENTS.md</a>. Repo-local overrides live in <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#5fe3a1">.agents/overrides.md</span> — read before any write operation.</p>
+                <ul style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px; font-size:12.5px; color:#a7b0ba; line-height:1.5">
+                  <li>Never commit directly to <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px">main</span> — open a branch.</li>
+                  <li>Run the repo's own lint + test gate before proposing a diff.</li>
+                  <li>Generated files under <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px">dist/</span> are off-limits.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px">
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Git</div>
+                <div style="display:flex; flex-direction:column; gap:7px">
+                  <sc-for list="{{ repo.meta }}" as="m" hint-placeholder-count="5">
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
+                      <span style="font-size:11.5px; color:#79838f">{{ m.k }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#dbe1e8; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ m.v }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Scoped skills</div>
+                <div style="display:flex; flex-wrap:wrap; gap:5px">
+                  <sc-for list="{{ repo.skillTags }}" as="t" hint-placeholder-count="4">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#5fe3a1; border:1px solid #1e3a2c; background:#0b1512; padding:2px 7px">{{ t }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="border:1px solid #22272e; background:#0e1114; padding:12px">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.13em; text-transform:uppercase; color:#4e5762; margin-bottom:9px">Files</div>
+                <div style="display:flex; flex-direction:column; gap:4px; font-family:'IBM Plex Mono',monospace; font-size:11px">
+                  <sc-for list="{{ repo.files }}" as="f" hint-placeholder-count="6">
+                    <div style="display:flex; align-items:center; gap:7px; color:#79838f; cursor:pointer" style-hover="color:#5fe3a1">
+                      <span style="color:#3c444e">{{ f.glyph }}</span><span>{{ f.name }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- SKILLS -->
+      <sc-if value="{{ isSkills }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 44px; max-width:1180px; display:flex; flex-direction:column; gap:16px">
+          <div style="display:flex; flex-direction:column; gap:6px">
+            <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">Skills</h1>
+            <p style="margin:0; font-size:12.5px; color:#79838f; max-width:620px; text-wrap:pretty">Capability bundles the CLI agent can load. Each one is a folder under <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#a7b0ba">.agent/skills/</span> with a SKILL.md and its own helpers.</p>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:10px">
+            <sc-for list="{{ skills }}" as="s" hint-placeholder-count="8">
+              <div style="border:1px solid #22272e; background:#0e1114; padding:13px; display:flex; flex-direction:column; gap:9px" style-hover="border-color:#2f6b52">
+                <div style="display:flex; align-items:center; gap:8px">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e7ecf1; flex:1">{{ s.name }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase; color:{{ s.scopeColor }}">{{ s.scope }}</span>
+                </div>
+                <p style="margin:0; font-size:12px; line-height:1.5; color:#79838f; text-wrap:pretty">{{ s.desc }}</p>
+                <div style="height:1px; background:#1a1f25"></div>
+                <div style="display:flex; align-items:center; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762">
+                  <span>{{ s.path }}</span>
+                  <span>{{ s.usedBy }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- COMMANDS -->
+      <sc-if value="{{ isCommands }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 44px; max-width:1180px; display:flex; flex-direction:column; gap:16px">
+          <div style="display:flex; flex-direction:column; gap:6px">
+            <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">Commands</h1>
+            <p style="margin:0; font-size:12.5px; color:#79838f; max-width:620px; text-wrap:pretty">Slash commands registered across the project. Click any invocation to copy it.</p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0">
+            <div style="display:grid; grid-template-columns:200px 1fr 130px 34px; gap:14px; padding:7px 12px; border:1px solid #22272e; background:#0c0f12; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#4e5762">
+              <span>command</span><span>invocation</span><span>scope</span><span></span>
+            </div>
+            <sc-for list="{{ commands }}" as="c" hint-placeholder-count="9">
+              <div style="display:grid; grid-template-columns:200px 1fr 130px 34px; gap:14px; align-items:center; padding:8px 12px; border:1px solid #1a1f25; border-top:none; background:#0e1114" style-hover="background:#14181d">
+                <div style="display:flex; flex-direction:column; gap:2px; min-width:0">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#5fe3a1">{{ c.name }}</span>
+                  <span style="font-size:11px; color:#79838f; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ c.desc }}</span>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#a7b0ba; background:#080a0c; border:1px solid #1a1f25; padding:4px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ c.usage }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#79838f; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ c.scope }}</span>
+                <div onClick="{{ c.copy }}" style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4e5762; border:1px solid #22272e; padding:3px 0; text-align:center; cursor:pointer" style-hover="border-color:#2f6b52; color:#5fe3a1">{{ c.copyLabel }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- AGENTS -->
+      <sc-if value="{{ isAgents }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 44px; max-width:1180px; display:flex; flex-direction:column; gap:16px">
+          <div style="display:flex; flex-direction:column; gap:6px">
+            <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; color:#f0f4f8; letter-spacing:-0.02em">Agents</h1>
+            <p style="margin:0; font-size:12.5px; color:#79838f; max-width:620px; text-wrap:pretty">Sub-agents defined for this project, the skills each may load, and the repos they are allowed to write to.</p>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:10px">
+            <sc-for list="{{ agents }}" as="a" hint-placeholder-count="5">
+              <div style="border:1px solid #22272e; background:#0e1114; display:flex; flex-direction:column">
+                <div style="padding:12px 13px; display:flex; align-items:flex-start; gap:10px; border-bottom:1px solid #1a1f25">
+                  <div style="width:26px; height:26px; flex:0 0 26px; border:1px solid {{ a.tint }}; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:{{ a.tint }}; font-weight:600">{{ a.initial }}</div>
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:3px">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e7ecf1">{{ a.name }}</span>
+                    <span style="font-size:11.5px; color:#79838f; line-height:1.45; text-wrap:pretty">{{ a.desc }}</span>
+                  </div>
+                </div>
+                <div style="padding:11px 13px; display:flex; flex-direction:column; gap:9px">
+                  <div style="display:flex; align-items:baseline; gap:10px">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#4e5762; width:52px; flex:0 0 52px">model</span>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#dbe1e8">{{ a.model }}</span>
+                  </div>
+                  <div style="display:flex; align-items:baseline; gap:10px">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#4e5762; width:52px; flex:0 0 52px">skills</span>
+                    <div style="flex:1; display:flex; flex-wrap:wrap; gap:4px">
+                      <sc-for list="{{ a.skills }}" as="t" hint-placeholder-count="3">
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5fe3a1; border:1px solid #1e3a2c; background:#0b1512; padding:1px 6px">{{ t }}</span>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex; align-items:baseline; gap:10px">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#4e5762; width:52px; flex:0 0 52px">writes</span>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#79838f; flex:1">{{ a.writes }}</span>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- DOC -->
+      <sc-if value="{{ isDoc }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:22px 24px 60px; max-width:840px; display:flex; flex-direction:column; gap:14px">
+          <div style="display:flex; align-items:center; gap:10px">
+            <h1 style="margin:0; font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; color:#f0f4f8">{{ doc.name }}</h1>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#4e5762">{{ doc.size }}</span>
+          </div>
+          <div style="border:1px solid #22272e; background:#0e1114; padding:20px 22px; display:flex; flex-direction:column; gap:13px">
+            <p style="margin:0; font-size:13px; line-height:1.65; color:#a7b0ba; text-wrap:pretty">{{ doc.desc }}</p>
+            <div style="height:1px; background:#1a1f25"></div>
+            <sc-for list="{{ doc.sections }}" as="sec" hint-placeholder-count="4">
+              <div style="display:flex; flex-direction:column; gap:7px">
+                <h3 style="margin:0; font-size:13.5px; font-weight:600; color:#e7ecf1">{{ sec.h }}</h3>
+                <p style="margin:0; font-size:12.5px; line-height:1.65; color:#a7b0ba; text-wrap:pretty">{{ sec.p }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>]]>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { view: "overview", repoId: "agent-runner", docId: null, query: "", copied: null };
+
+  constructor(props) {
+    super(props);
+    this.searchRef = React.createRef();
+  }
+
+  componentDidMount() {
+    this._key = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (this.searchRef.current) this.searchRef.current.focus();
+      }
+      if (e.key === "Escape") this.setState({ query: "" });
+    };
+    window.addEventListener("keydown", this._key);
+  }
+  componentWillUnmount() { window.removeEventListener("keydown", this._key); }
+
+  go(view, extra) { return () => this.setState(Object.assign({ view, query: "" }, extra || {})); }
+
+  copy(text, key) {
+    return (e) => {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+      this.setState({ copied: key });
+      clearTimeout(this._ct);
+      this._ct = setTimeout(() => this.setState({ copied: null }), 1400);
+    };
+  }
+
+  data() {
+    const D = { clean: "#5fe3a1", dirty: "#e0a458", behind: "#6aa9f0", conflict: "#e0625f" };
+    const repos = [
+      { name: "agent-runner", branch: "main", state: "clean", dot: D.clean, commit: "harden cron wrapper retries", ago: "2h", skills: 6, remote: "git@github.com:me/agent-runner.git", desc: "Long-running container that executes scheduled agent jobs. Owns the cron table, the wrapper scripts, and per-job logging." },
+      { name: "core-api", branch: "main", state: "dirty", dot: D.dirty, commit: "wip: batch ingest endpoint", ago: "18m", skills: 4, remote: "git@github.com:me/core-api.git", desc: "HTTP surface for everything else. Auth, ingest, and the job queue the runner drains." },
+      { name: "cli", branch: "feat/plugin-host", state: "dirty", dot: D.dirty, commit: "plugin manifest resolution", ago: "5h", skills: 7, remote: "git@github.com:me/cli.git", desc: "The command-line entry point. Loads skills, resolves commands, and dispatches to agents." },
+      { name: "web-dashboard", branch: "main", state: "clean", dot: D.clean, commit: "run detail timeline", ago: "1d", skills: 3, remote: "git@github.com:me/web-dashboard.git", desc: "Operator UI for watching runs, reading logs, and re-queuing failures." },
+      { name: "sdk-node", branch: "main", state: "behind", dot: D.behind, commit: "release 0.9.2", ago: "3d", skills: 2, remote: "git@github.com:me/sdk-node.git", desc: "Typed client for core-api. Published to the private registry on tag." },
+      { name: "sdk-python", branch: "main", state: "behind", dot: D.behind, commit: "async client parity", ago: "4d", skills: 2, remote: "git@github.com:me/sdk-python.git", desc: "Python client mirroring sdk-node's surface, used by the notebook workflows." },
+      { name: "prompt-lab", branch: "exp/eval-harness", state: "dirty", dot: D.dirty, commit: "wip: pairwise judge", ago: "6h", skills: 5, remote: "git@github.com:me/prompt-lab.git", desc: "Scratch space for prompt iteration and offline evals. Nothing here is load-bearing." },
+      { name: "infra", branch: "main", state: "clean", dot: D.clean, commit: "pin hetzner image", ago: "2d", skills: 4, remote: "git@github.com:me/infra.git", desc: "Terraform and provisioning scripts for the box the runner lives on." },
+      { name: "benchmarks", branch: "main", state: "clean", dot: D.clean, commit: "add latency suite", ago: "1w", skills: 1, remote: "git@github.com:me/benchmarks.git", desc: "Reproducible perf suites, run nightly against main." },
+      { name: "docs", branch: "main", state: "conflict", dot: D.conflict, commit: "merge conflict in architecture.md", ago: "9h", skills: 2, remote: "git@github.com:me/docs.git", desc: "Long-form architecture notes and runbooks. Source of truth for onboarding." }
+    ];
+
+    const skills = [
+      { name: "repo-scan", scope: "global", desc: "Walks every repo, reads git state, and regenerates this hub's HTML.", path: ".agent/skills/repo-scan", usedBy: "3 agents" },
+      { name: "cron-deploy", scope: "agent-runner", desc: "Writes a wrapper + crontab entry and verifies the first run.", path: ".agent/skills/cron-deploy", usedBy: "1 agent" },
+      { name: "release-cut", scope: "sdk-node, sdk-python", desc: "Bumps version, generates changelog from commits, tags, publishes.", path: ".agent/skills/release-cut", usedBy: "2 agents" },
+      { name: "eval-harness", scope: "prompt-lab", desc: "Runs a prompt variant against the fixture set and reports pairwise deltas.", path: ".agent/skills/eval-harness", usedBy: "1 agent" },
+      { name: "doc-sync", scope: "docs", desc: "Reconciles README.md across repos with the architecture notes in docs.", path: ".agent/skills/doc-sync", usedBy: "2 agents" },
+      { name: "migration-write", scope: "core-api", desc: "Authors a reversible migration, dry-runs it against a snapshot.", path: ".agent/skills/migration-write", usedBy: "1 agent" },
+      { name: "triage-logs", scope: "global", desc: "Pulls the last failing run, isolates the stack, proposes the smallest fix.", path: ".agent/skills/triage-logs", usedBy: "4 agents" },
+      { name: "infra-plan", scope: "infra", desc: "Terraform plan with a human-readable diff summary; never applies.", path: ".agent/skills/infra-plan", usedBy: "1 agent" }
+    ];
+
+    const commands = [
+      { name: "/scan", desc: "Rescan all repos and rebuild this hub", usage: "cli scan --all --emit html", scope: "global" },
+      { name: "/status", desc: "Git state across every repo", usage: "cli status --short", scope: "global" },
+      { name: "/skill", desc: "Load a skill into the session", usage: "cli skill load <name>", scope: "global" },
+      { name: "/deploy-job", desc: "Ship a wrapper + cron entry", usage: "cli deploy-job <job> --cron \"0 6 * * *\"", scope: "agent-runner" },
+      { name: "/release", desc: "Cut and publish a version", usage: "cli release <repo> --bump minor", scope: "sdk-node, sdk-python" },
+      { name: "/eval", desc: "Run a prompt variant against fixtures", usage: "cli eval <variant> --fixtures core", scope: "prompt-lab" },
+      { name: "/migrate", desc: "Author and dry-run a migration", usage: "cli migrate new <name> --dry-run", scope: "core-api" },
+      { name: "/triage", desc: "Diagnose the latest failed run", usage: "cli triage --last-failed", scope: "global" },
+      { name: "/docs", desc: "Sync READMEs with architecture notes", usage: "cli docs sync --check", scope: "docs" }
+    ];
+
+    const agents = [
+      { name: "builder", tint: "#5fe3a1", desc: "Default implementer. Reads the contract, writes the branch, opens the diff.", model: "sonnet-4.5", skills: ["repo-scan", "triage-logs", "doc-sync"], writes: "all except infra" },
+      { name: "operator", tint: "#e0a458", desc: "Owns the running box: cron, wrappers, log triage, restarts.", model: "sonnet-4.5", skills: ["cron-deploy", "triage-logs"], writes: "agent-runner" },
+      { name: "releaser", tint: "#6aa9f0", desc: "Version bumps, changelogs, tags, registry publishes.", model: "haiku-4.5", skills: ["release-cut"], writes: "sdk-node, sdk-python" },
+      { name: "researcher", tint: "#b48ce8", desc: "Prompt iteration and offline evals. Read-only outside prompt-lab.", model: "opus-4.1", skills: ["eval-harness", "repo-scan"], writes: "prompt-lab" },
+      { name: "scribe", tint: "#79838f", desc: "Keeps docs and READMEs honest. Never touches source.", model: "haiku-4.5", skills: ["doc-sync", "repo-scan"], writes: "docs" }
+    ];
+
+    const docs = [
+      { id: "readme", name: "README.md", size: "4.1 kB", desc: "What My-Library is, how the ten repos relate, and the order to read things in.", sections: [
+        { h: "Layout", p: "Ten sibling repositories under a single root, each with its own remote and release cadence. Nothing is a submodule — the root only carries shared contracts and this hub." },
+        { h: "Where to start", p: "cli is the entry point for everything; core-api is where state lives; agent-runner is what actually executes on a schedule. The rest support those three." },
+        { h: "Regenerating this hub", p: "Run /scan. The repo-scan skill walks each repo, reads git state, and rewrites index.html plus the per-repo pages in place." }
+      ]},
+      { id: "agents", name: "AGENTS.md", size: "6.8 kB", desc: "The contract every agent inherits before it may act in this project.", sections: [
+        { h: "Precedence", p: "Root AGENTS.md, then repo-local .agents/overrides.md, then the loaded skill's own rules. Later wins on conflict, except for the hard prohibitions below." },
+        { h: "Hard prohibitions", p: "No direct commits to main. No writes to dist/ or any generated path. No secret values in committed files — reference the vault key instead." },
+        { h: "Before any diff", p: "Read the repo's README, run its lint and test gate, and state the blast radius in one sentence." },
+        { h: "Escalation", p: "If a change spans more than three repos, stop and ask. Cross-repo refactors are a human decision." }
+      ]},
+      { id: "contributing", name: "CONTRIBUTING.md", size: "2.3 kB", desc: "Branch naming, commit style, and the review gate shared by all ten repos.", sections: [
+        { h: "Branches", p: "feat/, fix/, exp/, chore/ prefixes. One concern per branch; exp/ branches are never merged, only harvested." },
+        { h: "Commits", p: "Imperative mood, lower case, no scope prefix. The body explains why, not what." },
+        { h: "Review", p: "Green gate plus one human approval. Agent-authored diffs are labelled and reviewed the same as any other." }
+      ]}
+    ];
+
+    return { repos, skills, commands, agents, docs };
+  }
+
+  renderVals() {
+    const { repos, skills, commands, agents, docs } = this.data();
+    const v = this.state.view;
+    const q = this.state.query.trim().toLowerCase();
+    const isSearch = q.length > 0;
+    const scopeColor = (s) => (s === "global" ? "#5fe3a1" : "#79838f");
+
+    const repoRows = repos.map((r) => ({
+      name: r.name, branch: r.branch, state: r.state, dot: r.dot, commit: r.commit, ago: r.ago, skills: r.skills,
+      short: r.branch === "main" ? "main" : r.branch.split("/")[0],
+      go: this.go("repo", { repoId: r.name }),
+      bg: v === "repo" && this.state.repoId === r.name ? "#14181d" : "transparent",
+      bar: v === "repo" && this.state.repoId === r.name ? "#5fe3a1" : "transparent",
+      fg: v === "repo" && this.state.repoId === r.name ? "#e7ecf1" : "#a7b0ba"
+    }));
+
+    const navDefs = [
+      { key: "overview", label: "Overview", glyph: "▤", count: "" },
+      { key: "skills", label: "Skills", glyph: "◈", count: String(skills.length) },
+      { key: "commands", label: "Commands", glyph: "›", count: String(commands.length) },
+      { key: "agents", label: "Agents", glyph: "◇", count: String(agents.length) }
+    ];
+    const nav = navDefs.map((n) => ({
+      label: n.label, glyph: n.glyph, count: n.count, go: this.go(n.key),
+      bg: v === n.key && !isSearch ? "#14181d" : "transparent",
+      bar: v === n.key && !isSearch ? "#5fe3a1" : "transparent",
+      fg: v === n.key && !isSearch ? "#e7ecf1" : "#a7b0ba"
+    }));
+
+    const active = repos.find((r) => r.name === this.state.repoId) || repos[0];
+    const repo = {
+      name: active.name, branch: active.branch, state: active.state, dot: active.dot, desc: active.desc, remote: active.remote,
+      path: "C:\\dev\\My-Library\\" + active.name,
+      copy: this.copy("C:\\dev\\My-Library\\" + active.name, "path"),
+      meta: [
+        { k: "branch", v: active.branch },
+        { k: "state", v: active.state },
+        { k: "last commit", v: active.ago + " ago" },
+        { k: "ahead / behind", v: active.state === "behind" ? "0 / 4" : "2 / 0" },
+        { k: "remote", v: "origin" }
+      ],
+      skillTags: skills.filter((s) => s.scope === "global" || s.scope.indexOf(active.name) >= 0).map((s) => s.name).slice(0, 5),
+      files: [
+        { glyph: "▸", name: "src/" }, { glyph: "▸", name: ".agents/" }, { glyph: "▸", name: "tests/" },
+        { glyph: "·", name: "README.md" }, { glyph: "·", name: "package.json" }, { glyph: "·", name: ".env.example" }
+      ]
+    };
+
+    const doc = docs.find((d) => d.id === this.state.docId) || docs[0];
+
+    const hits = [];
+    if (isSearch) {
+      const push = (kind, kindColor, name, desc, go) => {
+        if ((name + " " + desc).toLowerCase().indexOf(q) >= 0) hits.push({ kind, kindColor, name, desc, go });
+      };
+      repos.forEach((r) => push("repo", "#6aa9f0", r.name, r.desc, this.go("repo", { repoId: r.name })));
+      skills.forEach((s) => push("skill", "#5fe3a1", s.name, s.desc, this.go("skills")));
+      commands.forEach((c) => push("command", "#e0a458", c.name, c.desc + " — " + c.usage, this.go("commands")));
+      agents.forEach((a) => push("agent", "#b48ce8", a.name, a.desc, this.go("agents")));
+      docs.forEach((d) => push("doc", "#79838f", d.name, d.desc, this.go("doc", { docId: d.id })));
+    }
+
+    const crumbMap = { overview: "overview", skills: "skills", commands: "commands", agents: "agents", repo: active.name, doc: doc.name };
+
+    return {
+      nav, repos: repoRows, repo, doc,
+      skills: skills.map((s) => ({ name: s.name, scope: s.scope, scopeColor: scopeColor(s.scope), desc: s.desc, path: s.path, usedBy: s.usedBy })),
+      commands: commands.map((c, i) => ({
+        name: c.name, desc: c.desc, usage: c.usage, scope: c.scope,
+        copy: this.copy(c.usage, "cmd" + i), copyLabel: this.state.copied === "cmd" + i ? "✓" : "copy"
+      })),
+      agents: agents.map((a) => ({ name: a.name, initial: a.name.charAt(0).toUpperCase(), tint: a.tint, desc: a.desc, model: a.model, skills: a.skills, writes: a.writes })),
+      rootDocs: docs.map((d) => ({ name: d.name, size: d.size, desc: d.desc, go: this.go("doc", { docId: d.id }) })),
+      stats: [
+        { label: "repositories", value: "10", note: "", color: "#e7ecf1" },
+        { label: "clean", value: "4", note: "of 10", color: "#5fe3a1" },
+        { label: "uncommitted", value: "3", note: "dirty", color: "#e0a458" },
+        { label: "needs attention", value: "1", note: "conflict", color: "#e0625f" },
+        { label: "skills / cmds / agents", value: "8", note: "· 9 · 5", color: "#e7ecf1" }
+      ],
+      scannedAt: "today 09:41",
+      copyLabel: this.state.copied === "path" ? "✓ copied" : "copy path",
+      query: this.state.query,
+      searchRef: this.searchRef,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      noop: () => {},
+      isSearch, results: hits, resultCount: String(hits.length),
+      isOverview: !isSearch && v === "overview",
+      isRepo: !isSearch && v === "repo",
+      isSkills: !isSearch && v === "skills",
+      isCommands: !isSearch && v === "commands",
+      isAgents: !isSearch && v === "agents",
+      isDoc: !isSearch && v === "doc",
+      crumb: isSearch ? "search" : crumbMap[v]
+    };
+  }
+}
+</script>
+</body>
+</html>

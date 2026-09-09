@@ -1,0 +1,18 @@
+# ── machine-specific config ────────────────────────────────────────────────
+# These hold absolute paths into one person's disk. Copy the .example files
+# beside them and point those at your own workspace.
+Project-Hub/hub.config.json
+Projects/*/hub.config.json
+
+# ── generated at runtime ───────────────────────────────────────────────────
+# scan.json is a full index of every path the hub can reach. Never commit it.
+scan.json
+*.log
+*.log.1
+node_modules/
+
+# ── OS / editor noise ──────────────────────────────────────────────────────
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

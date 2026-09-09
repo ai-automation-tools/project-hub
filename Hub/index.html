@@ -1,0 +1,2979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>%TITLE%</title>
+<link rel="icon" href="%FAVICON%">
+<!-- Applied before first paint so a non-default scheme doesn't flash midnight. -->
+<script nonce="%NONCE%">try{document.documentElement.dataset.theme=localStorage.getItem('hub.theme')||'midnight'}catch{}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --zoom:1.15;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+}
+/* ── color schemes ──────────────────────────────────────────
+   Every surface, text and accent color in the sheet comes from
+   one of these blocks. Adding a scheme = copy a block, change
+   the values, add an <option> to #theme. Nothing else. */
+html,html[data-theme="midnight"]{           /* default — terminal green on near-black */
+  --bg:#0a0c0e; --panel:#0c0f12; --card:#0e1114; --card-hi:#12161a; --row-hi:#14181d;
+  --sel:#151b21; --sunken:#080a0c;
+  --line:#22272e; --line-soft:#1a1f25; --line-faint:#14181d;
+  --fg:#dbe1e8; --fg-hi:#e7ecf1; --fg-max:#f0f4f8; --fg-mid:#a7b0ba;
+  --dim:#79838f; --dimmer:#4e5762; --dimmest:#3c444e;
+  --green:#5fe3a1; --green-hi:#8ff0c0; --green-line:#2f6b52;
+  --orange:#e0a458; --purple:#b48ce8; --blue:#6aa9f0; --red:#e06c75; --magenta:#d16ba5;
+  --accent-bg:#0b1512; --accent-line:#1e3a2c; --blue-bg:#0e1620; --blue-line:#1e3550;
+}
+html[data-theme="oxide"]{                   /* warm dark — amber on brown-black */
+  --bg:#0f0d0a; --panel:#13100c; --card:#17130e; --card-hi:#1c1711; --row-hi:#201a13;
+  --sel:#241d15; --sunken:#0a0806;
+  --line:#332a20; --line-soft:#28211a; --line-faint:#1e1913;
+  --fg:#e8ded0; --fg-hi:#f2e9dc; --fg-max:#fbf4ea; --fg-mid:#bcae9b;
+  --dim:#8e806d; --dimmer:#645848; --dimmest:#4c4234;
+  --green:#e8b04b; --green-hi:#f7cb78; --green-line:#6d5424;
+  --orange:#e07b4a; --purple:#c99ae0; --blue:#7fb3a8; --red:#e0605a; --magenta:#d98ba0;
+  --accent-bg:#191207; --accent-line:#3d2f13; --blue-bg:#0d1615; --blue-line:#26403c;
+}
+html[data-theme="cobalt"]{                  /* cool dark — cyan/blue on deep navy */
+  --bg:#080d14; --panel:#0a1018; --card:#0c131d; --card-hi:#101825; --row-hi:#131c2a;
+  --sel:#152032; --sunken:#060a10;
+  --line:#1e2c40; --line-soft:#182334; --line-faint:#121b28;
+  --fg:#d4e0ef; --fg-hi:#e3ecf7; --fg-max:#f1f6fc; --fg-mid:#9fb2c9;
+  --dim:#70859e; --dimmer:#4a5c73; --dimmest:#38485c;
+  --green:#4fd6e8; --green-hi:#84e8f5; --green-line:#256b78;
+  --orange:#f0b45c; --purple:#a99bf5; --blue:#5b9df5; --red:#f0707f; --magenta:#e07ac4;
+  --accent-bg:#07171c; --accent-line:#163b45; --blue-bg:#0a1424; --blue-line:#1d3560;
+}
+html[data-theme="paper"]{                   /* light — ink on warm white */
+  --bg:#f7f6f3; --panel:#efeeea; --card:#ffffff; --card-hi:#f4f3ef; --row-hi:#e8e7e1;
+  --sel:#e0e6e1; --sunken:#f0efeb;
+  --line:#d4d2cb; --line-soft:#e0ded7; --line-faint:#e9e7e1;
+  --fg:#2b2f33; --fg-hi:#1c2024; --fg-max:#0f1215; --fg-mid:#4d545b;
+  --dim:#6d757d; --dimmer:#8d959d; --dimmest:#a8afb6;
+  --green:#0f7a4e; --green-hi:#0b5c3a; --green-line:#9dcbb4;
+  --orange:#a2670c; --purple:#6d4bb0; --blue:#1a5fb4; --red:#b3261e; --magenta:#a3358a;
+  --accent-bg:#e8f4ee; --accent-line:#bcded0; --blue-bg:#e8f0fa; --blue-line:#c1d5ee;
+}
+html[data-theme="plum"]{                    /* dark — violet/magenta on aubergine */
+  --bg:#0d0912; --panel:#110c17; --card:#150f1c; --card-hi:#1a1322; --row-hi:#1f1728;
+  --sel:#241a2f; --sunken:#090610;
+  --line:#2e2340; --line-soft:#241b32; --line-faint:#1b1426;
+  --fg:#e2d9ee; --fg-hi:#ede6f6; --fg-max:#f6f2fb; --fg-mid:#b0a2c4;
+  --dim:#8375a0; --dimmer:#5a4d75; --dimmest:#463b5c;
+  --green:#c48cf0; --green-hi:#dcb3fa; --green-line:#5c3b7d;
+  --orange:#f0a06c; --purple:#9b8cf5; --blue:#6fa8e8; --red:#ec6f8e; --magenta:#f07ad0;
+  --accent-bg:#160e1f; --accent-line:#3a2551; --blue-bg:#0d1420; --blue-line:#24406b;
+}
+html[data-theme="nord"]{                    /* dark — muted arctic blue-grey */
+  --bg:#20242c; --panel:#252a33; --card:#2a303a; --card-hi:#313843; --row-hi:#373f4b;
+  --sel:#3b4655; --sunken:#1a1e25;
+  --line:#3c4350; --line-soft:#333a45; --line-faint:#2b313b;
+  --fg:#d8dee9; --fg-hi:#e5e9f0; --fg-max:#eceff4; --fg-mid:#a8b1c0;
+  --dim:#8993a4; --dimmer:#68717f; --dimmest:#535c69;
+  --green:#8fbcbb; --green-hi:#a9d3d2; --green-line:#4b6a6a;
+  --orange:#d08770; --purple:#b48ead; --blue:#81a1c1; --red:#bf616a; --magenta:#c98cb8;
+  --accent-bg:#243033; --accent-line:#3d5654; --blue-bg:#232c38; --blue-line:#3d5170;
+}
+html[data-theme="sepia"]{                   /* light — brown ink on aged cream */
+  --bg:#f4ecdd; --panel:#ece2d0; --card:#fbf5e9; --card-hi:#f2e9d8; --row-hi:#e6dac4;
+  --sel:#e0d3b8; --sunken:#ebe1cf;
+  --line:#d2c4a8; --line-soft:#ded2ba; --line-faint:#e7dcc7;
+  --fg:#3b3227; --fg-hi:#2a231a; --fg-max:#1a1510; --fg-mid:#5c5142;
+  --dim:#7c705d; --dimmer:#9a8e79; --dimmest:#b3a792;
+  --green:#5c6b2f; --green-hi:#44521f; --green-line:#b6c090;
+  --orange:#a05a12; --purple:#6b4a8c; --blue:#2a5f8f; --red:#a33326; --magenta:#93356f;
+  --accent-bg:#eaeed6; --accent-line:#c8d0a6; --blue-bg:#e4ecf3; --blue-line:#b6cadd;
+}
+html[data-theme="mono"]{                    /* dark — pure greyscale, no hue */
+  --bg:#0b0b0b; --panel:#101010; --card:#141414; --card-hi:#1a1a1a; --row-hi:#1f1f1f;
+  --sel:#262626; --sunken:#070707;
+  --line:#2b2b2b; --line-soft:#212121; --line-faint:#191919;
+  --fg:#dcdcdc; --fg-hi:#ebebeb; --fg-max:#f7f7f7; --fg-mid:#a6a6a6;
+  --dim:#7d7d7d; --dimmer:#565656; --dimmest:#414141;
+  --green:#e0e0e0; --green-hi:#ffffff; --green-line:#4d4d4d;
+  --orange:#b8b8b8; --purple:#c9c9c9; --blue:#9e9e9e; --red:#d4d4d4; --magenta:#aeaeae;
+  --accent-bg:#171717; --accent-line:#383838; --blue-bg:#131313; --blue-line:#303030;
+}
+*{box-sizing:border-box}
+/* Everything in this sheet is sized in px. Root zoom scales the whole UI from one
+   knob (--zoom) instead of touching every value. Chrome does NOT shrink the initial
+   containing block to match, so 100vh comes back 15% too tall — #app divides it out. */
+html{zoom:var(--zoom)}
+html,body{margin:0;padding:0;height:100%;background:var(--bg)}
+body{font-family:var(--sans);color:var(--fg);font-size:13px;-webkit-font-smoothing:antialiased;overflow:hidden}
+a{color:var(--green);text-decoration:none}
+a:hover{color:var(--green-hi);text-decoration:underline}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line)}
+::-webkit-scrollbar-thumb:hover{background:var(--dimmest)}
+input::placeholder{color:var(--dimmer)}
+.mono{font-family:var(--mono)}
+.cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer)}
+
+#app{display:flex;height:calc(100vh / var(--zoom));width:100%;overflow:hidden}
+
+/* ── explorer ───────────────────────────────────────────── */
+/* flex:0 0 auto so `width` alone drives the panel — one property to animate, and
+   an interrupted transition can't leave basis and width disagreeing. */
+aside{position:relative;width:var(--sbw,284px);flex:0 0 auto;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease}
+#app.dragging aside{transition:none}
+/* collapsed rail — the panel folds down to just the ex-head strip (so #sidetoggle,
+   the control that reopens it, stays reachable) instead of vanishing entirely. */
+#app.rail aside{width:34px}
+#app.rail #tree,#app.rail .ex-foot{display:none}
+#app.rail .glyph,#app.rail .ex-title,#app.rail #collapse{display:none}
+#app.rail .ex-head{justify-content:center;padding:11px 0}
+/* drag handle — straddles the border so a couple stray px on either side still grabs it. */
+#sidedrag{position:absolute;top:0;right:-3px;width:6px;height:100%;cursor:col-resize;z-index:5}
+#sidedrag:hover,#app.dragging #sidedrag{background:var(--green-line)}
+#app.rail #sidedrag{display:none}
+#sidetoggle{font-family:var(--mono);font-size:12px;line-height:1;color:var(--dimmer);
+  border:1px solid var(--line);padding:2px 6px;cursor:pointer;user-select:none}
+#sidetoggle:hover{color:var(--green);border-color:var(--green-line)}
+#sidetoggle::before{content:"«"}
+#app.rail #sidetoggle::before{content:"»"}
+@media (prefers-reduced-motion:reduce){aside{transition:none}}
+/* history back/forward — history.back()/forward() work with no button at all once a
+   hash exists, but nothing on the page said so. These just make the existing mechanism
+   reachable without a mouse over the browser's own chrome (hidden in some embeds, e.g.
+   VS Code's Simple Browser tab toolbar sits above the page, easy to miss). */
+.navbtns{display:flex;gap:3px}
+.navbtn{font-size:14px;line-height:1;padding:4px 8px}
+.ex-head{padding:11px 12px 10px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:8px}
+.glyph{width:17px;height:17px;border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--green);font-weight:600}
+.ex-title{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);flex:1}
+.ex-act{font-family:var(--mono);font-size:10px;color:var(--dimmer);cursor:pointer}
+.ex-act:hover{color:var(--green)}
+#tree{flex:1;overflow-y:auto;padding:6px 0 16px}
+.node{display:flex;align-items:center;gap:6px;height:25px;padding-right:10px;cursor:pointer;border-left:2px solid transparent;user-select:none}
+.node:hover{background:var(--row-hi)}
+.node.sel{background:var(--sel);border-left-color:var(--green)}
+/* The chevron is its own hit target — sized for a mouse, not for decoration. */
+.chev{font-family:var(--mono);font-size:13px;width:15px;flex:0 0 15px;height:100%;display:flex;
+  align-items:center;justify-content:center;margin-left:-3px;color:var(--dim)}
+.chev[data-toggle]:hover{color:var(--green)}
+.dot{width:7px;height:7px;flex:0 0 7px}
+.dot.round{border-radius:50%}
+.nm{font-family:var(--mono);font-size:11.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.node.sel .nm{color:var(--fg-max)}
+.bdg{font-family:var(--mono);font-size:9.5px;color:var(--dimmest)}
+.ex-foot{border-top:1px solid var(--line-soft);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dimmer)}
+#live{color:var(--green);cursor:pointer;user-select:none}
+#live:hover{text-decoration:underline}
+#live.stale{color:var(--orange)}
+/* scan status detail (P7-16) -- a floating layer, dismissed like the context menu */
+.ctxmenu.status{width:340px;max-width:calc(100vw - 16px);max-height:70vh;overflow-y:auto;padding:10px 12px;
+  font-family:var(--mono);font-size:10.5px;color:var(--dim);cursor:default}
+.ctxmenu.status h3{margin:0 0 6px;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer);font-weight:500}
+.ctxmenu.status h3:not(:first-child){margin-top:12px;padding-top:9px;border-top:1px solid var(--line-soft)}
+.ctxmenu.status .kv{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
+.ctxmenu.status .kv b{font-weight:500;color:var(--fg-hi)}
+.ctxmenu.status .warn b{color:var(--orange)}
+.ctxmenu.status .err{color:var(--dimmer);padding:2px 0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctxmenu.status .err:hover{color:var(--green)}
+.ctxmenu.status p{margin:4px 0 0;line-height:1.5;white-space:normal}
+
+/* Right-click menu on a tree row. Reaches the same destinations as the header
+   action buttons (copy, open, open in VS Code) without selecting the row first,
+   plus "open folder", which resolves to the row's parent when the row is a file. */
+.ctxmenu{position:fixed;z-index:60;min-width:172px;background:var(--card);border:1px solid var(--line);
+  box-shadow:0 6px 20px rgba(0,0,0,.4);padding:4px}
+.ctxmenu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--fg);
+  font-family:var(--mono);font-size:11.5px;padding:6px 9px;cursor:pointer}
+.ctxmenu button:hover{background:var(--row-hi);color:var(--green)}
+.ctxmenu button:disabled{color:var(--dimmest);cursor:default}
+.ctxmenu button:disabled:hover{background:none;color:var(--dimmest)}
+.ctxmenu hr{border:none;border-top:1px solid var(--line-soft);margin:4px 0}
+
+/* ── main ───────────────────────────────────────────────── */
+main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+header{height:42px;flex:0 0 42px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;align-items:center;gap:14px;padding:0 16px}
+#crumbs{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--dim);min-width:0;overflow:hidden}
+#crumbs span[data-go]{cursor:pointer;white-space:nowrap}
+#crumbs span[data-go]:hover{color:var(--green)}
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);padding:4px 8px;width:290px}
+.search input{flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-family:var(--mono);font-size:11.5px}
+.kbd{font-family:var(--mono);font-size:9.5px;color:var(--dimmest);border:1px solid var(--line);padding:1px 4px}
+.btn{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);padding:4px 9px;cursor:pointer;background:none}
+.btn:hover{border-color:var(--green-line);color:var(--green)}
+.btn.solid{color:var(--bg);background:var(--green);border-color:var(--green);font-weight:500}
+.btn.solid:hover{background:var(--green-hi);color:var(--bg)}
+select.btn{appearance:none;padding-right:9px}
+select.btn option{background:var(--panel);color:var(--fg)}
+#view{flex:1;overflow-y:auto}
+.page{padding:22px 24px 48px;max-width:1200px;margin-inline:auto;width:100%;display:flex;flex-direction:column;gap:18px}
+h1.t{margin:0;font-family:var(--mono);font-size:19px;font-weight:600;color:var(--fg-max);letter-spacing:-.02em}
+h2.sec{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+.path{font-family:var(--mono);font-size:11px;color:var(--dimmer);word-break:break-all}
+.lede{margin:0;font-size:12.5px;color:var(--fg-mid);max-width:720px;line-height:1.6;text-wrap:pretty}
+.row{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.grow{flex:1}
+.tag{font-family:var(--mono);font-size:10.5px;padding:2px 7px;border:1px solid var(--line)}
+.tag.br{color:var(--blue);border-color:var(--blue-line);background:var(--blue-bg)}
+.tag.cli{color:var(--green);border-color:var(--accent-line);background:var(--accent-bg)}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line-soft)}
+.stat{background:var(--card);padding:11px 13px;display:flex;flex-direction:column;gap:4px}
+/* Stat tiles that jump to a section — the arrow only shows on hover so the strip
+   stays a readout first and a nav second. */
+.stat.jump{cursor:pointer}
+.stat.jump:hover{background:var(--card-hi)}
+.stat.jump .cap::after{content:' \2193';opacity:0;color:var(--dim)}
+.stat.jump:hover .cap::after{opacity:1}
+/* Brief tint on the heading you were sent to, so the jump is legible on a long page. */
+@keyframes secflash{from{color:var(--fg-max)}to{color:var(--dim)}}
+h2.sec.flash{animation:secflash 1.4s ease-out}
+.stat b{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:-.02em}
+.stat i{font-style:normal;font-size:10.5px;color:var(--dimmer)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
+.cards.two{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.card{border:1px solid var(--line);background:var(--card);padding:12px 13px;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.card:hover{border-color:var(--green-line);background:var(--card-hi)}
+.card .hd{display:flex;align-items:center;gap:8px}
+.card .hd b{font-family:var(--mono);font-size:12.5px;font-weight:400;color:var(--fg-hi);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .hd em{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer)}
+.card p{margin:0;font-size:11.5px;line-height:1.5;color:var(--dim);text-wrap:pretty;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.card .ft{display:flex;gap:12px;font-family:var(--mono);font-size:10.5px;color:var(--dimmer);border-top:1px solid var(--line-soft);padding-top:8px}
+/* image thumbnails (P7-13) -- native lazy loading, so a folder of two thousand photos
+   fetches only what is on screen. ponytail: the browser downscales the full file; a real
+   thumbnail cache would need an image decoder, which this zero-dependency server has not
+   got. Revisit only if a folder of very large originals actually feels slow. */
+/* contain, not cover: these are as often icons and diagrams as photos, and a thumbnail
+   that crops the subject out of frame is worse than one with space around it. */
+.card .thumb{display:block;width:100%;height:104px;object-fit:contain;padding:6px;box-sizing:border-box;background:var(--sunken);
+  border:1px solid var(--line-soft)}
+/* image viewer */
+.imgwrap{display:flex;justify-content:center;align-items:flex-start;padding:10px;overflow:auto;max-height:78vh}
+.imgwrap.fit{overflow:hidden}
+.imgwrap img{display:block}
+.imgwrap.fit img{max-width:100%;max-height:76vh;object-fit:contain}
+.imgbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.imgbar .dims{font-family:var(--mono);font-size:10px;color:var(--dimmer)}
+
+/* repo table filters — see viewOverview */
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fchip{font-family:var(--mono);font-size:10.5px;color:var(--dim);border:1px solid var(--line);
+  padding:2px 8px;cursor:pointer;user-select:none;white-space:nowrap}
+.fchip:hover{border-color:var(--green-line);color:var(--green)}
+.fchip.on{color:var(--green);border-color:var(--green-line);background:var(--accent-bg)}
+.thead .sortable{cursor:pointer;user-select:none}
+.thead .sortable:hover{color:var(--green)}
+
+/* repo table */
+.thead,.trow{display:grid;grid-template-columns:1.5fr .8fr .7fr .7fr 1.6fr;gap:14px;align-items:center;padding:7px 12px}
+.thead{border:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dimmer)}
+.trow{border:1px solid var(--line-soft);border-top:none;background:var(--card);cursor:pointer}
+.trow:hover{background:var(--row-hi)}
+.trow .n{display:flex;align-items:center;gap:8px;min-width:0}
+.trow .n span:last-child{font-family:var(--mono);font-size:11.5px;color:var(--fg-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow .m{font-family:var(--mono);font-size:10.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow .c{font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* folder list view (P7-09) -- same rows, four columns of its own */
+.flist .thead,.flist .trow{grid-template-columns:2.2fr .8fr .9fr .7fr}
+.flist .trow .s{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.flist .thead .s{text-align:right}
+.viewtoggle{display:flex;gap:0}
+.viewtoggle .btn{border-radius:0}
+.viewtoggle .btn.on{color:var(--green);border-color:var(--green-line)}
+.pill{width:5px;height:5px;border-radius:50%;flex:0 0 5px}
+
+/* detail layout */
+.split{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
+@media (max-width:1100px){.split{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);background:var(--card)}
+.panel>.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line-soft);background:var(--panel);font-family:var(--mono);font-size:11px;color:var(--dim)}
+.panel>.ph em{font-style:normal;font-size:10px;color:var(--dimmer)}
+.box{border:1px solid var(--line);background:var(--card);padding:12px}
+.box .cap{margin-bottom:9px}
+.kv{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:3px 0}
+.kv span:first-child{font-size:11.5px;color:var(--dim)}
+.kv span:last-child{font-family:var(--mono);font-size:11px;color:var(--fg);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linklist{display:flex;flex-direction:column;gap:5px;font-family:var(--mono);font-size:11px}
+.linklist div{cursor:pointer;color:var(--green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linklist div:hover{color:var(--green-hi)}
+.filelist{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:11px}
+.filelist div{display:flex;align-items:center;gap:7px;color:var(--dim);cursor:pointer}
+.filelist div:hover{color:var(--green)}
+.filelist i{font-style:normal;color:var(--dimmest);width:8px}
+.filelist .more{margin-top:7px;padding-top:7px;border-top:1px solid var(--line-soft);color:var(--dimmer)}
+.filelist .more:hover{color:var(--blue)}
+.stack{display:flex;flex-direction:column;gap:10px}
+
+/* artifact bucket columns -- a masonry via CSS columns, not a grid: panels flow down
+   each column in source order and only push what's *below them in that same column*,
+   so expanding Skills doesn't strand Commands/Hooks in a tall, mostly-empty grid row. */
+.buckets{columns:300px 3;column-gap:12px}
+.buckets .panel{display:inline-block;vertical-align:top;width:100%;break-inside:avoid;margin-bottom:12px}
+.bucket .ph b{font-weight:400;color:var(--fg);flex:1}
+.bitem{padding:8px 12px;border-bottom:1px solid var(--line-faint);cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.bitem:hover{background:var(--row-hi)}
+.bitem .bn{font-family:var(--mono);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bitem p{margin:0;font-size:11px;line-height:1.4;color:var(--dim);text-wrap:pretty;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);padding:5px 9px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--fg)}
+.chip:hover{border-color:var(--green-line)}
+.chip em{font-style:normal;font-size:9.5px;color:var(--dimmer)}
+
+/* Keyboard focus. Until 2026-08-31 nothing here was focusable and nothing showed a ring,
+   so a keyboard user had no way in and no way to tell where they were. */
+:focus-visible{outline:2px solid var(--green);outline-offset:-2px;border-radius:1px}
+.node:focus-visible{outline-offset:-2px}
+.hit.cur{border-color:var(--green-line);background:var(--card-hi)}
+mark{background:transparent;color:var(--green-hi);font-weight:600}
+
+/* collapsible sections — native <details>, so keyboard and find-in-page come free */
+.fold{display:flex;flex-direction:column}
+.fold>summary,.panel>summary.ph{cursor:pointer;list-style:none;user-select:none}
+.fold>summary::-webkit-details-marker,.panel>summary.ph::-webkit-details-marker{display:none}
+.fold>summary{display:flex;align-items:baseline;gap:8px}
+.fold>summary>:last-child{flex:1;min-width:0}
+.fold[open]>summary{margin-bottom:9px}
+.fold>summary:hover .fchev,.panel>summary.ph:hover .fchev{color:var(--green)}
+.foldbody{display:flex;flex-direction:column;gap:9px}
+/* Author display rules (.foldbody, .bitem) outrank the UA rule that hides a closed
+   <details> body, so restate it — without this, folding hides nothing. */
+details:not([open])>:not(summary){display:none}
+/* One glyph, rotated — a text swap would need the two chevron sets kept in sync. */
+.fchev{font-family:var(--mono);font-size:10px;line-height:1;color:var(--dimmer);
+  transition:transform .12s ease;display:inline-block}
+details[open]>summary .fchev{transform:rotate(90deg)}
+.panel:not([open])>summary.ph{border-bottom:none}
+
+/* markdown */
+.md{padding:16px 20px;font-size:calc(12.8px * var(--read-scale,1));line-height:1.65;color:var(--fg-mid)}
+/* Reader tools (P7-12). Width is a max on the prose, not the panel, so tables and code
+   blocks keep their own overflow behaviour and the panel chrome stays full width. */
+.md>*{max-width:var(--read-width,none)}
+.md pre.code{position:relative}
+.md pre.code .copycode{position:absolute;top:5px;right:5px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer);background:var(--panel);
+  border:1px solid var(--line);padding:2px 6px;cursor:pointer;opacity:0;transition:opacity .12s}
+.md pre.code:hover .copycode,.md pre.code .copycode:focus{opacity:1}
+.md pre.code .copycode:hover{color:var(--green);border-color:var(--green-line)}
+.outline{padding:8px 12px 10px;border-bottom:1px solid var(--line-soft);background:var(--sunken);
+  max-height:34vh;overflow-y:auto}
+.outline a{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);
+  padding:2px 0;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.outline a:hover{color:var(--green)}
+.outline a.h3{padding-left:14px;color:var(--dimmer)}
+.outline a.h4{padding-left:28px;color:var(--dimmer);font-size:10.5px}
+.outline .empty{padding:0}
+.readerbtns{display:flex;align-items:center;gap:4px}
+.md h1,.md h2,.md h3,.md h4{color:var(--fg-max);letter-spacing:-.01em;margin:20px 0 8px;line-height:1.3}
+.md h1{font-size:17px}.md h2{font-size:15px}.md h3{font-size:13.5px}.md h4{font-size:12.5px;color:var(--fg-hi)}
+.md h1:first-child,.md h2:first-child{margin-top:0}
+.md p{margin:0 0 10px;text-wrap:pretty}
+.md ul,.md ol{margin:0 0 10px;padding-left:20px}
+.md li{margin:3px 0}
+.md hr{border:none;border-top:1px solid var(--line-soft);margin:16px 0}
+.md code{font-family:var(--mono);font-size:11.5px;color:var(--green);background:var(--accent-bg);border:1px solid var(--accent-line);padding:1px 4px}
+.md pre.code{background:var(--sunken);border:1px solid var(--line-soft);padding:10px 12px;overflow-x:auto;margin:0 0 12px}
+.md pre.code code{font-size:11.5px;color:var(--fg-mid);background:none;border:none;padding:0;white-space:pre}
+.md blockquote{margin:0 0 10px;padding:2px 0 2px 12px;border-left:2px solid var(--line);color:var(--dim)}
+.md .alert{margin:0 0 12px;padding:9px 13px;background:var(--sunken);border-left:3px solid var(--dim)}
+.md .alert p{margin:0 0 6px}
+.md .alert p:last-child{margin-bottom:0}
+.md .alert-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:600}
+.md .alert-note{border-left-color:var(--blue)}.md .alert-note .alert-label{color:var(--blue)}
+.md .alert-tip{border-left-color:var(--green)}.md .alert-tip .alert-label{color:var(--green)}
+.md .alert-important{border-left-color:var(--purple)}.md .alert-important .alert-label{color:var(--purple)}
+.md .alert-warning{border-left-color:var(--orange)}.md .alert-warning .alert-label{color:var(--orange)}
+.md .alert-caution{border-left-color:var(--red)}.md .alert-caution .alert-label{color:var(--red)}
+.md pre.code .tok-k{color:var(--purple)}
+.md pre.code .tok-s{color:var(--green)}
+.md pre.code .tok-c{color:var(--dimmer);font-style:italic}
+.md pre.code .tok-n{color:var(--blue)}
+.md table{border-collapse:collapse;width:100%;margin:0 0 12px;font-size:11.5px;display:block;overflow-x:auto}
+.md td{border:1px solid var(--line-soft);padding:6px 9px;vertical-align:top}
+.md tr:first-child td{background:var(--panel);color:var(--fg-hi);font-weight:500}
+.md .imgref{font-family:var(--mono);font-size:10.5px;color:var(--dimmer)}
+.md img{max-width:100%;height:auto;vertical-align:middle}
+.md p[align="center"],.md div[align="center"]{text-align:center}
+.md a[data-md-link]{color:var(--blue)}
+
+/* search results */
+.hit{display:grid;grid-template-columns:96px 240px 1fr;gap:14px;align-items:center;padding:8px 11px;border:1px solid var(--line-soft);background:var(--card);cursor:pointer;margin-bottom:1px}
+.hit:hover{border-color:var(--green-line);background:var(--card-hi)}
+.hit .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+.hit .n{font-family:var(--mono);font-size:11.5px;color:var(--fg-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hit .d{font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.empty{font-family:var(--mono);font-size:11px;color:var(--dimmer);padding:4px 0}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--green-line);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 14px;opacity:0;transition:opacity .18s;pointer-events:none;z-index:50}
+#toast.on{opacity:1}
+
+/* Print: the document, and nothing else. Everything here is chrome that exists to get
+   you to the document, so on paper it is all noise. */
+@media print{
+  aside,header,#connection,#toast,.ctxmenu,.ph,.viewtoggle,#sidedrag{display:none!important}
+  #app{display:block;height:auto}
+  main{overflow:visible}
+  #view{overflow:visible;padding:0}
+  .page{padding:0;gap:12px}
+  .panel{border:none;background:none}
+  .md{padding:0;color:#000;font-size:11pt;line-height:1.5}
+  .md>*{max-width:none}
+  .md h1,.md h2,.md h3,.md h4{color:#000;break-after:avoid}
+  .md h1{font-size:18pt}.md h2{font-size:14pt}.md h3{font-size:12pt}.md h4{font-size:11pt}
+  .md a{color:#000;text-decoration:underline}
+  .md pre.code,.md td{background:#fff;border:1px solid #999;color:#000;break-inside:avoid}
+  .md pre.code code{color:#000}
+  .md pre.code .copycode,.outline{display:none!important}
+  .md img{max-width:100%}
+  .row .btn,.row .tag{display:none}
+  h1.t{color:#000;font-size:20pt}
+  .path{color:#444}
+}
+
+/* bookmarks + recents — collapsed by default, so the startup sidebar stays as quiet
+   as it was before they existed. Rows deliberately reuse the tree's .node metrics. */
+#pins:empty{display:none}
+.pinsec{border-bottom:1px solid var(--line-soft)}
+.pinhead{display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;user-select:none;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.pinhead:hover{color:var(--green)}
+.pinhead .chev{width:12px;flex:0 0 12px;font-size:11px;margin:0}
+.pinhead .n{flex:1}
+.pinhead .c{color:var(--dimmer);letter-spacing:0}
+.pinlist{padding-bottom:5px}
+.pin{display:flex;align-items:center;gap:6px;height:23px;padding:0 8px 0 20px;cursor:pointer;
+  border-left:2px solid transparent;user-select:none}
+.pin:hover{background:var(--row-hi)}
+.pin.sel{background:var(--sel);border-left-color:var(--green)}
+.pin .nm{font-family:var(--mono);font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.pin .ctx{font-family:var(--mono);font-size:9.5px;color:var(--dimmer);flex:0 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%}
+.pin.gone .ctx{opacity:.6}
+.pin.gone .nm{color:var(--dimmer);text-decoration:line-through}
+.pin .x{font-family:var(--mono);font-size:11px;color:var(--dimmer);padding:0 3px;visibility:hidden}
+.pin:hover .x,.pin:focus-within .x{visibility:visible}
+.pin .x:hover{color:var(--red)}
+.pin.drop{border-top:2px solid var(--green)}
+.pin.dragging{opacity:.4}
+.pinnote{font-family:var(--mono);font-size:10px;color:var(--dimmer);padding:2px 10px 5px 20px}
+.pinnote button{font:inherit;color:var(--blue);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
+.pinempty{font-family:var(--mono);font-size:10px;color:var(--dimmer);padding:2px 10px 6px 20px}
+#app.rail #pins{display:none}
+.btn.star.on{color:var(--orange);border-color:var(--orange)}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <div class="ex-head">
+      <div class="glyph">/</div>
+      <div class="ex-title">Explorer</div>
+      <div class="ex-act" id="collapse">collapse all</div>
+      <div id="sidetoggle" title="Show/hide sidebar (Ctrl+B)"></div>
+    </div>
+    <div id="pins"></div>
+    <div id="tree"></div>
+    <div class="ex-foot">
+      <span id="foot-file">index.html</span>
+      <span id="live">● connecting</span>
+    </div>
+    <div id="sidedrag" title="Drag to resize"></div>
+  </aside>
+  <main>
+    <header>
+      <div class="navbtns">
+        <button class="btn navbtn" id="navback" title="Back (Alt+←)" aria-label="Back">‹</button>
+        <button class="btn navbtn" id="navfwd" title="Forward (Alt+→)" aria-label="Forward">›</button>
+      </div>
+      <div id="crumbs"></div>
+      <div class="grow"></div>
+      <div class="search">
+        <span class="mono" style="font-size:11px;color:var(--dimmer)">⌕</span>
+        <input id="q" placeholder="Search repos, skills, commands, agents, docs" autocomplete="off"
+          role="combobox" aria-autocomplete="list" aria-expanded="false"
+          aria-controls="search-results pictures-results"
+          aria-label="Search the workspace. Prefix with a kind to narrow, for example skill: or repo:">
+        <span class="kbd">Ctrl+K</span>
+      </div>
+      <select class="btn" id="theme" title="Color scheme">
+        <option value="midnight">◐ midnight</option>
+        <option value="oxide">◐ oxide</option>
+        <option value="cobalt">◐ cobalt</option>
+        <option value="paper">◐ paper</option>
+        <option value="plum">◐ plum</option>
+        <option value="nord">◐ nord</option>
+        <option value="sepia">◐ sepia</option>
+        <option value="mono">◐ mono</option>
+      </select>
+      <button class="btn" id="rescan">↻ rescan</button>
+    </header>
+    <div id="connection" role="status" hidden style="padding:8px 16px;border-bottom:1px solid var(--orange)"><span></span> <button class="btn" id="retry">Retry</button></div>
+    <div id="view"></div>
+  </main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" nonce="%NONCE%">
+import { routeHash, parseRoute, searchHash, parseSearch, documentTarget, markdownLink, includeInSearch,
+  BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
+  pushRecent, resolveBookmarks } from '/navigation.mjs';
+import { PictureNodes } from '/pictures-client.mjs';
+const pictureNodes = new PictureNodes();
+const pictureRequests = new Map();
+const pictureSearches = new Map();
+let navigationRequest = 0;
+let requestedNavigation = null;
+let pictureGeneration = 0;
+const TINT = {
+  root:'var(--green)', docroot:'var(--red)', section:'var(--magenta)', cli:'var(--green)',
+  group:'var(--blue)', repo:'var(--purple)', folder:'var(--blue)',
+  skill:'var(--green)', command:'var(--orange)', agent:'var(--purple)', hook:'var(--blue)',
+  style:'var(--magenta)', mcp:'var(--magenta)', userroot:'var(--blue)', routine:'var(--red)',
+  md:'var(--orange)', config:'var(--blue)', file:'var(--dimmer)', draft:'var(--orange)',
+  image:'var(--purple)', html:'var(--orange)', pdf:'var(--red)', projects:'var(--green)',
+};
+const ROUND = new Set(['root','docroot','userroot','repo','draft','projects']);
+// Kinds that are directories on disk, so a listing can mark them with a trailing slash.
+// An empty directory arrives with no `children`, so kind is the reliable test. `projects`
+// has real children (the mounted project roots) but no filesystem path of its own -- it
+// belongs in DIRISH (it acts like a folder) but would break resolveId()/absOf() if
+// anything tried to open or copy-path it, which is why it gets its own view instead of
+// falling through to the generic viewFolder().
+const DIRISH = new Set(['root','docroot','userroot','repo','cli','group','section','folder','draft','projects']);
+const ENTITY = new Set(['skill','command','agent','hook','style','routine']);
+const KIND_LABEL = { cli:'CLI', repo:'REPO', group:'GROUP', section:'SECTION', folder:'FOLDER',
+  skill:'SKILL', command:'COMMAND', agent:'SUB-AGENT', hook:'HOOK', style:'OUTPUT STYLE',
+  routine:'ROUTINE', draft:'DRAFT', projects:'PROJECTS',
+  mcp:'MCP', userroot:'USER CLIS', md:'DOC', config:'CONFIG', file:'FILE', image:'IMAGE', html:'HTML', pdf:'PDF' };
+
+const S = { data:null, byId:new Map(), parent:new Map(), index:[], sel:null, open:new Set(), query:'', sig:null,
+  repoSort:{ key:'name', dir:1 }, repoFilter:null,   // overview table, see viewOverview
+  folderSort:{ key:'name', dir:1 },   // folder list view, see viewFolder
+  searchScoped:false,   // "only <project>" toggle, see viewSearch
+  docOff:new Set(),   // docFirst nodes the reader switched off this session, see viewDocFirst
+  focus:null,   // id of the row holding the tree's keyboard cursor
+  hit:-1 };     // index of the highlighted search result
+
+// Tree expansion is no longer remembered across a reload -- it is computed fresh every
+// load instead (see the init block at the bottom): collapsed, except the path down to
+// whichever project a link points at. A remembered "Documents was open last time" is
+// exactly what that default is meant to avoid.
+
+const $ = (s, r=document) => r.querySelector(s);
+const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
+/**
+ * Make a plain element behave like a control: click, a focus stop, and a role so
+ * Enter/Space reach it. Every clickable thing on this page is a div, which until
+ * 2026-08-31 meant the entire UI was unreachable without a mouse -- 21 handlers and not
+ * one tabindex. Defined here rather than at 21 call sites so it stays defined once.
+ */
+const activate = (node, handler, role = 'button') => {
+  node.onclick = handler;
+  node.tabIndex = 0;
+  node.setAttribute('role', role);
+  return node;
+};
+
+/** Wrap the matched run of `q` in <mark>, without ever building HTML from input. */
+function mark(text, q) {
+  const host = el('span');
+  const i = q ? text.toLowerCase().indexOf(q) : -1;
+  if (i < 0) { host.textContent = text; return host; }
+  host.append(text.slice(0, i), el('mark', '', text.slice(i, i + q.length)), text.slice(i + q.length));
+  return host;
+}
+const tintOf = n => TINT[n.kind] || TINT.file;
+const fmtSize = b => !b ? '' : b < 1024 ? b + 'b' : b < 1048576 ? (b/1024).toFixed(1) + 'k' : (b/1048576).toFixed(1) + 'm';
+// Relative, because "3 days ago" is the question people actually ask of a file list.
+const fmtAgo = (ms) => {
+  if (!ms) return '';
+  const s = Math.max(0, (Date.now() - ms) / 1000);
+  const [n, unit] = s < 60 ? [s, 'second'] : s < 3600 ? [s / 60, 'minute'] : s < 86400 ? [s / 3600, 'hour']
+    : s < 2592000 ? [s / 86400, 'day'] : s < 31536000 ? [s / 2592000, 'month'] : [s / 31536000, 'year'];
+  const v = Math.floor(n);
+  return v + ' ' + unit + (v === 1 ? '' : 's') + ' ago';
+};
+// Ids are drive-relative, except user-scope ones which the server prefixes with `~/`.
+const absOf = id => id === '~' ? (S.data?.home || '~')
+  : id.startsWith('~/') ? (S.data?.home || '~') + id.slice(1)
+  : 'D:/AI_Agents/' + id;
+const winPath = id => absOf(id).replace(/\//g, '\\');
+
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 1400);
+}
+
+// ── data ───────────────────────────────────────────────────────────────────
+function reindex(data) {
+  pictureNodes.attach(data.tree);
+  S.data = data;
+  S.byId.clear(); S.parent.clear();
+  // The search index used to arrive from the server as a second copy of the tree --
+  // 25,731 entries, 4.42MB of a 10.23MB payload, 2.47MB of it duplicated id strings.
+  // Every field it carried is on the node it was copied from, and this walk was already
+  // happening, so it is built here instead. Nodes go in by reference: no second copy.
+  S.index = [];
+  (function rec(list, parent) {
+    for (const n of list) {
+      S.byId.set(n.id, n);
+      if (parent) S.parent.set(n.id, parent.id);
+      // Plain source files are noise in results, the same rule the server applied.
+      if (includeInSearch(n) && (!pictureNodes.owns(n.id) || n.id === pictureNodes.rootId)) S.index.push(n);
+      if (n.children) rec(n.children, n);
+    }
+  })(data.tree, null);
+}
+
+/**
+ * Walk any node id up to its top-level root (a project, Documents, Skills, Pictures,
+ * Automations, or the user-CLI root) — the thing a repo/runtime/search hit belongs to,
+ * for scoping a view to "whichever root is currently selected" without the server having
+ * to tag every repo and runtime with which project it's under.
+ */
+// Kinds that mark a scoping boundary -- a project workspace, or one of the shared
+// roots. Climbing stops AT one of these, not past it: project roots now nest one level
+// under the Projects folder, so walking all the way to "no parent" would land on that
+// folder instead of the project itself.
+const SCOPE_ROOT_KINDS = new Set(['root', 'docroot', 'userroot']);
+function topAncestorOf(id) {
+  let p = id;
+  while (S.parent.has(p)) {
+    const node = S.byId.get(p);
+    if (node && SCOPE_ROOT_KINDS.has(node.kind)) return node;
+    p = S.parent.get(p);
+  }
+  return S.byId.get(p);
+}
+
+let loading = null;
+let queued = null;
+let restoredInitialRoute = false;
+let restoreReading = null;
+
+/**
+ * One scan in flight at a time. A watcher burst while a scan is running collapses
+ * into a single follow-up instead of stacking 5MB fetches until the tab freezes.
+ */
+function load(opts = {}) {
+  if (loading) { queued = { quiet: true, ...queued, ...opts, fresh: !!(queued?.fresh || opts.fresh), force: !!(queued?.force || opts.force) }; return loading; }
+  loading = doLoad(opts).finally(() => {
+    loading = null;
+    if (queued) { const next = queued; queued = null; load(next); }
+  });
+  return loading;
+}
+
+async function doLoad({ quiet, fresh, force } = {}) {
+  if (!quiet) $('#live').textContent = '● scanning…';
+
+  let data;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90000);
+  try {
+    const r = await fetch('/api/scan' + (fresh ? '?fresh=1' : ''), { signal: controller.signal });
+    if (!r.ok) throw new Error(`the hub server answered ${r.status} for /api/scan`);
+    data = await r.json();
+  } catch (err) {
+    // Opening index.html through a static preview (VS Code Live Preview / Live Server,
+    // or file://) serves the shell but not the API, so everything 404s. Say that out
+    // loud instead of leaving a blank page and a spinner that never stops.
+    if (S.data) {
+      $('#live').textContent = '● disconnected';
+      $('#live').classList.add('stale');
+      $('#connection').hidden = false;
+      $('#connection span').textContent = 'Refresh failed. Showing the last successful scan (' + new Date(S.data.scannedAt).toLocaleTimeString() + ').';
+    } else showFatal(err);
+    return;
+  } finally { clearTimeout(timeout); }
+
+  const t = new Date(data.scannedAt);
+  const stamp = `● scanned ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+
+  $('#connection').hidden = true;
+  const same = data.sig === S.sig;
+  S.sig = data.sig;
+  // Timestamps are only as fresh as the scan they were fetched under.
+  if (!same) { folderTimesGen++; folderTimes.clear(); }
+  if (!same) reindex(data); else { pictureNodes.attach(data.tree); S.data = data; }
+  $('#live').textContent = stamp;
+  $('#live').classList.remove('stale');
+
+  // A watcher tick usually means a file changed somewhere irrelevant. Repainting
+  // then would blow away scroll position and selection for no reason.
+  if (same && !force) return;
+
+  if (S.sel && !S.byId.has(S.sel)) S.sel = null;
+  const scroll = $('#view').scrollTop;
+  restoreReading = { id: S.sel, scroll };
+  renderTree(); renderPins(); renderView();
+  $('#view').scrollTop = scroll;
+  if (!restoredInitialRoute) {
+    restoredInitialRoute = true;
+    // A pasted or reloaded search URL has to restore the query too, not just documents.
+    const search = parseSearch(location.hash);
+    if (search) {
+      S.query = search.query; S.searchScoped = search.scoped; S.hitLimit = search.limit; S.hit = -1;
+      $('#q').value = search.query;
+      renderView();
+    } else {
+      const linked = parseRoute(location.hash);
+      if (linked.id && (S.byId.has(linked.id) || pictureNodes.owns(linked.id))) go(linked.id, linked.heading);
+    }
+  }
+}
+
+const HUB_PORT = '%PORT%';
+
+/** The page can't work without the server. Explain which case this is and how to fix it. */
+function showFatal(err) {
+  $('#live').textContent = '● no server';
+  $('#live').classList.add('stale');
+  $('#tree').textContent = '';
+  $('#crumbs').textContent = '';
+
+  const servedStatically = location.protocol === 'file:' || location.port !== HUB_PORT;
+  const url = `http://127.0.0.1:${HUB_PORT}`;
+
+  const v = $('#view'); v.textContent = '';
+  const page = el('div', 'page');
+  page.append(el('h1', 't', servedStatically ? 'Opened without the hub server' : 'Cannot reach the hub server'));
+
+  const p = el('p', 'lede');
+  p.textContent = servedStatically
+    ? `This page is being served from ${location.origin || 'the local filesystem'}, which returns the HTML but none of the /api endpoints. `
+      + `The tree, the repo table, and every document come from the hub server, so the page stays empty.`
+    : `The page loaded but /api/scan did not answer. The hub server has probably stopped.`;
+  page.append(p);
+
+  const box = el('div', 'box');
+  box.append(el('div', 'cap', servedStatically ? 'Open it this way instead' : 'Restart it'));
+  const pre = el('pre');
+  pre.style.cssText = 'margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.9;color:var(--fg-mid);white-space:pre-wrap';
+  pre.textContent = servedStatically
+    ? `In VS Code:  Ctrl+Shift+P  ->  "Simple Browser: Show"  ->  ${url}\n`
+      + `A static preview (Live Preview / Live Server / file://) cannot work here.\n\n`
+      + `If nothing is listening yet, start it first:\n`
+      + `  cd Project-Hub\n  .\\Start-Hub.ps1`
+    : `  cd Project-Hub\n  .\\Start-Hub.ps1 -Restart`;
+  box.append(pre);
+  page.append(box);
+
+  const link = el('p', 'lede');
+  const a = el('a', '', url);
+  a.href = url;
+  link.append(document.createTextNode('Server URL: '), a);
+  page.append(link);
+
+  const detail = el('div', 'path');
+  detail.textContent = String(err && err.message ? err.message : err);
+  page.append(detail);
+
+  const retry = el('button', 'btn', 'Retry connection'); retry.onclick = () => load({ force: true }); page.append(retry);
+  v.append(page);
+}
+
+// ── bookmarks and recents (P7-10) ──────────────────────────────────────────
+// Two lists above the tree. Both start collapsed, so a fresh tab looks exactly like it
+// did before this existed -- which is the whole point of the collapsed-tree startup.
+// Storage is localStorage, paths only. The list logic lives in navigation.mjs so it can
+// be tested without a DOM; everything here is the sidebar and the wiring.
+const pins = { bookmarks: [], recent: [], open: { bookmarks: false, recent: false } };
+try {
+  pins.bookmarks = parseList(localStorage.getItem(BOOKMARKS_KEY));
+  pins.recent = parseList(localStorage.getItem(RECENT_KEY));
+} catch {}
+
+// Both lists are at most a few dozen short rows, so writing both on any change beats
+// threading a key through every call site. Paths and labels only -- never contents.
+function savePins() {
+  try {
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(pins.bookmarks));
+    localStorage.setItem(RECENT_KEY, JSON.stringify(pins.recent));
+  } catch {}
+}
+
+/** Recents are documents, not containers: a folder you passed through is not a read. */
+function recordRecent(id) {
+  const n = S.byId.get(id);
+  if (!n || DIRISH.has(n.kind)) return;
+  pins.recent = pushRecent(pins.recent, id, n.name);
+  savePins();
+}
+
+function togglePin(id, label) {
+  if (!id) return;
+  const was = isBookmarked(pins.bookmarks, id);
+  pins.bookmarks = toggleBookmark(pins.bookmarks, id, label || S.byId.get(id)?.name);
+  savePins();
+  if (!was) pins.open.bookmarks = true;   // show what just happened
+  renderPins();
+  renderView();
+  toast(was ? 'bookmark removed' : 'bookmarked');
+}
+
+/**
+ * A missing path gets one relink candidate, never an automatic repoint. The basename
+ * map is built only when something is actually unresolved -- normally nothing is, and
+ * walking 25k nodes on every sidebar render to discover that would be absurd.
+ */
+const pinKey = (id) => JSON.stringify([id.split('/')[0], id.split('/').pop()]);
+
+/**
+ * What a pin belongs to, in the hub's own terms: the repo if it sits inside one, otherwise
+ * the project or shared root it lives under. Three folders all called "Agents" are three
+ * different projects, and the name alone never says which -- so the row carries its owner
+ * in small dim text rather than growing a second line.
+ *
+ * Climbing stops at the first repo OR scope root, which is what makes the two cases fall
+ * out of one walk: a file deep in a repo hits the repo first, anything else hits its
+ * project. A path the scan does not have (unresolved, or Pictures not yet loaded) has only
+ * its own parent folder to offer.
+ */
+function pinContext(path) {
+  if (!S.byId.has(path)) {
+    const parts = path.split('/');
+    return parts.length > 1 ? parts[parts.length - 2] : '';
+  }
+  for (let p = S.parent.get(path); p; p = S.parent.get(p)) {
+    const ancestor = S.byId.get(p);
+    if (!ancestor) break;
+    if (ancestor.kind === 'repo' || SCOPE_ROOT_KINDS.has(ancestor.kind)) return ancestor.name;
+  }
+  return '';
+}
+function relinkSuggester() {
+  let byName = null;
+  return (path) => {
+    if (!byName) {
+      byName = new Map();
+      for (const id of S.byId.keys()) {
+        const key = pinKey(id);
+        const hit = byName.get(key);
+        byName.set(key, hit === undefined ? id : null);   // null = ambiguous
+      }
+    }
+    return byName.get(pinKey(path)) || '';
+  };
+}
+
+/**
+ * Pictures nodes are fetched on demand, so a bookmarked photo is legitimately absent
+ * from S.byId until its folder is opened. Calling that a dead link would be wrong.
+ */
+function pinExists(path) {
+  return S.byId.has(path) || pictureNodes.owns(path);
+}
+
+function pinSection(key, title, entries, drag) {
+  const sec = el('div', 'pinsec');
+  const head = el('div', 'pinhead');
+  head.append(el('span', 'chev', pins.open[key] ? '▾' : '▸'), el('span', 'n', title), el('span', 'c', String(entries.length)));
+  head.setAttribute('aria-expanded', String(pins.open[key]));
+  activate(head, () => { pins.open[key] = !pins.open[key]; renderPins(); });
+  sec.append(head);
+  if (!pins.open[key]) return sec;
+
+  const list = el('div', 'pinlist');
+  list.setAttribute('role', 'list');
+  // The context usually does the disambiguating on its own -- three "Agents" rows in three
+  // projects need no help once each says which project. Only fall back to prefixing the
+  // parent folder when label AND context still collide, which is two READMEs in one repo.
+  const ctx = new Map(entries.map((e) => [e.path, pinContext(e.path)]));
+  const clash = new Map();
+  for (const e of entries) {
+    const k = JSON.stringify([e.label, ctx.get(e.path)]);
+    clash.set(k, (clash.get(k) || 0) + 1);
+  }
+  const display = (e) => (clash.get(JSON.stringify([e.label, ctx.get(e.path)])) > 1
+    ? (e.path.split('/').slice(-2, -1)[0] || '') + '/' + e.label : e.label);
+  if (!entries.length) {
+    list.append(el('div', 'pinempty', key === 'bookmarks' ? 'nothing pinned yet — Ctrl+D pins the open document' : 'no documents opened yet'));
+  }
+  entries.forEach((entry, i) => {
+    const row = el('div', 'pin' + (S.sel === entry.path ? ' sel' : '') + (entry.unresolved ? ' gone' : ''));
+    row.setAttribute('role', 'listitem');
+    row.dataset.path = entry.path;
+    row.dataset.missing = String(!!entry.unresolved);
+    row.dataset.renameable = String(!!drag);   // only bookmarks carry a custom label
+    const name = el('span', 'nm', display(entry));
+    name.title = entry.path + (entry.unresolved ? ' — not found in the last scan' : '');
+    const x = el('span', 'x', '×');
+    x.title = 'Remove';
+    x.setAttribute('aria-label', 'Remove ' + entry.label);
+    activate(x, (ev) => {
+      ev?.stopPropagation?.();
+      if (key === 'bookmarks') pins.bookmarks = pins.bookmarks.filter((e) => e.path !== entry.path);
+      else pins.recent = pins.recent.filter((e) => e.path !== entry.path);
+      savePins();
+      renderPins();
+    });
+    const owner = ctx.get(entry.path);
+    // Suppress a context that only repeats the label -- a bookmarked repo named after
+    // its own folder, or a pin renamed to match its project.
+    if (owner && owner !== entry.label) row.append(name, el('span', 'ctx', owner), x);
+    else row.append(name, x);
+    activate(row, () => { if (!entry.unresolved) go(entry.path); }, 'button');
+
+    if (drag) {
+      // Native drag-and-drop: manual ordering with no library and no pointer maths.
+      row.draggable = true;
+      row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(i)); row.classList.add('dragging'); });
+      row.addEventListener('dragend', () => row.classList.remove('dragging'));
+      row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drop'); });
+      row.addEventListener('dragleave', () => row.classList.remove('drop'));
+      row.addEventListener('drop', (e) => {
+        e.preventDefault(); row.classList.remove('drop');
+        pins.bookmarks = moveBookmark(pins.bookmarks, parseInt(e.dataTransfer.getData('text/plain'), 10), i);
+        savePins(); renderPins();
+      });
+      // Double-click renames in place. No dialog: prompt() blocks the whole page.
+      name.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        const input = el('input', 'nm'); input.value = entry.label;
+        const commit = (save) => {
+          if (input.parentNode !== row) return;
+          if (save) { pins.bookmarks = renameBookmark(pins.bookmarks, entry.path, input.value.trim()); savePins(); }
+          renderPins();
+        };
+        input.onkeydown = (ev) => {
+          if (ev.key === 'Enter') { ev.preventDefault(); commit(true); }
+          else if (ev.key === 'Escape') { ev.preventDefault(); commit(false); }
+          ev.stopPropagation();
+        };
+        input.onblur = () => commit(true);
+        input.onclick = (ev) => ev.stopPropagation();
+        row.replaceChild(input, name);
+        input.focus(); input.select();
+      });
+    }
+
+    list.append(row);
+    if (entry.unresolved && entry.suggestion) {
+      const note = el('div', 'pinnote');
+      const relink = el('button', '', 'relink to ' + entry.suggestion);
+      relink.onclick = () => {
+        pins.bookmarks = pins.bookmarks.map((e) => (e.path === entry.path ? { ...e, path: entry.suggestion } : e));
+        savePins(); renderPins();
+      };
+      note.append('moved? ', relink);
+      list.append(note);
+    }
+  });
+  sec.append(list);
+  return sec;
+}
+
+function renderPins() {
+  const host = $('#pins');
+  host.textContent = '';
+  // Before the first scan lands nothing can be checked, so nothing is called missing.
+  const marked = S.data
+    ? resolveBookmarks(pins.bookmarks, pinExists, relinkSuggester())
+    : pins.bookmarks.map((e) => ({ ...e, unresolved: false, suggestion: '' }));
+  host.append(pinSection('bookmarks', 'Bookmarks', marked, true));
+  host.append(pinSection('recent', 'Recent', pins.recent, false));
+}
+
+function bookmarkBtn(id) {
+  const on = isBookmarked(pins.bookmarks, id);
+  const b = el('button', 'btn star' + (on ? ' on' : ''), (on ? '★' : '☆') + ' bookmark');
+  b.title = (on ? 'Remove bookmark' : 'Add bookmark') + ' (Ctrl+D)';
+  b.setAttribute('aria-pressed', String(on));
+  b.onclick = () => togglePin(id);
+  return b;
+}
+
+// ── sidebar tree ───────────────────────────────────────────────────────────
+function renderTree() {
+  const host = $('#tree');
+  const hadFocus = host.contains(document.activeElement);
+  host.textContent = '';
+  host.setAttribute('role', 'tree');
+  host.setAttribute('aria-label', 'Project explorer');
+  // Roving tabindex: exactly one row is a tab stop, and the arrow keys move it. A tree
+  // where every row is tabbable is worse than one that is not tabbable at all.
+  const rows = [];
+  const frag = document.createDocumentFragment();
+  (function rec(list, depth) {
+    for (const n of list) {
+      const hasKids = !!(n.lazy && !n.loaded || n.children?.length);
+      const open = S.open.has(n.id);
+      const row = el('div', 'node' + (S.sel === n.id ? ' sel' : ''));
+      row.style.paddingLeft = (8 + depth * 12) + 'px';
+      row.dataset.id = n.id;
+      row.setAttribute('role', 'treeitem');
+      row.setAttribute('aria-level', String(depth + 1));
+      row.setAttribute('aria-selected', String(S.sel === n.id));
+      if (hasKids) row.setAttribute('aria-expanded', String(open));
+      row.tabIndex = -1;
+      rows.push(row);
+
+      const chev = el('span', 'chev', hasKids ? (open ? '▾' : '▸') : '');
+      if (hasKids) chev.dataset.toggle = n.id;
+      const dot = el('span', 'dot' + (ROUND.has(n.kind) ? ' round' : ''));
+      dot.style.background = tintOf(n);
+      row.append(chev, dot, el('span', 'nm', n.name), el('span', 'bdg', n.badge || ''));
+      frag.append(row);
+
+      if (hasKids && open && n.children) rec(n.children, depth + 1);
+    }
+  })(S.data.tree, 0);
+  host.append(frag);
+
+  // The tab stop follows the keyboard cursor, then the selection, then the first row.
+  const wanted = rows.find((r) => r.dataset.id === S.focus)
+    || rows.find((r) => r.dataset.id === S.sel) || rows[0];
+  if (wanted) {
+    wanted.tabIndex = 0;
+    // Re-rendering blows away focus, and an expand/collapse re-renders. Put it back.
+    if (hadFocus) wanted.focus();
+  }
+}
+
+/** Move the keyboard cursor to a row and give it focus. */
+function focusNode(id) {
+  const row = [...$('#tree').querySelectorAll('.node')].find((r) => r.dataset.id === id);
+  if (!row) return;
+  S.focus = id;
+  for (const r of $('#tree').querySelectorAll('.node')) r.tabIndex = -1;
+  row.tabIndex = 0;
+  row.focus();
+  row.scrollIntoView({ block: 'nearest' });
+}
+
+// Arrow keys walk the tree the way a file explorer does: up/down move, right opens or
+// steps in, left closes or steps out to the parent.
+$('#tree').addEventListener('keydown', (e) => {
+  const rows = [...$('#tree').querySelectorAll('.node')];
+  const i = rows.indexOf(document.activeElement);
+  if (i < 0) return;
+  const id = rows[i].dataset.id;
+  const n = S.byId.get(id);
+  const hasKids = !!(n && (n.lazy && !n.loaded || n.children?.length));
+  const step = (j) => { const t = rows[Math.max(0, Math.min(rows.length - 1, j))]; if (t) focusNode(t.dataset.id); };
+
+  switch (e.key) {
+    case 'ArrowDown': step(i + 1); break;
+    case 'ArrowUp': step(i - 1); break;
+    case 'Home': step(0); break;
+    case 'End': step(rows.length - 1); break;
+    case 'ArrowRight':
+      if (hasKids && !S.open.has(id)) { S.focus = id; toggleFolder(id); }
+      else if (hasKids) step(i + 1);
+      break;
+    case 'ArrowLeft':
+      if (hasKids && S.open.has(id)) { S.open.delete(id); S.focus = id; renderTree(); focusNode(id); }
+      else { const p = S.parent.get(id); if (p) { renderTree(); focusNode(p); } }
+      break;
+    case 'Enter': case ' ':
+      go(id);
+      // go() re-renders; keep the cursor where the user left it.
+      focusNode(id);
+      break;
+    default: return;
+  }
+  e.preventDefault();
+});
+
+$('#tree').addEventListener('click', (e) => {
+  const chev = e.target.closest('[data-toggle]');
+  const row = e.target.closest('.node');
+  if (!row) return;
+  const id = row.dataset.id;
+  if (chev) { toggleFolder(id); return; }
+  go(id);
+});
+
+activate($('#collapse'), () => { S.open.clear(); renderTree(); });
+
+// ── sidebar context menu ─────────────────────────────────────────────────
+// Right-click on any row for the destinations the header buttons already offer
+// (copy path, open, open in VS Code) without selecting the row first, plus two
+// that only exist here: "Copy as Markdown Link" for pasting a row straight into a
+// README, and "Open Folder", which reveals the row -- file or folder -- selected
+// inside its parent Explorer window (server side: `/api/open?...&reveal=1`, which
+// shells out to `explorer /select,` instead of `start`). That is a different
+// destination from "Open"/"Open File": Open acts on the row itself (browse into a
+// folder, launch a file), Open Folder always shows you where it lives.
+let ctxMenuEl = null;
+function closeCtxMenu() {
+  if (!ctxMenuEl) return;
+  ctxMenuEl.remove();
+  ctxMenuEl = null;
+  document.removeEventListener('pointerdown', onCtxOutside, true);
+  document.removeEventListener('keydown', onCtxEscape, true);
+  window.removeEventListener('resize', closeCtxMenu);
+  window.removeEventListener('blur', closeCtxMenu);
+  $('#view').removeEventListener('scroll', closeCtxMenu);
+  $('#tree').removeEventListener('scroll', closeCtxMenu);
+}
+function onCtxOutside(e) { if (ctxMenuEl && !ctxMenuEl.contains(e.target)) closeCtxMenu(); }
+function onCtxEscape(e) { if (e.key === 'Escape') closeCtxMenu(); }
+
+function ctxItem(label, handler, disabled = false) {
+  const b = el('button', '', label);
+  if (disabled) b.disabled = true;
+  else b.onclick = () => { closeCtxMenu(); handler(); };
+  return b;
+}
+
+function showCtxMenu(x, y, n, opts = {}) {
+  closeCtxMenu();
+  const isDir = DIRISH.has(n.kind);
+  // Two different absences. The synthetic Projects node has no path at all, so even the
+  // path copies are meaningless. A bookmark whose file went missing still has its last
+  // known path -- which is the one thing you want when hunting for where it went -- so
+  // only the launch actions go dead there.
+  const virtual = n.kind === 'projects';
+  const unlaunchable = virtual || !!opts.missing;
+  const copy = (value) => navigator.clipboard.writeText(value).then(() => toast('copied')).catch(() => toast('copy failed'));
+  const menu = el('div', 'ctxmenu');
+  menu.append(
+    ctxItem(isBookmarked(pins.bookmarks, n.id) ? 'Remove Bookmark' : 'Add Bookmark', () => togglePin(n.id, n.name)),
+    ...(opts.rename ? [ctxItem('Rename Bookmark', opts.rename)] : []),
+    el('hr'),
+    ctxItem('Copy Hub Link', () => copy(hubLink(n.id))),
+    ctxItem('Copy Path', () => copy(winPath(n.id)), virtual),
+    ctxItem('Copy Relative Path', () => copy(n.id), virtual),
+    ctxItem('Copy as Markdown Link', () => copy(markdownLink(n.name, hubLink(n.id)))),
+    el('hr'),
+    ctxItem(isDir ? 'Open' : 'Open File', () => requestOpen(n.id), unlaunchable),
+    ctxItem('Reveal in Explorer', () => requestOpen(n.id, '&reveal=1'), unlaunchable),
+    ctxItem('Open in VS Code', () => requestOpen(n.id, '&in=code'), unlaunchable),
+  );
+
+  document.body.append(menu);
+  const r = menu.getBoundingClientRect();
+  menu.style.left = Math.max(4, Math.min(x, window.innerWidth - r.width - 6)) + 'px';
+  menu.style.top = Math.max(4, Math.min(y, window.innerHeight - r.height - 6)) + 'px';
+  ctxMenuEl = menu;
+
+  // Deferred one tick so the click that opened the menu doesn't also close it via
+  // the outside-pointerdown listener (both fire on the same physical right-click).
+  setTimeout(() => {
+    document.addEventListener('pointerdown', onCtxOutside, true);
+    document.addEventListener('keydown', onCtxEscape, true);
+    window.addEventListener('resize', closeCtxMenu);
+    window.addEventListener('blur', closeCtxMenu);
+    $('#view').addEventListener('scroll', closeCtxMenu);
+    $('#tree').addEventListener('scroll', closeCtxMenu);
+  }, 0);
+}
+
+// ── scan status detail (P7-16) ─────────────────────────────────────────────
+// `● scanned 09:25` was the whole story, and a green `ready` sat on top of nineteen read
+// errors without a word. Clicking the status opens the numbers behind it, the paths that
+// actually failed, and what the index does and does not cover.
+//
+// It reuses the context menu's floating layer wholesale -- same element bookkeeping, same
+// dismissal on Escape, outside click, scroll and resize. There should only ever be one
+// floating layer, and this is one.
+const fmtMs = (ms) => (ms == null ? '—' : ms < 1000 ? Math.round(ms) + 'ms' : (ms / 1000).toFixed(1) + 's');
+
+/**
+ * "N other files here that the index skips" -- with the phrase that explains it wired to
+ * the panel that does. Saying "see what's indexed" and linking nowhere is the same kind of
+ * dead end as the count with no paths behind it.
+ */
+function skippedNote(count, suffix = '') {
+  const note = el('div', 'empty');
+  note.append(`${count} other file${count === 1 ? '' : 's'} here that the index skips — `);
+  const link = el('span', 'ex-act', "see what's indexed");
+  link.style.display = 'inline';
+  activate(link, () => showStatusPanel($('#live')));
+  note.append(link);
+  if (suffix) note.append(suffix);
+  return note;
+}
+
+function statusRow(into, label, value, warn) {
+  const row = el('div', 'kv' + (warn ? ' warn' : ''));
+  row.append(el('span', '', label), el('b', '', String(value)));
+  into.append(row);
+}
+
+async function showStatusPanel(anchor) {
+  closeCtxMenu();
+  const panel = el('div', 'ctxmenu status');
+  panel.append(el('h3', '', 'Scan'), el('div', '', 'loading…'));
+  document.body.append(panel);
+  ctxMenuEl = panel;
+  const place = () => {
+    const r = panel.getBoundingClientRect(), a = anchor.getBoundingClientRect();
+    panel.style.left = Math.max(4, Math.min(a.left, window.innerWidth - r.width - 6)) + 'px';
+    panel.style.top = Math.max(4, a.top - r.height - 6) + 'px';
+  };
+  place();
+  setTimeout(() => {
+    document.addEventListener('pointerdown', onCtxOutside, true);
+    document.addEventListener('keydown', onCtxEscape, true);
+    window.addEventListener('resize', closeCtxMenu);
+    window.addEventListener('blur', closeCtxMenu);
+    $('#view').addEventListener('scroll', closeCtxMenu);
+    $('#tree').addEventListener('scroll', closeCtxMenu);
+  }, 0);
+
+  let h;
+  try { h = await (await fetch('/api/health')).json(); }
+  catch (err) {
+    if (ctxMenuEl !== panel) return;
+    panel.textContent = ''; panel.append(el('h3', '', 'Scan'), el('p', '', 'Status unavailable — ' + err.message));
+    return place();
+  }
+  if (ctxMenuEl !== panel) return;   // dismissed while the request was in flight
+  panel.textContent = '';
+
+  const scan = h.lastScan || {};
+  panel.append(el('h3', '', 'Last successful scan'));
+  statusRow(panel, 'finished', scan.at ? new Date(scan.at).toLocaleTimeString() : '—');
+  statusRow(panel, 'age', scan.ageSec == null ? '—' : fmtAgo(Date.now() - scan.ageSec * 1000) || 'just now');
+  statusRow(panel, 'duration', fmtMs(scan.ms));
+  statusRow(panel, 'indexed', (scan.nodes ?? 0).toLocaleString() + ' nodes');
+  statusRow(panel, 'payload', scan.gzipMb == null ? '—' : scan.gzipMb + ' MB gzipped');
+
+  const t = scan.timings || {};
+  panel.append(el('h3', '', 'Where the time went'));
+  for (const [label, ms] of [['walking folders', t.walkMs], ['reading git', t.gitMs],
+    ['assembling', t.assembleMs], ['serializing', t.serializeMs], ['compressing', t.gzipMs]]) {
+    statusRow(panel, label, fmtMs(ms));
+  }
+
+  panel.append(el('h3', '', 'Roots'));
+  statusRow(panel, 'projects', h.workspace || '—');
+  const pics = h.pictures || {};
+  statusRow(panel, 'pictures', pics.state === 'unloaded' ? 'loaded on demand'
+    : `${(pics.indexedEntries || 0).toLocaleString()} indexed, ${pics.cachedFolders || 0} folders cached`);
+  if (pics.readErrors) statusRow(panel, 'pictures unreadable', pics.readErrors + ' folders', true);
+  if (pics.depthLimited) statusRow(panel, 'below depth ' + pics.maxSearchDepth, pics.depthLimited + ' folders — browsable, not searched', true);
+
+  // The actionable half. A count behind a green `ready` is the thing this panel exists to fix.
+  panel.append(el('h3', '', 'Read errors'));
+  statusRow(panel, 'last three scans', h.readErrorsRecent ?? 0, !!h.readErrorsRecent);
+  statusRow(panel, 'since start', h.readErrors ?? 0, false);
+  const paths = h.readErrorPaths || [];
+  if (!paths.length) panel.append(el('p', '', 'No file has failed to read.'));
+  else {
+    panel.append(el('p', '', 'Most recent first. Click one to open it in the tree if it is indexed.'));
+    for (const e of [...paths].reverse()) {
+      const row = el('div', 'err', e.code + '  ' + e.path);
+      row.title = e.path + ' — ' + e.code;
+      if (S.byId.has(e.path)) activate(row, () => { closeCtxMenu(); go(e.path); });
+      panel.append(row);
+    }
+  }
+
+  panel.append(el('h3', '', 'What gets indexed'));
+  panel.append(el('p', '', 'Documents and config (md, txt, rst, adoc, json, yaml, toml, ini, csv), '
+    + 'reports (pdf, html), images (png, jpg, gif, svg, webp, avif, ico), and LICENSE / Dockerfile / '
+    + 'Makefile / CNAME. Source files, build output and dependencies are skipped, so a folder can '
+    + 'hold more than the tree shows — "open folder" always shows everything.'));
+  panel.append(el('p', '', 'Credential directories and credential-looking filenames are pruned by '
+    + 'name and are never readable through the hub. Pictures is browsed on demand and searched to '
+    + (pics.maxSearchDepth || 7) + ' levels; deeper folders stay browsable.'));
+
+  place();
+}
+
+activate($('#live'), () => showStatusPanel($('#live')));
+$('#live').title = 'Scan status and read errors';
+
+$('#tree').addEventListener('contextmenu', (e) => {
+  const row = e.target.closest('.node');
+  if (!row) return;
+  e.preventDefault();
+  const n = S.byId.get(row.dataset.id);
+  if (n) showCtxMenu(e.clientX, e.clientY, n);
+});
+
+// Pinned rows are rows: they get the same menu the tree offers. A pin whose file is gone
+// has no node to describe it, so one is synthesized from what the pin itself stores --
+// enough for the copy actions, with the filesystem ones disabled. Rename reuses the
+// double-click editor rather than growing a second one.
+$('#pins').addEventListener('contextmenu', (e) => {
+  const row = e.target.closest('.pin');
+  if (!row) return;
+  e.preventDefault();
+  const path = row.dataset.path;
+  const missing = row.dataset.missing === 'true';
+  const n = S.byId.get(path) || { id: path, name: row.querySelector('.nm').textContent, kind: 'file' };
+  showCtxMenu(e.clientX, e.clientY, n, {
+    missing,
+    rename: row.dataset.renameable === 'true'
+      ? () => row.querySelector('.nm')?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+      : null,
+  });
+});
+
+async function ensurePicture(id) {
+  const generation = pictureGeneration;
+  const known = S.byId.get(id);
+  if (known && (!known.lazy || known.loaded)) return;
+  if (pictureRequests.has(id)) return pictureRequests.get(id);
+  const pending = (async () => {
+    let response;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      response = await fetch('/api/pictures?path=' + encodeURIComponent(id));
+      if (response.status !== 409) break;
+    }
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Pictures could not be loaded');
+    if (generation !== pictureGeneration) return;
+    pictureNodes.merge(data);
+    reindex(S.data);
+  })();
+  pictureRequests.set(id, pending);
+  try { await pending; } finally { if (pictureRequests.get(id) === pending) pictureRequests.delete(id); }
+}
+
+async function toggleFolder(id) {
+  if (S.open.has(id)) { S.open.delete(id); renderTree(); return; }
+  S.open.add(id); renderTree();
+  if (pictureNodes.owns(id)) {
+    try { await ensurePicture(id); }
+    catch (err) { S.open.delete(id); toast(err.message + ' — click to retry'); }
+    renderTree();
+  }
+}
+
+/** Select a node, reveal it in the tree, and render its page. */
+async function go(id, heading = '') {
+  requestedNavigation = { id, heading };
+  const request = ++navigationRequest;
+  if (pictureNodes.owns(id)) {
+    try { await ensurePicture(id); }
+    catch (err) { if (request === navigationRequest) toast(err.message + ' — click to retry'); return; }
+    if (request !== navigationRequest) return;
+  }
+  if (!S.byId.has(id)) return;
+  S.sel = id;
+  S.heading = heading;
+  restoreReading = null;
+  S.focus = id;
+  S.query = ''; $('#q').value = ''; S.hit = -1;
+  // The address bar is the only place this state was not kept, which meant no
+  // bookmarking, no sharing a link to a skill, and a Back button that did nothing.
+  const hash = routeHash(id, heading);
+  if (location.hash !== hash) location.hash = hash;
+  for (let p = S.parent.get(id); p; p = S.parent.get(p)) S.open.add(p);
+  const n = S.byId.get(id);
+  if (n.children && n.children.length) S.open.add(id);
+  recordRecent(id);
+  renderTree(); renderPins(); renderView();
+  $('#view').scrollTop = 0;
+  const sel = $('.node.sel');
+  if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+
+/**
+ * Keep the address bar in step with the search box.
+ *
+ * Entering a search pushes a new history entry so Back can return to the document you
+ * came from; refining the query replaces it, so typing does not bury the history in one
+ * entry per keystroke. Opening a result pushes on top via go(), which is what makes Back
+ * land on the results again instead of the previous document. pushState/replaceState do
+ * not fire hashchange, so this never re-enters the handler below.
+ */
+function syncSearchRoute(replace) {
+  const hash = S.query
+    ? searchHash(S.query, S.searchScoped, S.hitLimit)
+    : routeHash(S.sel || defaultRootId(), S.heading);
+  if (location.hash === hash) return;
+  try { history[replace ? 'replaceState' : 'pushState'](null, '', hash); }
+  catch { location.hash = hash; }
+}
+
+// ── header ─────────────────────────────────────────────────────────────────
+// "Nothing selected yet" used to just mean "show the first (only) root" — now it lands
+// on the Projects folder instead, whose own view is the portfolio-wide summary.
+function defaultRootId() { return S.byId.has('@projects') ? '@projects' : S.data.tree[0].id; }
+
+function renderCrumbs() {
+  const c = $('#crumbs'); c.textContent = '';
+  if (S.query) { c.append(el('span', '', 'search')); return; }
+  const chain = [];
+  for (let id = S.sel; id; id = S.parent.get(id)) chain.unshift(id);
+  if (!chain.length) chain.push(defaultRootId());
+  chain.forEach((id, i) => {
+    if (i) c.append(el('span', '', '/'));
+    const s = el('span', '', S.byId.get(id)?.name || id);
+    s.dataset.go = id;
+    s.style.color = i === chain.length - 1 ? 'var(--fg-hi)' : 'var(--dim)';
+    activate(s, () => go(id));
+    c.append(s);
+  });
+}
+
+$('#rescan').onclick = () => load({ fresh: true, force: true });
+$('#retry').onclick = () => load({ force: true });
+let queryTimer;
+$('#q').addEventListener('input', (e) => {
+  const wasSearching = !!S.query;
+  S.query = e.target.value.trim(); S.hit = -1; S.hitLimit = 200;
+  syncSearchRoute(wasSearching);
+  clearTimeout(queryTimer); queryTimer = setTimeout(renderView, 150);
+});
+
+// Results were mouse-only: you typed, then reached for the mouse. Up/down walk them,
+// Enter opens the highlighted one (or the top one, if you have not moved yet).
+$('#q').addEventListener('keydown', (e) => {
+  if (!S.query) return;
+  const hits = [...$('#view').querySelectorAll('.hit')];
+  if (!hits.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    S.hit = Math.max(0, Math.min(hits.length - 1, S.hit + (e.key === 'ArrowDown' ? 1 : -1)));
+    syncCombobox(S.hit);
+    hits[S.hit].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    hits[Math.max(0, S.hit)].click();
+  }
+});
+
+// ── sidebar rail + color scheme ────────────────────────────────────────────
+// Both are pure presentation, so they live in localStorage rather than the scan.
+const setRail = (on) => {
+  $('#app').classList.toggle('rail', on);
+  try { localStorage.setItem('hub.rail', on ? '1' : '0'); } catch {}
+};
+const toggleRail = () => setRail(!$('#app').classList.contains('rail'));
+activate($('#sidetoggle'), toggleRail);
+
+// Sidebar is flush against the viewport edge, so a drag's clientX doubles as the
+// width to apply — no offset math needed.
+const SBW_MIN = 200, SBW_MAX = 480;
+const setSbw = (w) => {
+  const clamped = Math.max(SBW_MIN, Math.min(SBW_MAX, w));
+  document.documentElement.style.setProperty('--sbw', clamped + 'px');
+  try { localStorage.setItem('hub.sbw', clamped); } catch {}
+};
+$('#sidedrag').addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  $('#app').classList.add('dragging');
+  const move = (ev) => setSbw(ev.clientX);
+  const up = () => {
+    $('#app').classList.remove('dragging');
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', up);
+  };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
+});
+try {
+  const savedSbw = parseInt(localStorage.getItem('hub.sbw'), 10);
+  if (savedSbw) setSbw(savedSbw);
+} catch {}
+
+// Back/forward over the hash trail go() already writes. history.back()/forward() need
+// no button to work at all, but nothing on the page said so — this just gives the
+// existing mechanism a visible, clickable home instead of relying on the browser's own
+// chrome, which some embeds (VS Code's Simple Browser tab) put outside the page.
+$('#navback').onclick = () => history.back();
+$('#navfwd').onclick = () => history.forward();
+document.addEventListener('keydown', (e) => {
+  if (!e.altKey || e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  e.key === 'ArrowLeft' ? history.back() : history.forward();
+});
+
+// Left/right step through a folder of images, the way every picture viewer works. Only
+// while an image is open, and never while the tree or the search box has the keyboard --
+// both already own the arrow keys.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if (e.altKey || e.ctrlKey || e.metaKey) return;   // Alt+arrows are Back/Forward
+  if (S.byId.get(S.sel)?.kind !== 'image') return;
+  const active = document.activeElement;
+  if (active && (active.closest('#tree') || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) return;
+  const { list, index } = imageSiblings(S.sel);
+  const next = index + (e.key === 'ArrowRight' ? 1 : -1);
+  if (index < 0 || next < 0 || next >= list.length) return;
+  e.preventDefault();
+  go(list[next].id);
+});
+
+// Ctrl+D pins whatever is under the tree's keyboard cursor, falling back to the open
+// document. Overrides the browser bookmark dialog, which would bookmark the hub itself.
+document.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'd' || e.altKey) return;
+  const target = document.activeElement?.closest?.('.node')?.dataset.id || S.sel;
+  if (!target) return;
+  e.preventDefault();
+  togglePin(target);
+});
+
+const THEMES = ['midnight', 'oxide', 'cobalt', 'paper', 'plum', 'nord', 'sepia', 'mono'];
+const setTheme = (name) => {
+  const t = THEMES.includes(name) ? name : THEMES[0];
+  document.documentElement.dataset.theme = t;
+  $('#theme').value = t;
+  try { localStorage.setItem('hub.theme', t); } catch {}
+};
+$('#theme').onchange = (e) => setTheme(e.target.value);
+
+let stored = {};
+try { stored = { rail: localStorage.getItem('hub.rail'), theme: localStorage.getItem('hub.theme') }; } catch {}
+setRail(stored.rail === '1');
+setTheme(stored.theme || THEMES[0]);
+
+// Back/forward, a pasted link, or a hand-edited hash all land here. go() sets the hash
+// itself, so the guard against re-entering on our own write is just comparing to S.sel.
+window.addEventListener('hashchange', () => {
+  if (!S.data) return;
+  const search = parseSearch(location.hash);
+  if (search) {
+    S.query = search.query; S.searchScoped = search.scoped; S.hitLimit = search.limit; S.hit = -1;
+    $('#q').value = search.query;
+    renderView();
+    return;
+  }
+  // Leaving a search route: drop the query first, or renderView() would draw results again.
+  const leavingSearch = !!S.query;
+  if (leavingSearch) { S.query = ''; $('#q').value = ''; S.hit = -1; }
+  const route = parseRoute(location.hash);
+  const id = route.id || defaultRootId();
+  if ((id !== S.sel || route.heading !== S.heading) && (S.byId.has(id) || pictureNodes.owns(id))) go(id, route.heading);
+  else if (leavingSearch) renderView();
+});
+
+// Enter and Space on anything activate() marked. One delegated listener rather than a
+// key handler per control. Native controls and the tree bring their own.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const t = e.target;
+  if (!(t instanceof HTMLElement) || t.tabIndex < 0 || !t.hasAttribute('role')) return;
+  if (t.getAttribute('role') === 'treeitem') return;
+  if (/^(A|BUTTON|INPUT|SELECT|TEXTAREA|SUMMARY)$/.test(t.tagName)) return;
+  e.preventDefault();
+  t.click();
+});
+
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#q').focus(); $('#q').select(); }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleRail(); }
+  if (e.key === 'Escape' && S.query) { S.query = ''; $('#q').value = ''; syncSearchRoute(true); renderView(); }
+});
+
+// ── views ──────────────────────────────────────────────────────────────────
+/**
+ * P7-15: arrowing through results only moved a visual class, so a screen reader was
+ * never told which option was highlighted. The rows are already role=option inside a
+ * listbox; this adds the state that makes the pair an actual combobox.
+ *
+ * Ids are assigned here rather than at build time because the Pictures section appends
+ * its rows asynchronously, after the main list is already on the page, and the arrow
+ * keys walk both lists as one sequence.
+ */
+function syncCombobox(active = S.hit) {
+  const q = $('#q'), view = $('#view');
+  const hits = S.query ? [...view.querySelectorAll('.hit')] : [];
+  hits.forEach((h, i) => {
+    h.id = 'hit-' + i;
+    const on = i === active;
+    h.classList.toggle('cur', on);
+    h.setAttribute('aria-selected', String(on));
+  });
+  q.setAttribute('aria-expanded', String(hits.length > 0));
+  if (active >= 0 && hits[active]) q.setAttribute('aria-activedescendant', hits[active].id);
+  else q.removeAttribute('aria-activedescendant');
+  return hits;
+}
+
+function renderView() {
+  renderPage();
+  syncCombobox();
+}
+
+function renderPage() {
+  renderCrumbs();
+  const v = $('#view'); v.textContent = '';
+  const page = el('div', 'page');
+  v.append(page);
+
+  if (S.query) return viewSearch(page);
+  const n = S.byId.get(S.sel) || S.byId.get(defaultRootId());
+  if (n.kind === 'projects') return viewPortfolio(page, n);
+  // Anything that documents itself opens on that README: the shared roots, and every
+  // ordinary folder with one. Project roots and CLI runtimes never carry the flag -- their
+  // own pages are the reason to click them -- and a node with no README falls straight
+  // through to whatever view its kind already had.
+  if (n.docFirst && n.doc && !S.docOff.has(n.id)) return viewDocFirst(page, n);
+  if (n.kind === 'root') return viewOverview(page, n);
+  if (n.kind === 'cli') return viewCli(page, n);
+  if (n.kind === 'repo') return viewRepo(page, n);
+  if (ENTITY.has(n.kind)) return viewEntity(page, n);
+  if (n.kind === 'image') return viewImage(page, n);
+  if (['md', 'config', 'file', 'html', 'pdf'].includes(n.kind)) return viewFile(page, n);
+  return viewFolder(page, n);
+}
+
+function headerBlock(page, { title, tags = [], path, lede, actions = [] }) {
+  if (path && S.sel) actions.unshift(bookmarkBtn(S.sel), copyBtn(hubLink(S.sel, S.heading), 'copy Hub link'));
+  const wrap = el('div'); wrap.style.cssText = 'display:flex;flex-direction:column;gap:9px';
+  const row = el('div', 'row');
+  const h = el('h1', 't', title); row.append(h);
+  for (const t of tags) row.append(t);
+  row.append(el('div', 'grow'));
+  for (const a of actions) row.append(a);
+  wrap.append(row);
+  if (path) wrap.append(el('div', 'path', path));
+  if (lede) wrap.append(el('p', 'lede', lede));
+  page.append(wrap);
+}
+
+function hubLink(id, heading = '') { return location.origin + location.pathname + routeHash(id, heading); }
+
+function copyBtn(text, label = 'copy path') {
+  const b = el('button', 'btn', label);
+  b.onclick = async () => { try { await navigator.clipboard.writeText(text); toast('copied ' + text); } catch { toast('copy failed'); } };
+  return b;
+}
+async function requestOpen(id, suffix = '', button = null) {
+  if (button) button.disabled = true;
+  toast('sending launch request…');
+  try {
+    const response = await fetch('/api/open?path=' + encodeURIComponent(id) + suffix);
+    if (!response.ok) throw new Error(await response.text());
+    toast('launch request accepted');
+  } catch (err) { toast('could not open: ' + err.message); }
+  finally { if (button) button.disabled = false; }
+}
+function openBtn(id, label = 'open folder') {
+  const b = el('button', 'btn solid', label);
+  b.onclick = () => requestOpen(id, '', b);
+  return b;
+}
+function codeBtn(id, label = 'open in VS Code') {
+  const b = el('button', 'btn', label);
+  b.onclick = () => requestOpen(id, '&in=code', b);
+  return b;
+}
+
+/** The stat-tile strip at the top of an overview — shared by viewOverview() (scoped to
+ * one project) and viewPortfolio() (the portfolio-wide numbers straight from the scan). */
+function statsStrip(stats) {
+  const strip = el('div', 'stats');
+  for (const s of stats) {
+    const c = el('div', 'stat' + (s.link ? ' jump' : ''));
+    c.append(el('div', 'cap', s.label));
+    const line = el('div'); line.style.cssText = 'display:flex;align-items:baseline;gap:6px';
+    const b = el('b', '', String(s.value)); b.style.color = s.color;
+    line.append(b, el('i', '', s.note || ''));
+    c.append(line); strip.append(c);
+    if (s.link) {
+      c.title = `jump to ${s.link}`;
+      // The "uncommitted" tile now narrows the table it jumps to; the others just jump.
+      activate(c, () => {
+        if (s.label === 'uncommitted' && s.value) { S.repoFilter = 'dirty'; renderView(); }
+        jumpTo(s.link);
+      });
+    }
+  }
+  return strip;
+}
+
+/**
+ * The sortable, filterable repos table — shared by viewOverview() (one project's own
+ * repos) and viewPortfolio() (every project's, plus a project chip so a merged table
+ * still says which project a row belongs to). "Show me what is dirty" is the usual
+ * reason to look at this table, and until 2026-08-31 it could only be answered by
+ * reading every row.
+ */
+function repoTableSection(repos, groups, dirtyCount, opts = {}) {
+  const bar = el('div', 'filters');
+  const chip = (label, on, fn) => {
+    const c = el('span', 'fchip' + (on ? ' on' : ''), label);
+    activate(c, fn);
+    return c;
+  };
+  const setFilter = (v) => { S.repoFilter = S.repoFilter === v ? null : v; renderView(); };
+  bar.append(chip('all', !S.repoFilter, () => { S.repoFilter = null; renderView(); }));
+  if (dirtyCount) bar.append(chip(`needs attention (${dirtyCount})`, S.repoFilter === 'dirty', () => setFilter('dirty')));
+  if (opts.projects) {
+    for (const p of opts.projects) bar.append(chip(p, S.repoFilter === `project:${p}`, () => setFilter(`project:${p}`)));
+  }
+  for (const g of groups) bar.append(chip(g, S.repoFilter === g, () => setFilter(g)));
+
+  const shown = repos.filter((r) => {
+    if (!S.repoFilter) return true;
+    if (S.repoFilter === 'dirty') return r.state !== 'clean';
+    if (S.repoFilter.startsWith('project:')) return topAncestorOf(r.id)?.name === S.repoFilter.slice(8);
+    return r.group === S.repoFilter;
+  });
+
+  // Sort keys match the column they sit under; `ago` is a human string ("3 days ago"),
+  // so last-commit sorts on the order the scan returned, which is already newest-first
+  // within a group -- close enough, and honest about not being a real date.
+  const COLS = [['name', 'repository'], ['group', 'group'], ['branch', 'branch'], ['state', 'state'], [null, 'last commit']];
+  const sorted = [...shown].sort((a, b) => {
+    const k = S.repoSort.key;
+    if (!k) return 0;
+    return String(a[k] ?? '').localeCompare(String(b[k] ?? '')) * S.repoSort.dir;
+  });
+
+  const th = el('div', 'thead');
+  for (const [key, label] of COLS) {
+    const cell = el('span', key ? 'sortable' : '', label
+      + (key && S.repoSort.key === key ? (S.repoSort.dir > 0 ? ' ▴' : ' ▾') : ''));
+    if (key) {
+      activate(cell, () => {
+        S.repoSort = S.repoSort.key === key ? { key, dir: -S.repoSort.dir } : { key, dir: 1 };
+        renderView();
+      });
+    }
+    th.append(cell);
+  }
+  const rows = el('div'); rows.style.cssText = 'display:flex;flex-direction:column;margin-top:-9px';
+  for (const r of sorted) {
+    const tr = el('div', 'trow');
+    const n = el('div', 'n');
+    const p = el('span', 'pill'); p.style.background = r.dot;
+    n.append(p, el('span', '', r.name));
+    const st = el('span', 'm', r.state); st.style.color = r.dot;
+    const br = el('span', 'm', r.branch); br.style.color = TINT.group;
+    const cm = el('div', 'c'); cm.append(document.createTextNode(r.commit));
+    if (r.ago) { const a = el('span', '', ' · ' + r.ago); a.style.color = 'var(--dimmer)'; cm.append(a); }
+    tr.append(n, el('span', 'm', r.group), br, st, cm);
+    activate(tr, () => go(r.id));
+    rows.append(tr);
+  }
+  if (!sorted.length) rows.append(el('div', 'empty', 'no repos match that filter'));
+  return foldable('Repos',
+    sectionWith('Repos', S.repoFilter ? `${sorted.length} of ${repos.length}` : groups.join(' · '), 'sec-repos'),
+    bar, th, rows);
+}
+
+// overview ------------------------------------------------------------------
+function viewOverview(page, root) {
+  // Everything below used to read S.data.* directly, which was fine when a hub only
+  // ever held one project -- Documents/Skills/Pictures/Automations already existed as
+  // separate roots before this, and silently showed this same portfolio-wide data too.
+  // `inRoot` scopes every list to the root actually being viewed, via the same parent
+  // chain the tree itself is built from (see topAncestorOf).
+  const inRoot = (x) => topAncestorOf(x.id) === root;
+  const repos = S.data.repos.filter(inRoot);
+  const relevantRuntimes = S.data.runtimes.filter((r) => scopeOf(r) === 'user' || inRoot(r));
+  const projectRuntimes = relevantRuntimes.filter((r) => scopeOf(r) === 'project');
+  const userRuntimes = relevantRuntimes.filter((r) => scopeOf(r) === 'user');
+  const totals = { skill: 0, command: 0, agent: 0, hook: 0 };
+  const userTotals = { skill: 0, command: 0, agent: 0, hook: 0 };
+  for (const rt of relevantRuntimes) for (const k in totals) totals[k] += rt.counts[k];
+  for (const rt of userRuntimes) for (const k in userTotals) userTotals[k] += rt.counts[k];
+  const mcpAll = relevantRuntimes.reduce((n, r) => n + (r.mcp || 0), 0);
+  const mcpUser = userRuntimes.reduce((n, r) => n + (r.mcp || 0), 0);
+  const dirtyCount = repos.filter(r => r.state !== 'clean').length;
+  const conflicts = repos.filter(r => r.state === 'conflict').length;
+  const groups = [...new Set(repos.map(r => r.group))];
+
+  const CLIS = 'sec-project-clis', REPOS = 'sec-repos';
+  const stats = [
+    { label: 'cli runtimes', value: relevantRuntimes.length, note: `${userRuntimes.length} user`, color: TINT.cli, link: CLIS },
+    { label: 'repos', value: repos.length, note: groups.length > 1 ? `${groups.length} groups` : '', color: 'var(--fg-hi)', link: REPOS },
+    { label: 'skills', value: totals.skill, note: `${userTotals.skill} user`, color: TINT.skill, link: CLIS },
+    { label: 'commands', value: totals.command, note: `${userTotals.command} user`, color: TINT.command, link: CLIS },
+    { label: 'sub-agents', value: totals.agent, note: `${totals.hook} hooks · ${userTotals.agent} user`, color: TINT.agent, link: CLIS },
+    { label: 'mcp servers', value: mcpAll, note: `${mcpUser} user`, color: TINT.mcp, link: CLIS },
+    { label: 'uncommitted', value: dirtyCount, note: conflicts ? `+${conflicts} conflict` : '', color: dirtyCount ? TINT.command : TINT.cli, link: REPOS },
+  ];
+  const rootDocs = S.data.rootDocs.filter(d => topAncestorOf(d.id) === root);
+  const liveSites = (S.data.liveSites || []).filter(s => s.project === root.name);
+  const drafts = (S.data.drafts || []).filter(inRoot);
+
+  headerBlock(page, {
+    title: root.name,
+    path: absOf(root.id),
+    lede: `${projectRuntimes.length} project CLIs and ${userRuntimes.length} user CLIs, ${repos.length} application repos, and the skills, commands, sub-agents, hooks and MCP servers they share. Regenerated on every scan.`,
+    actions: [readmeBtn(root), openBtn(root.id, 'open workspace'), codeBtn(root.id),
+      copyBtn(winPath(root.id), 'copy root path')].filter(Boolean),
+  });
+
+  page.append(statsStrip(stats));
+
+  // Straight from the root README's own "Live sites" table (parsed server-side each
+  // scan) — absent entirely on projects whose workspace has no such table (Mike_IAM,
+  // Mike_Finance), rather than showing an empty section.
+  if (liveSites.length) {
+    const cards = el('div', 'cards two');
+    for (const s of liveSites) {
+      const c = el('div', 'card');
+      const hd = el('div', 'hd');
+      const live = /live/i.test(s.status);
+      const dot = el('span', 'dot'); dot.style.background = live ? 'var(--green)' : 'var(--dimmer)';
+      hd.append(dot, el('b', '', s.app), el('em', '', s.status || ''));
+      const detail = [s.url.replace(/^https?:\/\//, ''), s.stack].filter(Boolean).join(' · ');
+      c.append(hd, el('p', '', detail));
+      c.title = `open ${s.url}`;
+      activate(c, () => window.open(s.url, '_blank', 'noopener,noreferrer'));
+      cards.append(c);
+    }
+    page.append(foldable('Live Sites',
+      sectionWith('Live Sites', `${liveSites.length} deployments`, 'sec-live-sites'), cards));
+  }
+
+  // Order is deliberate: the stat strip reads as a table of contents, then the three
+  // sections it points at — repos (what you ship), root docs (what explains them), and
+  // the agent runtimes (what builds them) last, because that block is the tallest.
+
+  page.append(repoTableSection(repos, groups, dirtyCount));
+
+  // Pre-repo R&D under Repos/Draft/ (#34) \u2014 no `.git`, so it never reaches `repos` above
+  // and has no git state to show; a lighter card cluster instead, cardless entirely on a
+  // project whose workspace has no such folder.
+  if (drafts.length) {
+    const cards = el('div', 'cards');
+    for (const d of drafts) {
+      const c = el('div', 'card');
+      const dot = el('span', 'dot round'); dot.style.background = TINT.draft;
+      const hd = el('div', 'hd'); hd.append(dot, el('b', '', d.name), el('em', '', 'DRAFT'));
+      c.append(hd, el('p', '', d.desc || '\u2014'));
+      activate(c, () => go(d.id));
+      cards.append(c);
+    }
+    page.append(foldable('Draft Initiatives',
+      sectionWith('Draft Initiatives', `${drafts.length} pre-repo`, 'sec-drafts'), cards));
+  }
+
+  // root docs
+  if (rootDocs.length) {
+    const docs = el('div', 'cards two');
+    for (const d of rootDocs) {
+      const c = el('div', 'card');
+      const hd = el('div', 'hd');
+      const dot = el('span', 'dot'); dot.style.background = TINT.md;
+      hd.append(dot, el('b', '', d.name), el('em', '', d.where));
+      c.append(hd, el('p', '', d.desc || '—'));
+      activate(c, () => go(d.id));
+      docs.append(c);
+    }
+    page.append(foldable('Readmes',
+      sectionWith('Readmes', `${rootDocs.length} root docs`, 'sec-docs'), docs));
+  }
+
+  // Runtimes, split by scope. Project runtimes are per-repo config under Agents/;
+  // user runtimes live in the home directory and apply to every repo on the machine.
+  for (const [scope, list] of [['project', projectRuntimes], ['user', userRuntimes]]) {
+    if (!list.length) continue;
+    page.append(foldable(SCOPE[scope].title,
+      sectionWith(SCOPE[scope].title, SCOPE[scope].where(root.name), `sec-${scope}-clis`),
+      runtimeCards(list)));
+  }
+}
+
+// portfolio -------------------------------------------------------------------
+// The Projects folder's own view — the portfolio-wide summary across every project it
+// contains. Unlike viewOverview() nothing here is scoped by root — S.data.stats/repos/
+// liveSites/rootDocs already cover every project, exactly as the server built them.
+function viewPortfolio(page, n) {
+  const projects = n.children || [];
+  headerBlock(page, {
+    title: n.name,
+    lede: `${projects.length} projects — ${S.data.repos.length} application repos, and the skills, commands, sub-agents, hooks and MCP servers they share across all of them. Click a project below, or in the sidebar, to see it on its own.`,
+  });
+
+  const cards = el('div', 'cards');
+  for (const p of projects) {
+    const c = el('div', 'card');
+    const dot = el('span', 'dot round'); dot.style.background = TINT.root;
+    const repoCount = S.data.repos.filter((r) => topAncestorOf(r.id) === p).length;
+    const dirty = S.data.repos.filter((r) => topAncestorOf(r.id) === p && r.state !== 'clean').length;
+    const hd = el('div', 'hd'); hd.append(dot, el('b', '', p.name), el('em', '', `${repoCount} repos`));
+    c.append(hd, el('p', '', dirty ? `${dirty} need attention` : p.desc || 'all clean'));
+    activate(c, () => go(p.id));
+    cards.append(c);
+  }
+  page.append(foldable('Projects', sectionWith('Projects', `${projects.length}`, 'sec-projects'), cards));
+
+  page.append(statsStrip(S.data.stats));
+
+  if (S.data.liveSites && S.data.liveSites.length) {
+    const siteCards = el('div', 'cards two');
+    for (const s of S.data.liveSites) {
+      const c = el('div', 'card');
+      const hd = el('div', 'hd');
+      const live = /live/i.test(s.status);
+      const dot = el('span', 'dot'); dot.style.background = live ? 'var(--green)' : 'var(--dimmer)';
+      hd.append(dot, el('b', '', s.app), el('em', '', s.project));
+      const detail = [s.url.replace(/^https?:\/\//, ''), s.stack].filter(Boolean).join(' · ');
+      c.append(hd, el('p', '', detail));
+      c.title = `open ${s.url}`;
+      activate(c, () => window.open(s.url, '_blank', 'noopener,noreferrer'));
+      siteCards.append(c);
+    }
+    page.append(foldable('Live Sites',
+      sectionWith('Live Sites', `${S.data.liveSites.length} deployments`, 'sec-live-sites'), siteCards));
+  }
+
+  const groups = [...new Set(S.data.repos.map((r) => r.group))];
+  const dirtyCount = S.data.repos.filter((r) => r.state !== 'clean').length;
+  page.append(repoTableSection(S.data.repos, groups, dirtyCount, { projects: projects.map((p) => p.name) }));
+
+  if (S.data.rootDocs.length) {
+    const docs = el('div', 'cards two');
+    for (const d of S.data.rootDocs) {
+      const c = el('div', 'card');
+      const hd = el('div', 'hd');
+      const dot = el('span', 'dot'); dot.style.background = TINT.md;
+      hd.append(dot, el('b', '', d.name), el('em', '', d.where));
+      c.append(hd, el('p', '', d.desc || '—'));
+      activate(c, () => go(d.id));
+      docs.append(c);
+    }
+    page.append(foldable('Readmes',
+      sectionWith('Readmes', `${S.data.rootDocs.length} root docs`, 'sec-docs'), docs));
+  }
+}
+
+/**
+ * Scroll a stat tile's target section into view inside #view (the scroll container —
+ * the page itself never scrolls, so an `href="#id"` would do nothing) and flash its
+ * heading. Falls back to the agents block when a specific one isn't on the page.
+ */
+function jumpTo(id) {
+  const h = document.getElementById(id) || document.getElementById('sec-project-clis');
+  const v = $('#view');
+  if (!h || !v) return;
+  // A folded target would scroll to a heading with nothing under it.
+  for (let d = h.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
+  // Scroll the container by hand rather than scrollIntoView({behavior:'smooth'}) —
+  // smooth scrolling is a silent no-op under the `zoom` on :root, and the 12px of
+  // headroom keeps the heading off the very top edge.
+  const top = v.scrollTop + h.getBoundingClientRect().top - v.getBoundingClientRect().top - 12;
+  v.scrollTop = Math.max(0, top);
+  h.classList.remove('flash');
+  void h.offsetWidth;            // restart the animation on a repeat click
+  h.classList.add('flash');
+}
+
+// Project CLIs are per-repo config under Agents/; user CLIs live in the home
+// directory and apply to every repo on the machine. Every view that lists runtimes
+// labels the two the same way.
+// `where` takes the current root's name — there can be several projects now, so
+// "the" project root (it used to default to `S.data.roots[0]`, back when there was
+// only ever one) has to come from whichever overview is actually being rendered.
+const SCOPE = {
+  project: { title: 'Project CLIs', where: (name) => `${name}/Agents`, tag: 'project scope' },
+  user:    { title: 'User CLIs',    where: () => '~ · home directory', tag: 'user scope' },
+};
+const scopeOf = n => (n.scope === 'user' ? 'user' : 'project');
+
+// Folded sections are remembered by label, not by node id -- the same section on two
+// pages should agree, and a per-node set would grow without bound.
+let COLLAPSED = new Set();
+try { COLLAPSED = new Set(JSON.parse(localStorage.getItem('hub.collapsed') || '[]')); } catch {}
+function remember(key, open) {
+  open ? COLLAPSED.delete(key) : COLLAPSED.add(key);
+  try { localStorage.setItem('hub.collapsed', JSON.stringify([...COLLAPSED])); } catch {}
+}
+
+/** Wrap a section heading and its blocks in a <details> that folds. */
+function foldable(key, head, ...blocks) {
+  const d = el('details', 'fold');
+  d.open = !COLLAPSED.has(key);
+  const sum = el('summary');
+  sum.append(el('span', 'fchev', '\u25b8'), head);
+  const body = el('div', 'foldbody');
+  for (const b of blocks) if (b) body.append(b);
+  d.append(sum, body);
+  d.addEventListener('toggle', () => remember(key, d.open));
+  return d;
+}
+
+/** A .panel that folds -- its `.ph` header row is the summary. */
+function foldPanel(key, cls = 'panel') {
+  const d = el('details', cls);
+  d.open = !COLLAPSED.has(key);
+  d.addEventListener('toggle', () => remember(key, d.open));
+  return d;
+}
+/** The panel header row, chevron already in place. */
+function phRow() {
+  const s = el('summary', 'ph');
+  s.append(el('span', 'fchev', '\u25b8'));
+  return s;
+}
+
+/** Section heading with a dimmed right-hand note — `Project CLIs   Mikes_AI_Lab/Agents`. */
+function sectionWith(title, note, id) {
+  const h = el('div');
+  h.style.cssText = 'display:flex;align-items:baseline;justify-content:space-between;gap:12px';
+  const t = el('h2', 'sec', title);
+  if (id) t.id = id;
+  h.append(t);
+  const nt = el('span', 'mono', note);
+  nt.style.cssText = 'font-size:10.5px;color:var(--dimmer)';
+  h.append(nt);
+  return h;
+}
+
+function runtimeCards(list) {
+  const rt = el('div', 'cards');
+  for (const r of list) {
+    const c = el('div', 'card');
+    const hd = el('div', 'hd');
+    const d = el('span', 'dot'); d.style.background = TINT.cli;
+    const cfg = el('em', '', r.config || ''); cfg.style.textTransform = 'none';
+    hd.append(d, el('b', '', r.name), cfg);
+    c.append(hd, el('p', '', r.desc || '—'));
+    // Called with both scan-payload runtimes (mcp/plugins are counts) and raw tree
+    // nodes (they're arrays), so normalise rather than keeping two card renderers.
+    const size = v => (Array.isArray(v) ? v.length : v || 0);
+    const k = r.counts || { skill: 0, command: 0, agent: 0, hook: 0, routine: 0 };
+    const ft = el('div', 'ft');
+    ft.append(count(k.skill, 'skills', TINT.skill), count(k.command, 'cmds', TINT.command),
+      count(k.agent, 'agents', TINT.agent), count(k.hook, 'hooks', TINT.hook),
+      count(size(r.mcp), 'mcp', TINT.mcp));
+    if (k.routine) ft.append(count(k.routine, 'routines', TINT.routine));
+    if (size(r.plugins)) ft.append(count(size(r.plugins), 'plugins', TINT.agent));
+    c.append(ft);
+    activate(c, () => go(r.id));
+    rt.append(c);
+  }
+  return rt;
+}
+
+function count(v, label, color) {
+  const s = el('span');
+  const b = el('span', '', String(v)); b.style.color = color;
+  s.append(b, document.createTextNode(' ' + label));
+  return s;
+}
+
+// cli runtime ---------------------------------------------------------------
+function viewCli(page, n) {
+  const tags = [el('span', 'tag cli', 'CLI runtime')];
+  tags.push(el('span', 'tag br', SCOPE[scopeOf(n)].tag));
+  headerBlock(page, {
+    title: n.name, tags, path: absOf(n.id), lede: n.desc || '',
+    actions: [copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')],
+  });
+
+  const files = (n.children || []).filter(c => c.kind === 'md' || c.kind === 'config');
+  if (files.length) {
+    const chips = el('div', 'chips');
+    for (const f of files) {
+      const c = el('div', 'chip');
+      const d = el('span', 'dot'); d.style.cssText = `background:${tintOf(f)};width:6px;height:6px;flex:0 0 6px`;
+      c.append(d, el('span', '', f.name), el('em', '', fmtSize(f.size)));
+      activate(c, () => go(f.id));
+      chips.append(c);
+    }
+    page.append(chips);
+  }
+
+  page.append(bucketGrid(n, ''));
+
+  // Project CLIs also inherit whatever the matching user-scope runtime carries
+  // (skills, sub-agents, commands, hooks, MCP servers, plugins) — shown as its own
+  // labeled section rather than merged into the project's, so it stays clear which
+  // artifacts live in this repo vs. apply to every repo on the machine.
+  if (n.scope === 'project' && n.userCli && S.byId.has(n.userCli)) {
+    const u = S.byId.get(n.userCli);
+    page.append(sectionWith('Inherited from user scope', `${u.name} · ~`, ''));
+    const note = el('p', '', `Every project on this machine gets these from ${u.name} — edit them there, not here.`);
+    note.style.cssText = 'font-size:11px;color:var(--dimmer);margin:-6px 0 10px';
+    const link = el('span', '', 'open ' + u.name + ' →');
+    link.style.cssText = 'margin-left:8px;color:var(--green);cursor:pointer';
+    activate(link, () => go(u.id));
+    note.append(link);
+    page.append(note);
+    page.append(bucketGrid(u, 'user:'));
+  }
+}
+
+// Skills/commands/sub-agents/hooks/MCP/plugins found anywhere in a CLI runtime's
+// subtree, as the folding panel grid viewCli shows for both a project runtime and,
+// when there's a match, the user-scope runtime it inherits from. `keyPrefix`
+// namespaces the fold-open/closed memory so the two grids don't fight over it.
+function bucketGrid(n, keyPrefix) {
+  const found = { skill: [], command: [], agent: [], hook: [], style: [], routine: [] };
+  (function rec(list) { for (const c of list || []) { if (found[c.kind]) found[c.kind].push(c); rec(c.children); } })(n.children);
+  // Hooks declared inline in settings.json's `hooks` key -- Claude Code's real
+  // mechanism -- aren't files, so they never turn up in n.children above.
+  if (n.hooksCfg && n.hooksCfg.length) found.hook = found.hook.concat(n.hooksCfg);
+
+  const grid = el('div', 'buckets');
+  for (const [kind, label] of [['skill', 'Skills'], ['command', 'Commands'], ['agent', 'Sub-agents'],
+    ['hook', 'Hooks'], ['style', 'Output styles'], ['routine', 'Routines']]) {
+    if ((kind === 'style' || kind === 'routine') && !found[kind].length) continue;
+    const items = found[kind];
+    const panel = foldPanel(keyPrefix + label, 'panel bucket');
+    const ph = phRow();
+    const d = el('span', 'dot'); d.style.background = TINT[kind];
+    const dir = el('em', '', items.length ? relDir(items[0].id, n.id) : '—');
+    const ct = el('em', '', String(items.length)); ct.style.color = TINT[kind];
+    ph.append(d, el('b', '', label), dir, ct);
+    panel.append(ph);
+    if (!items.length) panel.append(el('div', 'empty', '  none found'));
+    for (const it of items) {
+      const row = el('div', 'bitem');
+      const top = el('div'); top.style.cssText = 'display:flex;align-items:center;gap:8px';
+      const label = it.title || it.name;
+      const nm = el('span', 'bn', label); nm.style.color = TINT[kind]; nm.style.flex = '1';
+      const tg = el('span', 'mono'); tg.style.cssText = 'font-size:9.5px;color:var(--dimmest)';
+      const slug = it.name.replace(/\.md$/i, '');
+      // Routines have no filename worth showing here; the schedule is the useful column.
+      tg.textContent = kind === 'routine' ? (it.sched || '') : slug === label ? '' : it.name;
+      top.append(nm, tg);
+      row.append(top);
+      if (it.desc) row.append(el('p', '', it.desc));
+      activate(row, () => go(it.id));
+      panel.append(row);
+    }
+    grid.append(panel);
+  }
+
+  // MCP servers and plugins aren't files on disk, so they're read out of the runtime's
+  // config rather than walked — same panel shape, one row per entry.
+  for (const [items, label, kind, srcId] of [
+    [n.mcp || [], 'MCP servers', 'mcp', n.mcpFile],
+    [n.plugins || [], 'Plugins', 'agent', ''],
+  ]) {
+    if (!items.length) continue;
+    const panel = foldPanel(keyPrefix + label, 'panel bucket');
+    const ph = phRow();
+    const d = el('span', 'dot'); d.style.background = TINT[kind];
+    const ct = el('em', '', String(items.length)); ct.style.color = TINT[kind];
+    ph.append(d, el('b', '', label), el('em', '', srcId ? srcId.split('/').pop() : 'installed'), ct);
+    panel.append(ph);
+    for (const it of items) {
+      const row = el('div', 'bitem');
+      const top = el('div'); top.style.cssText = 'display:flex;align-items:center;gap:8px';
+      const nm = el('span', 'bn', it.name); nm.style.color = TINT[kind]; nm.style.flex = '1';
+      const tg = el('span', 'mono', it.detail || '');
+      tg.style.cssText = 'font-size:9.5px;color:var(--dimmest);max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      top.append(nm, tg);
+      row.append(top);
+      if (srcId && S.byId.has(srcId)) activate(row, () => go(srcId));
+      panel.append(row);
+    }
+    grid.append(panel);
+  }
+  return grid;
+}
+const relDir = (childId, baseId) => {
+  const rest = childId.slice(baseId.length + 1).split('/');
+  return rest.slice(0, -1).join('/') || '.';
+};
+
+// folder / group / section ---------------------------------------------------
+// ── folder list view (P7-09) ───────────────────────────────────────────────
+// Cards are good at a dozen things with descriptions and bad at eighty files. The list
+// is the other half: four columns, sortable, folders first. Which one you get is a
+// per-viewer preference, so it lives in localStorage next to the theme and the rail.
+let folderMode = 'cards';
+try { if (localStorage.getItem('hub.folderview') === 'list') folderMode = 'list'; } catch {}
+const setFolderMode = (mode) => {
+  folderMode = mode;
+  try { localStorage.setItem('hub.folderview', mode); } catch {}
+  renderView();
+};
+
+// Modified times are fetched per folder rather than shipped with every node -- see
+// folderStamps() in hub.mjs. One in-flight request per folder; the answer is cached
+// until the next scan, which is when it could have changed.
+const folderTimes = new Map();
+let folderTimesGen = 0;
+
+/** The folder's stamps if they are already here, otherwise null and a repaint later. */
+function folderTimesFor(id, host) {
+  const cached = folderTimes.get(id);
+  if (cached) return cached instanceof Promise ? null : cached;
+  const generation = folderTimesGen;
+  const pending = fetch('/api/stat?path=' + encodeURIComponent(id))
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({}));
+  folderTimes.set(id, pending);
+  pending.then((stamps) => {
+    // A scan landing between request and response invalidates the whole cache, so a
+    // late reply must not repopulate it -- the same rule the Pictures cache follows.
+    if (generation !== folderTimesGen) return;
+    folderTimes.set(id, stamps);
+    if (host.isConnected) renderView();
+  });
+  return null;
+}
+
+function folderList(page, n, kids) {
+  const stamps = folderTimesFor(n.id, page);
+
+  const COLS = [['name', 'name'], ['kind', 'type'], ['mtime', 'modified'], ['size', 'size']];
+  const timeOf = (c) => (stamps ? stamps[c.name] || 0 : 0);
+  const sizeOf = (c) => (DIRISH.has(c.kind) ? -1 : c.size || 0);
+  const key = S.folderSort.key, dir = S.folderSort.dir;
+  const sorted = [...kids].sort((a, b) => {
+    // Folders first when sorting by name or type: it makes a long folder scannable, and
+    // hiding a directory among sixty files is what the list view exists to prevent. NOT
+    // when sorting by modified or size -- there the key is the whole question, and
+    // burying the file you edited a minute ago under seven month-old folders is the
+    // opposite of the answer.
+    if (key !== 'mtime' && key !== 'size') {
+      const group = (DIRISH.has(b.kind) ? 1 : 0) - (DIRISH.has(a.kind) ? 1 : 0);
+      if (group) return group;
+    }
+    if (key === 'mtime') return (timeOf(b) - timeOf(a)) * dir;
+    if (key === 'size') return (sizeOf(b) - sizeOf(a)) * dir;
+    return String(a[key] ?? '').localeCompare(String(b[key] ?? '')) * dir;
+  });
+
+  const wrap = el('div', 'flist');
+  const th = el('div', 'thead');
+  for (const [k, label] of COLS) {
+    const cell = el('span', 'sortable' + (k === 'size' ? ' s' : ''),
+      label + (key === k ? (dir > 0 ? ' ▴' : ' ▾') : ''));
+    activate(cell, () => {
+      S.folderSort = key === k ? { key: k, dir: -dir } : { key: k, dir: 1 };
+      renderView();
+    });
+    th.append(cell);
+  }
+  wrap.append(th);
+
+  for (const c of sorted) {
+    const row = el('div', 'trow');
+    const name = el('div', 'n');
+    const dot = el('span', 'dot' + (ROUND.has(c.kind) ? ' round' : '')); dot.style.background = tintOf(c);
+    name.append(dot, el('span', '', c.name));
+    // A folder's "size" is how much is in it, which is the number you actually want.
+    const measure = DIRISH.has(c.kind)
+      ? (c.lazy && !c.loaded ? 'unopened' : (c.children?.length ?? 0) + ' items')
+      : fmtSize(c.size) || '—';
+    row.append(name, el('span', 'm', KIND_LABEL[c.kind] || c.kind),
+      el('span', 'm', stamps ? fmtAgo(timeOf(c)) || '—' : '…'), el('span', 's', measure));
+    row.title = c.desc || c.id;
+    activate(row, () => go(c.id));
+    wrap.append(row);
+  }
+  page.append(wrap);
+}
+
+/**
+ * A folder's own README as its landing page, with one button back to the view the node
+ * would otherwise have got. Applies to any node the server flagged `docFirst` — the shared
+ * roots and every ordinary folder that documents itself. The switch is per-node and
+ * per-session (S.docOff) rather than persisted: the README is the intended default every
+ * time the hub is opened fresh.
+ */
+function viewDocFirst(page, n) {
+  const back = el('button', 'btn', n.kind === 'root' ? '\u229e overview' : '\u229e folder');
+  back.title = 'Show this folder\u2019s contents instead of its README';
+  back.onclick = () => { S.docOff.add(n.id); renderView(); };
+  headerBlock(page, {
+    title: n.name, path: absOf(n.id), lede: n.desc || '',
+    actions: [back, copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')],
+  });
+  const panel = foldPanel('Document');
+  const ph = phRow();
+  ph.append(el('span', '', n.doc.split('/').pop()), el('em', '', 'rendered'));
+  panel.append(ph);
+  const body = el('div', 'md'); body.textContent = 'loading\u2026';
+  panel.append(body);
+  loadDoc(n.doc, body);
+  page.append(panel);
+}
+
+/** The return trip out of a switched-off viewDocFirst, or null for every other node. */
+function readmeBtn(n) {
+  if (!(n.docFirst && n.doc && S.docOff.has(n.id))) return null;
+  const b = el('button', 'btn', '\u2630 readme');
+  b.onclick = () => { S.docOff.delete(n.id); renderView(); };
+  return b;
+}
+
+function viewFolder(page, n) {
+  const toggle = el('div', 'viewtoggle');
+  for (const [mode, label] of [['cards', '⊞ cards'], ['list', '☰ list']]) {
+    const b = el('button', 'btn' + (folderMode === mode ? ' on' : ''), label);
+    b.setAttribute('aria-pressed', String(folderMode === mode));
+    b.onclick = () => setFolderMode(mode);
+    toggle.append(b);
+  }
+  headerBlock(page, {
+    title: n.name, path: absOf(n.id), lede: n.desc || '',
+    actions: [readmeBtn(n), toggle, copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')]
+      .filter(Boolean),
+  });
+  const kids = n.children || [];
+  if (!kids.length) {
+    page.append(n.more ? skippedNote(n.more, '. Use open folder.') : el('div', 'empty', 'empty folder'));
+    return;
+  }
+
+  // The list is deliberately flat: splitting it into titled groups is what the card
+  // view is for, and the whole point of a list is one sortable sequence.
+  if (folderMode === 'list') {
+    folderList(page, n, kids);
+    if (n.more) page.append(skippedNote(n.more, '.'));
+    return;
+  }
+
+  // Agents/ and the user root both mix runtimes with ordinary folders and docs.
+  // Runtimes are the reason you opened the page, so they get their own titled group
+  // with the same counts the overview shows.
+  const clis = kids.filter(c => c.kind === 'cli');
+  const rest = kids.filter(c => c.kind !== 'cli');
+  if (clis.length) {
+    const scope = SCOPE[scopeOf(clis[0])];
+    page.append(foldable(scope.title, sectionWith(scope.title, scope.where(topAncestorOf(n.id)?.name)), runtimeCards(clis)));
+  }
+
+  const cards = el('div', 'cards');
+  for (const c of (clis.length ? rest : kids)) {
+    const card = el('div', 'card');
+    const hd = el('div', 'hd');
+    const d = el('span', 'dot' + (ROUND.has(c.kind) ? ' round' : '')); d.style.background = tintOf(c);
+    hd.append(d, el('b', '', c.name), el('em', '', KIND_LABEL[c.kind] || c.kind));
+    card.append(hd);
+    if (c.kind === 'image') {
+      // loading="lazy" is the whole mechanism: a folder of two thousand photos fetches
+      // only what is on screen, with no observer to write and none to get wrong.
+      const thumb = el('img', 'thumb');
+      thumb.loading = 'lazy'; thumb.decoding = 'async';
+      thumb.alt = '';
+      thumb.src = '/api/raw?path=' + encodeURIComponent(c.id);
+      thumb.onerror = () => thumb.remove();
+      card.append(thumb);
+    }
+    card.append(el('p', '', c.desc || (c.lazy && !c.loaded ? 'Open to load folder' : c.children ? `${c.children.length} items`
+      : c.more ? `${c.more} file${c.more === 1 ? '' : 's'}` : fmtSize(c.size) || '—')));
+    if (c.kind === 'repo') {
+      const ft = el('div', 'ft');
+      const st = el('span', '', c.state || ''); st.style.color = c.dot || 'var(--dimmer)';
+      ft.append(el('span', '', c.branch || ''), st);
+      card.append(ft);
+    }
+    activate(card, () => go(c.id));
+    cards.append(card);
+  }
+  if (cards.children.length) {
+    page.append(clis.length
+      ? foldable('Folders & docs', sectionWith('Folders & docs', `${rest.length} items`), cards)
+      : cards);
+  }
+  if (n.more) page.append(skippedNote(n.more, '.'));
+}
+
+// repo ----------------------------------------------------------------------
+function viewRepo(page, n) {
+  const tags = [];
+  const br = el('span', 'tag br', n.branch || '—'); tags.push(br);
+  const st = el('span', 'mono', n.state || ''); st.style.cssText = `font-size:10.5px;color:${n.dot}`; tags.push(st);
+  headerBlock(page, {
+    title: n.name, tags, path: absOf(n.id),
+    actions: [copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')],
+  });
+
+  const split = el('div', 'split');
+  const doc = foldPanel('Document');
+  const ph = phRow();
+  ph.append(el('span', '', n.doc ? n.doc.split('/').pop() : 'no README'), el('em', '', 'rendered'));
+  doc.append(ph);
+  const body = el('div', 'md'); body.textContent = 'loading…';
+  doc.append(body);
+  if (n.doc) loadDoc(n.doc, body); else body.textContent = 'This repo has no README.md.';
+
+  const side = el('div', 'stack');
+  side.append(boxKV('Git', [
+    ['group', n.group], ['branch', n.branch], ['state', n.state],
+    ['last commit', n.ago || '—'], ['ahead / behind', `${n.ahead ?? 0} / ${n.behind ?? 0}`],
+    ['remote', n.remote || '—'],
+  ]));
+  if (n.commit && n.commit !== '—') {
+    const b = el('div', 'box');
+    b.append(el('div', 'cap', 'Latest commit'));
+    const p = el('p', ''); p.style.cssText = 'margin:0;font-size:11.5px;line-height:1.5;color:var(--fg-mid)';
+    p.textContent = n.commit;
+    b.append(p);
+    if (n.author) { const a = el('div', 'mono'); a.style.cssText = 'font-size:10.5px;color:var(--dimmer);margin-top:6px'; a.textContent = n.author; b.append(a); }
+    side.append(b);
+  }
+  if (n.agentDoc) {
+    const b = el('div', 'box');
+    b.append(el('div', 'cap', 'Agent contract'));
+    const list = el('div', 'linklist');
+    const d = el('div', '', n.agentDoc.split('/').pop());
+    activate(d, () => go(n.agentDoc));
+    list.append(d); b.append(list); side.append(b);
+  }
+  if (n.children?.length || n.more) { side.append(contentsBox('Contents', n)); }
+  split.append(doc, side);
+  page.append(split);
+}
+
+/**
+ * Every indexed child of a directory node as a click-through list, plus the count of
+ * source files the repo doc-filter left out so the listing never reads as complete
+ * when it isn't. Clicking that line opens the real folder in the editor.
+ */
+function contentsBox(cap, n) {
+  const b = el('div', 'box');
+  b.append(el('div', 'cap', cap));
+  const list = el('div', 'filelist');
+  for (const c of (n.children || [])) {
+    const dir = DIRISH.has(c.kind);
+    const row = el('div');
+    row.append(el('i', '', dir ? '▸' : '·'), el('span', '', c.name + (dir ? '/' : '')));
+    activate(row, () => go(c.id));
+    list.append(row);
+  }
+  if (n.more) {
+    const m = el('div', 'more');
+    m.append(el('i', '', '+'), el('span', '', `${n.more} other file${n.more === 1 ? '' : 's'} — open folder`));
+    activate(m, () => fetch('/api/open?path=' + encodeURIComponent(n.id)));
+    list.append(m);
+  }
+  b.append(list);
+  return b;
+}
+
+function boxKV(cap, pairs) {
+  const b = el('div', 'box');
+  b.append(el('div', 'cap', cap));
+  for (const [k, v] of pairs) {
+    const r = el('div', 'kv');
+    r.append(el('span', '', k), el('span', '', v == null || v === '' ? '—' : String(v)));
+    b.append(r);
+  }
+  return b;
+}
+
+// entity (skill / command / sub-agent / hook) --------------------------------
+function viewEntity(page, n) {
+  const tag = el('span', 'tag', KIND_LABEL[n.kind]); tag.style.color = TINT[n.kind];
+  headerBlock(page, {
+    title: n.title || n.name.replace(/\.md$/i, ''), tags: [tag], path: absOf(n.id),
+    actions: [copyBtn(winPath(n.id)), codeBtn(n.id, 'open in VS Code'), openBtn(n.id, 'open')],
+  });
+
+  if (n.kind === 'command') {
+    const u = el('div');
+    u.style.cssText = 'background:var(--sunken);border:1px solid var(--line-soft);padding:11px 13px;font-family:var(--mono);font-size:12.5px;color:var(--fg-mid)';
+    const dollar = el('span', '', '$ '); dollar.style.color = 'var(--dimmer)';
+    u.append(dollar, document.createTextNode('/' + (n.title || n.name.replace(/\.md$/i, ''))));
+    page.append(u);
+  }
+
+  const split = el('div', 'split');
+  const docPath = n.doc || n.id;
+  const doc = foldPanel('Document');
+  const ph = phRow();
+  ph.append(el('span', '', docPath.split('/').pop()), el('em', '', 'rendered'));
+  doc.append(ph);
+  const body = el('div', 'md'); body.textContent = 'loading…';
+  doc.append(body);
+  loadDoc(docPath, body);
+
+  const side = el('div', 'stack');
+  side.append(n.kind === 'routine'
+    ? boxKV('Schedule', [
+      ['when', n.sched || '—'], ['task', n.taskName || '—'], ['runner', n.runner || '—'],
+      ['target', n.target || '—'], ['branch', n.branchPrefix || '—'],
+      ['runs logged', n.runs != null ? String(n.runs) : '—'], ['last run', n.lastRun || 'never'],
+    ])
+    : boxKV('Meta', [
+      ['kind', KIND_LABEL[n.kind]], ['runtime', n.cli || '—'],
+      ['file', docPath.split('/').pop()], ['size', fmtSize(n.size) || '—'],
+    ]));
+  if (n.kind === 'routine') {
+    const jump = el('div', 'chips');
+    for (const [id, label] of [[n.prompt, 'prompt.md'], [n.metaFile, (n.metaFile || '').split('/').pop()], [n.lastLog, 'latest log']]) {
+      if (!id) continue;
+      const c = el('div', 'chip');
+      const d = el('span', 'dot'); d.style.cssText = `background:${TINT.routine};width:6px;height:6px;flex:0 0 6px`;
+      c.append(d, el('span', '', label));
+      activate(c, () => go(id));
+      jump.append(c);
+    }
+    if (jump.childElementCount) side.append(jump);
+  }
+  if (n.desc) {
+    const b = el('div', 'box');
+    b.append(el('div', 'cap', 'Description'));
+    const p = el('p'); p.style.cssText = 'margin:0;font-size:11.5px;line-height:1.55;color:var(--fg-mid)';
+    p.textContent = n.desc;
+    b.append(p); side.append(b);
+  }
+  split.append(doc, side);
+  page.append(split);
+}
+
+// plain file ----------------------------------------------------------------
+// ── reader tools (P7-12) ───────────────────────────────────────────────────
+// A long README is a document, not just a file. Five small things make it read like one:
+// an outline, a source toggle, copy buttons on code, a comfortable measure, and a print
+// stylesheet. Width and scale are per-viewer comfort, so they persist like the theme;
+// the source toggle and the outline are per-session, like the HTML preview tabs.
+const READ_WIDTHS = [['full', 'none'], ['normal', '82ch'], ['narrow', '64ch']];
+const READ_SCALES = [['100%', 1], ['112%', 1.12], ['125%', 1.25], ['90%', 0.9]];
+const reader = { width: 0, scale: 0, outline: false };
+// One key, holding two names rather than two indexes: a stored index would silently mean
+// something else the moment either list changes, and index 0 is today's look either way.
+try {
+  const saved = JSON.parse(localStorage.getItem('hub.reader') || '{}');
+  const w = READ_WIDTHS.findIndex((x) => x[0] === saved.width);
+  const c = READ_SCALES.findIndex((x) => x[0] === saved.scale);
+  if (w > 0) reader.width = w;
+  if (c > 0) reader.scale = c;
+} catch {}
+function cycleReader(field, list) {
+  reader[field] = (reader[field] + 1) % list.length;
+  try {
+    localStorage.setItem('hub.reader', JSON.stringify({
+      width: READ_WIDTHS[reader.width][0], scale: READ_SCALES[reader.scale][0],
+    }));
+  } catch {}
+  renderView();
+}
+
+/** Build the outline from what actually rendered, so it can never disagree with it. */
+function buildOutline(host, into) {
+  into.textContent = '';
+  const heads = [...host.querySelectorAll('h1, h2, h3, h4')];
+  if (!heads.length) { into.append(el('div', 'empty', 'no headings in this document')); return; }
+  for (const h of heads) {
+    const link = el('a', h.tagName.toLowerCase(), h.textContent);
+    link.href = '#';
+    link.onclick = (e) => {
+      e.preventDefault();
+      h.scrollIntoView({ block: 'start' });
+      // Keep the address bar honest: this is the same destination a cross-document
+      // heading link would reach, so leaving it out would make the two disagree.
+      if (h.id && S.sel) { S.heading = h.id; const hash = routeHash(S.sel, h.id); if (location.hash !== hash) location.hash = hash; }
+    };
+    into.append(link);
+  }
+}
+
+/** Copy buttons live on the rendered block, so they copy exactly what is on screen. */
+function addCopyButtons(host) {
+  for (const pre of host.querySelectorAll('pre.code')) {
+    const b = el('button', 'copycode', 'copy');
+    b.type = 'button';
+    b.onclick = async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try { await navigator.clipboard.writeText(pre.querySelector('code')?.textContent ?? pre.textContent); b.textContent = 'copied'; }
+      catch { b.textContent = 'failed'; }
+      setTimeout(() => { b.textContent = 'copy'; }, 1200);
+    };
+    pre.append(b);
+  }
+}
+
+function viewFile(page, n) {
+  const isHtml = n.kind === 'html' || /\.html?$/i.test(n.name);
+  const isPdf = n.kind === 'pdf';
+  const isMd = /\.md$/i.test(n.name);
+  const printable = !isPdf && !(isHtml && S.htmlMode !== 'source');
+
+  const actions = [copyBtn(winPath(n.id)), codeBtn(n.id, 'open in VS Code'), openBtn(n.id, 'open')];
+  if (printable) {
+    // The print stylesheet hides every bit of chrome, so this prints the document alone.
+    const p = el('button', 'btn', 'print');
+    p.onclick = () => window.print();
+    actions.unshift(p);
+  }
+  headerBlock(page, {
+    title: n.name, tags: [el('span', 'mono', fmtSize(n.size))], path: absOf(n.id), actions,
+  });
+  const panel = foldPanel('Document');
+  const ph = phRow();
+
+  if (isHtml) {
+    // .html used to only ever render as escaped source text (#31) — the more useful
+    // default is a live, sandboxed render, with source one click away for anyone who
+    // wants to read the markup instead. The choice is remembered for the rest of the
+    // session (not persisted) rather than per file, so it stays wherever you left it.
+    if (!S.htmlMode) S.htmlMode = 'preview';
+    const tabs = el('div'); tabs.style.cssText = 'display:flex;gap:4px';
+    const tab = (mode, label) => {
+      const b = el('button', 'btn' + (S.htmlMode === mode ? ' solid' : ''), label);
+      b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); S.htmlMode = mode; renderView(); };
+      return b;
+    };
+    tabs.append(tab('preview', 'preview'), tab('source', 'source'));
+    ph.append(el('span', '', n.name), tabs);
+  } else if (isMd) {
+    // Same shape as the HTML tabs above, plus the reading controls. Markdown is the one
+    // kind where both halves are useful: the render to read, the source to copy or diff.
+    if (!S.mdMode) S.mdMode = 'rendered';
+    const bar = el('div', 'readerbtns');
+    const btn = (label, on, fn, title) => {
+      const b = el('button', 'btn' + (on ? ' solid' : ''), label);
+      if (title) b.title = title;
+      b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
+      return b;
+    };
+    bar.append(
+      btn('rendered', S.mdMode === 'rendered', () => { S.mdMode = 'rendered'; renderView(); }),
+      btn('source', S.mdMode === 'source', () => { S.mdMode = 'source'; renderView(); }),
+    );
+    if (S.mdMode === 'rendered') {
+      bar.append(
+        btn('☰ outline', reader.outline, () => { reader.outline = !reader.outline; renderView(); }, 'Show the heading outline'),
+        btn('↔ ' + READ_WIDTHS[reader.width][0], reader.width > 0,
+          () => cycleReader('width', READ_WIDTHS), 'Reading width'),
+        btn('A ' + READ_SCALES[reader.scale][0], reader.scale > 0,
+          () => cycleReader('scale', READ_SCALES), 'Text size'),
+      );
+    }
+    ph.append(el('span', '', n.name), bar);
+  } else {
+    ph.append(el('span', '', n.name), el('em', '', isPdf ? 'PDF preview' : 'source'));
+  }
+  panel.append(ph);
+
+  if (isPdf) {
+    const controls = el('div', 'row'); controls.style.padding = '10px';
+    controls.append(el('span', '', 'If the PDF preview is unavailable, open or download the report.'));
+    const download = el('a', 'btn', 'download PDF');
+    download.href = '/api/raw?path=' + encodeURIComponent(n.id) + '&download=1';
+    controls.append(openBtn(n.id, 'open PDF'), download);
+    panel.append(controls);
+    const frame = el('iframe');
+    frame.title = n.name + ' — PDF preview';
+    frame.src = '/api/raw?path=' + encodeURIComponent(n.id);
+    frame.style.cssText = 'width:100%;height:72vh;border:none;display:block';
+    panel.append(frame);
+  } else if (isHtml && S.htmlMode === 'preview') {
+    const frame = el('iframe');
+    frame.src = '/api/preview?path=' + encodeURIComponent(n.id);
+    frame.title = n.name;
+    // No allow-same-origin: the framed page gets an opaque, unique origin with no access
+    // to this page's DOM, cookies, or storage, regardless of what the artifact's own
+    // script tries. allow-scripts/forms/modals/popups is what an interactive dashboard
+    // actually needs to function; top-level navigation stays blocked either way.
+    frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups');
+    frame.style.cssText = 'width:100%;height:72vh;border:none;display:block;background:#fff';
+    panel.append(frame);
+  } else {
+    const source = isMd && S.mdMode === 'source';
+    const outline = isMd && !source && reader.outline ? el('div', 'outline') : null;
+    if (outline) panel.append(outline);
+    const body = el('div', 'md'); body.textContent = 'loading…';
+    // Width and scale are the reader's, not the document's, so they ride on the container.
+    body.style.setProperty('--read-width', READ_WIDTHS[reader.width][1]);
+    body.style.setProperty('--read-scale', String(READ_SCALES[reader.scale][1]));
+    panel.append(body);
+    loadDoc(n.id, body, { source, outline });
+  }
+  page.append(panel);
+}
+
+// ── image browsing (P7-13) ─────────────────────────────────────────────────
+// Zoom is per-session and shared across images: flipping through a folder at 100% should
+// stay at 100%, not reset every time. `null` means fit, which is what it has always done.
+let imgZoom = null;
+const ZOOM_STEPS = [0.25, 0.5, 1, 2, 4];
+
+/** The images beside this one, in tree order. Empty when the siblings are not loaded. */
+function imageSiblings(id) {
+  const parent = S.byId.get(S.parent.get(id) || '');
+  const kids = (parent?.children || []).filter((c) => c.kind === 'image');
+  return { list: kids, index: kids.findIndex((c) => c.id === id) };
+}
+
+function viewImage(page, n) {
+  const { list, index } = imageSiblings(n.id);
+  const step = (delta) => go(list[index + delta].id);
+
+  const actions = [];
+  if (index > 0) { const b = el('button', 'btn', '‹ prev'); b.onclick = () => step(-1); actions.push(b); }
+  if (index >= 0 && index < list.length - 1) { const b = el('button', 'btn', 'next ›'); b.onclick = () => step(1); actions.push(b); }
+  actions.push(copyBtn(winPath(n.id)), codeBtn(n.id, 'open in VS Code'), openBtn(n.id, 'open'));
+
+  const tags = [el('span', 'mono', fmtSize(n.size))];
+  if (index >= 0 && list.length > 1) tags.push(el('span', 'mono', `${index + 1} of ${list.length}`));
+  headerBlock(page, { title: n.name, tags, path: absOf(n.id), actions });
+
+  const panel = foldPanel('Preview');
+  const ph = phRow();
+  const bar = el('div', 'imgbar');
+  const dims = el('span', 'dims', '');
+  const zoomBtn = (label, value) => {
+    const b = el('button', 'btn' + (imgZoom === value ? ' solid' : ''), label);
+    b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); imgZoom = value; renderView(); };
+    return b;
+  };
+  const nudge = (dir) => {
+    const b = el('button', 'btn', dir < 0 ? '−' : '+');
+    b.title = dir < 0 ? 'Zoom out' : 'Zoom in';
+    b.onclick = (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const at = imgZoom == null ? 2 : ZOOM_STEPS.indexOf(imgZoom);
+      imgZoom = ZOOM_STEPS[Math.max(0, Math.min(ZOOM_STEPS.length - 1, (at < 0 ? 2 : at) + dir))];
+      renderView();
+    };
+    return b;
+  };
+  bar.append(dims, zoomBtn('fit', null), zoomBtn('100%', 1), nudge(-1), nudge(1));
+  ph.append(el('span', '', n.name), bar);
+  panel.append(ph);
+
+  const wrap = el('div', 'imgwrap' + (imgZoom == null ? ' fit' : ''));
+  const img = el('img');
+  img.src = '/api/raw?path=' + encodeURIComponent(n.id);
+  img.alt = n.name;
+  img.decoding = 'async';
+  if (imgZoom != null) { img.style.width = 'auto'; img.style.zoom = String(imgZoom); }
+  img.onload = () => {
+    // Natural size is the honest number: it does not change with zoom or the pane width.
+    dims.textContent = `${img.naturalWidth} × ${img.naturalHeight}`
+      + (imgZoom == null ? '' : `  ·  ${Math.round(imgZoom * 100)}%`);
+  };
+  img.onerror = () => { wrap.textContent = 'could not load this image'; };
+  wrap.append(img);
+  panel.append(wrap);
+  page.append(panel);
+}
+
+async function loadDoc(id, host, opts = {}) {
+  try {
+    const r = await fetch('/api/file?path=' + encodeURIComponent(id) + (opts.source ? '&raw=1' : ''));
+    if (!r.ok) throw new Error(await r.text());
+    const { html } = await r.json();
+    host.innerHTML = html;
+
+    // Repo-relative images only resolve through the server; absolute ones load as-is.
+    for (const img of host.querySelectorAll('img')) {
+      const src = img.getAttribute('src') || '';
+      if (/^(https?:|data:|\/api\/)/i.test(src)) continue;
+      img.src = '/api/raw?path=' + encodeURIComponent(resolveRel(id, src.split('#')[0]));
+      img.onerror = () => img.replaceWith(Object.assign(document.createElement('span'),
+        { className: 'imgref', textContent: `[img: ${img.getAttribute('alt') || src}]` }));
+    }
+
+    // Relative links jump inside the hub when the target is indexed.
+    for (const a of host.querySelectorAll('a[href]')) {
+      const href = a.getAttribute('href') || '';
+      if (/^(https?:|mailto:)/i.test(href)) { a.target = '_blank'; a.rel = 'noreferrer'; continue; }
+      const target = documentTarget(id, href);
+      a.onclick = (e) => {
+        e.preventDefault();
+        if (!target) { toast('invalid document link'); return; }
+        if (S.byId.has(target.id) || pictureNodes.owns(target.id)) go(target.id, target.heading);
+        else toast('not indexed: ' + target.id);
+      };
+    }
+    addCopyButtons(host);
+    if (opts.outline) buildOutline(host, opts.outline);
+  } catch (e) {
+    host.textContent = 'could not read this file — ' + e.message;
+    if (opts.outline) opts.outline.textContent = '';
+  } finally {
+    if (host.isConnected) {
+      if (restoreReading && restoreReading.id === S.sel) $('#view').scrollTop = restoreReading.scroll;
+      else if (S.heading) {
+        const target = host.querySelector('#' + CSS.escape(S.heading))
+          || [...host.querySelectorAll('a[name]')].find(a => a.getAttribute('name') === S.heading);
+        if (target) target.scrollIntoView({ block: 'start' });
+        else if (S.sel === id) toast('anchor not found: ' + S.heading);
+      }
+    }
+  }
+}
+
+function resolveRel(fromId, href) {
+  const parts = fromId.split('/').slice(0, -1);
+  for (const seg of href.split('/')) {
+    if (seg === '.' || seg === '') continue;
+    if (seg === '..') parts.pop(); else parts.push(decodeURIComponent(seg));
+  }
+  return parts.join('/');
+}
+
+// search --------------------------------------------------------------------
+// `skill:kalshi` narrows to one kind. The index already carries `kind`, so this is a
+// filter rather than a second search path. Plurals and the obvious short forms map too,
+// because nobody remembers whether it is `cmd` or `command`.
+const KIND_SCOPES = {
+  cli: 'cli', repo: 'repo', repos: 'repo', skill: 'skill', skills: 'skill',
+  cmd: 'command', cmds: 'command', command: 'command', commands: 'command',
+  agent: 'agent', agents: 'agent', subagent: 'agent', hook: 'hook', hooks: 'hook',
+  style: 'style', styles: 'style', routine: 'routine', routines: 'routine',
+  mcp: 'mcp', doc: 'md', docs: 'md', md: 'md', config: 'config',
+  folder: 'folder', folders: 'folder', group: 'group', section: 'section',
+  pdf: 'pdf', html: 'html', image: 'image', images: 'image',
+};
+
+// The project a search launched from, if any — Documents/Skills/Pictures/Automations
+// and the Projects folder itself have no single project to scope to, so the toggle
+// this powers only appears when it would actually narrow something. "Is a project" is
+// "its immediate parent is the Projects folder" -- the nesting itself is the marker,
+// no separate flag needed.
+function searchContextProject() {
+  const n = S.byId.get(S.sel);
+  if (!n) return null;
+  const top = topAncestorOf(n.id);
+  return (top && S.parent.get(top.id) === '@projects') ? top : null;
+}
+
+function viewSearch(page) {
+  const typed = S.query.toLowerCase();
+  const scoped = /^([a-z]+):\s*(.*)$/.exec(typed);
+  const kind = scoped && KIND_SCOPES[scoped[1]] ? KIND_SCOPES[scoped[1]] : null;
+  const q = kind ? scoped[2].trim() : typed;
+
+  const ctxProject = searchContextProject();
+  let pool = kind ? S.index.filter(h => h.kind === kind) : S.index;
+  if (ctxProject && S.searchScoped) pool = pool.filter(h => topAncestorOf(h.id) === ctxProject);
+  const ranked = (q ? pool.map(h => ({ h, score: score(h, q) })).filter(x => x.score > 0)
+    : pool.map(h => ({ h, score: KIND_WEIGHT[h.kind] || 1 })))
+    .sort((a, b) => b.score - a.score);
+  const hits = ranked.slice(0, S.hitLimit || 200).map(x => x.h);
+
+  const head = el('div');
+  head.style.cssText = 'display:flex;align-items:center;gap:10px;font-size:11px;color:var(--dim)';
+  const label = el('span', 'mono');
+  label.textContent = `Showing ${hits.length} of ${ranked.length} match${ranked.length === 1 ? '' : 'es'}`
+    + (kind ? ` in ${KIND_LABEL[kind] || kind}` : '')
+    + (q ? ` for “${q}”` : '')
+    + (hits.length ? ' — ↑↓ to move, Enter to open' : '');
+  head.append(label);
+  if (ctxProject) {
+    const toggle = el('span', 'fchip' + (S.searchScoped ? ' on' : ''), `only ${ctxProject.name}`);
+    activate(toggle, () => { S.searchScoped = !S.searchScoped; syncSearchRoute(true); renderView(); });
+    head.append(toggle);
+  }
+  page.append(head);
+
+  const list = el('div');
+  list.id = 'search-results';
+  list.setAttribute('role', 'listbox');
+  list.setAttribute('aria-label', 'Search results');
+  for (const h of hits) {
+    const row = el('div', 'hit');
+    const k = el('span', 'k', KIND_LABEL[h.kind] || h.kind); k.style.color = TINT[h.kind] || TINT.file;
+    const name = el('span', 'n'); name.append(mark(h.name, q));
+    row.append(k, name, el('span', 'd', h.id + (h.desc ? ' — ' + h.desc : '')));
+    row.title = h.id;
+    activate(row, () => go(h.id), 'option');
+    list.append(row);
+  }
+  if (!hits.length) {
+    list.append(el('div', 'empty', kind ? `no ${KIND_LABEL[kind] || kind} matched` : 'nothing matched'));
+  }
+  page.append(list);
+  if (hits.length < ranked.length) {
+    const more = el('button', 'btn', 'Load 200 more');
+    more.onclick = () => { const scroll = $('#view').scrollTop; S.hitLimit = (S.hitLimit || 200) + 200; syncSearchRoute(true); renderView(); $('#view').scrollTop = scroll; };
+    page.append(more);
+  }
+  if ((!ctxProject || !S.searchScoped) && (!kind || ['image', 'pdf', 'html', 'md', 'config', 'folder'].includes(kind))) {
+    const pictures = el('section'); page.append(pictures);
+    searchPictures(pictures, q, kind);
+  }
+
+}
+
+async function searchPictures(host, q, kind, previous = [], previousVersion = null) {
+  const generation = pictureGeneration;
+  if (!previous.length) host.textContent = 'Searching Pictures… Results load separately from project documents.';
+  const key = JSON.stringify([q, kind, previous.length]);
+  try {
+    if (!pictureSearches.has(key)) {
+      if (pictureSearches.size >= 30) pictureSearches.delete(pictureSearches.keys().next().value);
+      pictureSearches.set(key, (async () => {
+        let response;
+        const url = '/api/pictures?action=search&q=' + encodeURIComponent(q) + '&kind=' + encodeURIComponent(kind || '') + '&offset=' + previous.length;
+        for (let attempt = 0; attempt < 2; attempt++) { response = await fetch(url); if (response.status !== 409) break; }
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Pictures search unavailable');
+        return data;
+      })());
+    }
+    const data = await pictureSearches.get(key);
+    if (!host.isConnected || generation !== pictureGeneration) return;
+    if (previousVersion && data.version !== previousVersion) {
+      pictureSearches.clear(); return searchPictures(host, q, kind);
+    }
+    const hits = [...previous, ...data.hits];
+    host.textContent = '';
+    host.append(el('h2', 'sec', 'Pictures — showing ' + hits.length + ' of ' + data.total + ' matches'));
+    if (data.depthLimited) host.append(el('p', 'lede', 'Search uses the existing library depth limit. Deeper folders can still be opened in the tree.'));
+    if (data.readErrors) host.append(el('p', 'lede', data.readErrors + ' Pictures folders could not be read; results may be incomplete.'));
+    const list = el('div'); list.id = 'pictures-results'; list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', 'Pictures results');
+    for (const hit of hits) {
+      const row = el('div', 'hit');
+      row.append(el('span', 'k', KIND_LABEL[hit.kind] || hit.kind), el('span', 'n', hit.name), el('span', 'd', hit.id));
+      activate(row, () => go(hit.id), 'option'); list.append(row);
+    }
+    host.append(list);
+    // Late arrivals extend the arrow-key sequence, so the ids and selected state
+    // have to be reassigned across both lists.
+    syncCombobox();
+    if (hits.length < data.total) {
+      const more = el('button', 'btn', 'Load 200 more Pictures results');
+      more.onclick = () => { more.disabled = true; searchPictures(host, q, kind, hits, data.version); };
+      host.append(more);
+    }
+  } catch (err) {
+    pictureSearches.delete(key);
+    if (!host.isConnected) return;
+    host.textContent = err.message + ' ';
+    const retry = el('button', 'btn', 'Retry Pictures search'); retry.onclick = () => searchPictures(host, q, kind);
+    host.append(retry);
+  }
+}
+
+const KIND_WEIGHT = { cli: 60, repo: 50, skill: 45, command: 45, agent: 45, routine: 45, hook: 40, style: 40, group: 35, section: 35, userroot: 35, md: 25, folder: 15, config: 10 };
+function score(h, q) {
+  const name = h.name.toLowerCase();
+  let s = 0;
+  if (name === q) s = 1000;
+  else if (name.startsWith(q)) s = 600;
+  else if (name.includes(q)) s = 400;
+  else if ((h.desc || '').toLowerCase().includes(q)) s = 150;
+  else if (h.id.toLowerCase().includes(q)) s = 60;
+  return s ? s + (KIND_WEIGHT[h.kind] || 0) : 0;
+}
+
+// ── live updates ───────────────────────────────────────────────────────────
+function refreshPictures() {
+  pictureGeneration++; navigationRequest++;
+  const destination = requestedNavigation && pictureNodes.owns(requestedNavigation.id) ? requestedNavigation : { id: S.sel, heading: S.heading };
+  const selected = destination.id;
+  const wasSelected = pictureNodes.owns(selected || '');
+  const wasExpanded = S.open.has(pictureNodes.rootId);
+  pictureNodes.clear(); pictureSearches.clear(); pictureRequests.clear();
+  if (!S.data) return;
+  for (const id of S.open) if (pictureNodes.owns(id)) S.open.delete(id);
+  reindex(S.data);
+  if (S.query) {
+    renderTree(); renderPins(); renderView();
+    if (wasSelected) ensurePicture(selected).catch(() => {});
+  }
+  else if (wasSelected) go(selected, destination.heading);
+  else if (wasExpanded) toggleFolder(pictureNodes.rootId);
+  else { renderTree(); renderPins(); }
+}
+
+function watch() {
+  const es = new EventSource('/api/events');
+  let opened = false;
+  es.addEventListener('pictures', refreshPictures);
+  es.addEventListener('change', () => { $('#live').classList.add('stale'); $('#live').textContent = '● changed — rescanning'; load({ quiet: true }); });
+  es.onerror = () => { $('#live').classList.add('stale'); $('#live').textContent = '● disconnected'; if (S.data) { $('#connection').hidden = false; $('#connection span').textContent = 'Connection lost. Your current page is retained; reconnecting automatically.'; } };
+  // Reconnecting means the server we were talking to went away -- almost always a
+  // restart, which is exactly when the payload has changed and no `change` event will
+  // ever fire for it. Without this refetch a tab open across a restart shows the old
+  // tree indefinitely, with a healthy-looking status line. load() compares `sig`, so
+  // this costs nothing when the scan really is unchanged.
+  es.onopen = () => { $('#live').classList.remove('stale'); if (opened) refreshPictures(); opened = true; load({ quiet: true }); };
+}
+
+renderPins();
+await load();
+// Subscribe even if startup failed, so an eventual server restart can recover the page.
+if (location.protocol !== 'file:' && location.port === HUB_PORT) watch();
+</script>
+</body>
+</html>

@@ -1,16 +1,3 @@
----
-title: Project Hub Roadmap
-type: doc
-area: My-IT-Tools/HTML-Project-Design
-tags:
-  - roadmap
-  - audit
-  - html
-  - project-hub
-summary: "Project Hub audit history and roadmap. Records every phase from the original defect audit through the September 7 merge into one process. P7-01 to P7-16 have all shipped: report previews and search, refresh recovery, heading and search routes, Pictures loaded on demand, then on September 9 the bookmarks and recents lists, the folder list view, the reader tools, image browsing, the search combobox ARIA and the scan status panel. P7-13 uncovered and fixed a P7-06 regression that had been blanking every SVG. P8, also on September 9, added the Links root, README-first landing views for every folder that has one, and four more color schemes. What is left: P7-14 narrow panes, blocked because no real 640-1024px viewport has ever been reached; the remaining thirds of P7-07 and P7-15; and the optional P7-17 to 21. 64 tests."
-updated: 2026-09-09
----
-
 <a id="roadmap-top"></a>
 
 <h1 align="center">🗺️ Project Hub Roadmap</h1>

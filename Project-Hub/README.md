@@ -1,17 +1,3 @@
----
-title: Project Hub
-type: hub
-area: My-IT-Tools/HTML-Project-Design/Project-Hub
-tags:
-  - hub
-  - hub/tools
-  - html
-  - node
-  - navigation
-summary: Local Node server and explorer UI that scans Mikes_AI_Lab, Mike_IAM, Mike_Finance, Documents, My Custom Skills, Pictures, Automations, Links, and the user-scope agent config in the home directory — every repo, runtime, skill, command, sub-agent, scheduled routine, MCP server, and doc with live git state, re-rendering when anything changes. Runs at 127.0.0.1:4273.
-updated: 2026-09-09
----
-
 # 🚀 Project Hub
 
 A local navigation UI for all three of Mike's project workspaces at once —

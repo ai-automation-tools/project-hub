@@ -1,16 +1,3 @@
----
-title: Images — design screenshots
-type: hub
-area: My-IT-Tools/HTML-Project-Design/Images
-tags:
-  - hub
-  - hub/tools
-  - screenshots
-  - claude-design
-summary: Screenshots of the Project Hub design — four states of the AI Lab version, the generic first pass, and the VS Code folder tree that was handed to Claude Design as the brief.
-updated: 2026-08-27
----
-
 # 🖼️ Images — design screenshots
 
 What the design looked like before anything was built. These were the reference for [Project Hub](../Project-Hub/README.md), so if the running app and these ever disagree, the app is right and these are history.

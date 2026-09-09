@@ -1,15 +1,3 @@
----
-title: Bookmarks and Recents
-type: doc
-area: My-IT-Tools/HTML-Project-Design
-tags:
-  - html
-  - project-hub
-  - how-to
-summary: How to use the Project Hub's Bookmarks and Recent lists — the three ways to pin something, reordering and renaming, what happens when a pinned file is moved or deleted, and where the lists are stored.
-updated: 2026-09-09
----
-
 <a id="bookmarks-top"></a>
 
 <h1 align="center">🔖 Bookmarks &amp; Recents</h1>

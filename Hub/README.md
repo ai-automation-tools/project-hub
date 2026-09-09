@@ -1,15 +1,3 @@
----
-title: Hub (shared source)
-type: doc
-area: My-IT-Tools/HTML-Project-Design
-tags:
-  - html
-  - project-hub
-  - source
-summary: The one Project Hub program. Scanner, server, markdown renderer, watcher and UI, run as one process that nests every project under Projects/ inside one Projects folder in the tree. Bookmarks, recents and the search combobox shipped 2026-09-09.
-updated: 2026-09-09
----
-
 <a id="hub-top"></a>
 
 <h1 align="center">⚙️ Hub — shared source</h1>

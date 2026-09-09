@@ -1,16 +1,3 @@
----
-title: Src — Claude Design exports
-type: hub
-area: My-IT-Tools/HTML-Project-Design/Src
-tags:
-  - hub
-  - hub/tools
-  - claude-design
-  - html
-summary: The two Claude Design exports behind Project Hub — a generic first pass built around a fictional repo, and the version rebuilt against the real Mikes_AI_Lab tree. Notes which file is which, since several share a name.
-updated: 2026-08-27
----
-
 # 🎨 Src — Claude Design exports
 
 Two exports from the same [Claude Design canvas](https://claude.ai/design/p/f739c025-7a8e-4887-b51f-469969dd236c?file=Project+Hub+v2.dc.html), downloaded at different points. The file names repeat across both folders and one pair is byte-identical, so the table below is the only reliable way to tell them apart.

@@ -3,7 +3,7 @@
 <h1 align="center">🖥️ Project Hub</h1>
 
 <p align="center">
-  <em>Markdown is what the agents read. This is the layer for the human.</em>
+  <em>Your workspaces, docs, and AI tools in one local browser.</em>
 </p>
 
 <p align="center">
@@ -15,121 +15,79 @@
 
 ---
 
-A CLI-agent project is a folder tree, and a folder tree is a bad way to see one. Twenty
-repos across four groups, four agent runtimes, and the skills, commands, sub-agents, hooks,
-scheduled routines and MCP servers they each carry — none of that is visible from `ls`, and
-reading it out of `CLAUDE.md` means trusting a file that goes stale. Worse, most of those
-artifacts don't live in the project at all: they sit in `~/.claude`, `~/.codex` and friends,
-invisible to anything that only walks the repo.
+**Project Hub** scans your workspaces and displays their repos, Git status, documents,
+and AI agent tools in one browser interface. Browse files, search, bookmark pages,
+and preview Markdown, PDFs, HTML reports, and images. The view updates as files change.
 
-**Project Hub** is one Node process that scans the whole picture — every mounted workspace,
-the document roots they share, and the user-scope agent config — and serves it as a
-browsable HTML console at `http://127.0.0.1:<port>`. It re-renders on its own when you add
-a skill, a routine or a repo. No runtime dependencies or build step. Workspace scanning stays local; the browser can request Google Fonts and external images linked by documents.
-
-Durable project facts stay in Markdown, where agents can search and diff them. Project Hub supplies the browsable layer. Private design exports are excluded from the public source tree.
-
-The bundled [project-hub-scaffold-mfs skill](Skills/project-hub-scaffold-mfs/SKILL.md) helps an agent add workspaces or create a standalone installation. Copy that whole skill folder into your agent's skills directory and provide the path to this checkout when invoking it.
+One local server handles all your workspaces. No build step or runtime dependencies.
 
 ## 🔧 Setup
 
-Node 18.17+ and Git on PATH; the Windows launchers require PowerShell 7 (`pwsh`). **The real configs are gitignored** — they hold absolute
-paths into one machine — so a fresh clone needs two copies before it will start:
+Requires Node 18.17+ and Git on PATH. Windows launchers also need PowerShell 7 (`pwsh`).
+
+From the repository root, copy the example configs:
 
 ```powershell
-cd Project-Hub
-Copy-Item hub.config.example.json hub.config.json       # set "base" + "sharedRoots"
-
-cd ..\Projects
-New-Item -ItemType Directory My_Workspace
-Copy-Item _example\hub.config.json.example My_Workspace\hub.config.json    # set "dir"
-
-cd ..\Project-Hub
-.\Start-Hub.ps1
+Copy-Item Project-Hub/hub.config.example.json Project-Hub/hub.config.json
+New-Item -ItemType Directory Projects/My_Workspace
+Copy-Item Projects/_example/hub.config.json.example Projects/My_Workspace/hub.config.json
 ```
 
-| Key | Where | What it is |
-| :--- | :--- | :--- |
-| `base` | server config | The drive root every id in the tree is relative to. `/api/*` refuses anything resolving outside the mounted roots. |
-| `sharedRoots` | server config | Folders mounted next to *every* project — `Documents`, `Pictures`, whatever else. A root named `Pictures` also turns on the picture library. |
-| `dir` | project config | Absolute path to one workspace. One folder per project under `Projects/`. |
-| `repoScope` | project config | Which of that project's repos reach its overview table: `groups` for a `Repos/<group>/` tier, `pathPrefix` ending in `/` for a flat one, neither for all. |
+Edit the copies before starting:
 
-Both shapes are documented in full under [Hub/README.md → The config](Hub/README.md#the-config).
-For other systems, start with `node Hub/hub.mjs --config Project-Hub/hub.config.json`; native launch actions are Windows-specific.
+- **Server config:** set `base` to your workspace base folder and `sharedRoots` to any shared document or picture folders.
+- **Workspace config:** set `name` and `dir` for your workspace. Adjust or remove `repoScope` to choose which repos appear.
 
-Run the tests with `npm test` in [`Hub/`](Hub).
-
-## 📂 What's in here
-
-| Folder | What's inside |
-| :--- | :--- |
-| [**⚙️ Hub**](Hub/README.md) | **The program.** Scanner, server, markdown renderer, watcher, UI and tests — one copy, shared by every instance. Edit here; the hub picks it up at its next restart. |
-| [**🚀 Project-Hub**](Project-Hub/README.md) | **The running instance** — its `hub.config.json` (port, title, favicon, base, shared roots) and the launcher. Also the full user manual: page order, keyboard map, reading and image tools, health and the watchdog. **Start here if you want to use something rather than read about it.** |
-| [**📁 Projects**](Projects) | One subfolder per mounted workspace, each holding a small `hub.config.json`. Adding a project is a new subfolder here, nothing else. Contents are local to your machine and gitignored — see [`_example/`](Projects/_example) for the shape. |
-| [**🎨 Src**](Src/README.md) | Notes about private design exports, which are excluded from Git. |
-| [**🖼️ Images**](Images/README.md) | Notes about local screenshots, which are excluded from Git. |
-| [**📄 Docs**](Docs) | [`ChatGPT-HTML-Design.md`](Docs/ChatGPT-HTML-Design.md) — the research write-up that started this: where the Markdown/HTML line should fall, and six existing HTML-artifact skills weighed up with a verdict on each. [`ROADMAP.md`](Docs/ROADMAP.md) — the defect audits, the backlog, and the full shipping record. [`BOOKMARKS.md`](Docs/BOOKMARKS.md) — how to use the sidebar's Bookmarks and Recent lists. |
+Real configs stay out of Git. See the [config reference](Hub/README.md#the-config) for details.
 
 ## 🚀 Run the hub
 
+From the repository root:
+
 ```powershell
-cd Project-Hub
-.\Start-Hub.ps1          # scans every mounted project + the shared roots, then opens a browser
+./Project-Hub/Start-Hub.ps1
 ```
 
-`Start-Hub.ps1` is a three-line shim over the shared [`Hub/Start-Hub.ps1`](Hub/README.md);
-everything that differs between instances lives in config. Startup duration varies mostly
-with Git — the scan shells out per repo. Cached API responses are much smaller than a fresh
-scan, and Pictures folders and their search index load separately, on request.
+Or start Node directly:
 
-The hub opens on the **Projects** folder's own landing page — combined stats and a repos
-table across every mounted workspace — and each project gets the same overview scoped to
-just itself, laid out top to bottom as *what you have → what you ship → what explains it →
-what builds it*:
+```sh
+node Hub/hub.mjs --config Project-Hub/hub.config.json
+```
 
-| Section | Anchor | What's in it |
-| :--- | :--- | :--- |
-| **Stat strip** | — | Runtimes, repos, skills, commands, sub-agents, MCP servers, uncommitted — each noting the user-scope share. Doubles as the page's table of contents: **every tile is clickable** and jumps to its section. |
-| **Repos** | `#sec-repos` | The repo table with live git state — branch, dirty/ahead/behind, last commit. Scoped to the current project; the Projects landing page's table covers them all at once with a project chip per row. |
-| **Readmes** | `#sec-docs` | The root `README.md` of the current project, plus its agent config doc if it has one. |
-| **Project CLIs** | `#sec-project-clis` | The current project's own runtimes under `Agents/`. |
-| **User CLIs** | `#sec-user-clis` | `~/.claude`, `~/.codex`, `~/.gemini`, `~/.agents`, `~/.config/opencode` — identical for every project. |
+Open `http://127.0.0.1:4273`, or the port you configured. Native file-opening actions
+are Windows-specific.
 
-The runtime cards go last because that block is the tallest and the one you scroll *into*
-rather than past. Full detail — including why the jump is instant rather than smooth — is
-under [Page order](Project-Hub/README.md#page-order).
+To add a workspace, create another `Projects/<Name>/hub.config.json` and restart the
+server. Run tests with `npm test` from `Hub/`.
 
-> [!NOTE]
-> **The hub can watch itself.** [`Hub/Watch-Hubs.ps1`](Hub/README.md#the-watchdog) pings
-> `/api/health` on a schedule and restarts the hub if it's down or reporting trouble. It
-> exists because a hub once died of a file-descriptor leak and nothing noticed for hours.
-> A side effect worth knowing: **a hub you stop on purpose comes back** on the next tick
-> unless you disable the scheduled task first.
+## 📂 Explore the project
 
-> [!TIP]
-> **Adding a workspace is a new folder under `Projects/` — nothing else.** Earlier versions
-> ran one process per workspace on its own port, each independently re-scanning the same
-> shared document roots. One process now scans them once and nests every workspace under a
-> real **Projects** folder node in the tree — not a UI grouping; it collapses and expands
-> like any other folder.
+| Location | Contents |
+|:---|:---|
+| [Hub](Hub/README.md) | Server, scanner, interface, and tests |
+| [Project-Hub](Project-Hub/README.md) | Launcher, configuration, and user manual |
+| [Projects](Projects/_example/hub.config.json.example) | Example workspace config |
+| [Docs](Docs) | [Roadmap](Docs/ROADMAP.md), [bookmarks guide](Docs/BOOKMARKS.md), and design research |
+| [Scaffold skill](Skills/project-hub-scaffold-mfs/SKILL.md) | Add workspaces or create a portable installation |
+| [Src](Src/README.md) · [Images](Images/README.md) | Notes about local design references excluded from Git |
 
-> [!NOTE]
-> Original Claude Design exports are local reference material excluded from Git.
-> The maintained application lives in `Hub/`.
+To use the scaffold skill, copy its whole folder into your agent's skills directory
+and provide the path to this checkout.
+
+## Privacy and publishing
+
+The server runs on loopback for local use. Configs, scans, logs, and private design
+assets are ignored. Browser fonts and images linked in documents may make external requests.
+
+**Before making this repository public, clean its Git history.** Earlier commits
+still contain personal material. See [public release notes](Docs/PUBLIC-RELEASE.md).
 
 ---
 
 <p align="center">
-  <a href="Hub/README.md">⚙️ The program</a> ·
-  <a href="Project-Hub/README.md">🚀 The manual</a> ·
+  <a href="Project-Hub/README.md">🚀 User manual</a> ·
+  <a href="Skills/project-hub-scaffold-mfs/SKILL.md">🧩 Scaffold skill</a> ·
   <a href="Docs/ROADMAP.md">📄 Roadmap</a>
 </p>
 
 <p align="right"><sub><a href="#html-design-top">back to top</a></sub></p>
-
-## Public release preparation
-
-This is a local filesystem browser. Keep it bound to loopback; it is not a hosted multi-user service. Scan output, logs, local configs, editor settings, screenshots, and original design archives are ignored. Inspect diagnostics before sharing them.
-
-Current-file cleanup does not remove earlier commits. Before changing repository visibility, remove private material from published history and review commit author/email metadata, tags, branches, and hosted attachments. See [release notes](Docs/PUBLIC-RELEASE.md).

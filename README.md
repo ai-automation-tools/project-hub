@@ -1,18 +1,18 @@
----
-title: HTML Project Design
-type: hub
-area: My-IT-Tools/HTML-Project-Design
-tags:
-  - hub
-  - hub/tools
-  - html
-  - claude-design
-  - documentation
-summary: Research, design artifacts, and one running build for browsing a CLI-agent project through an HTML console instead of a folder tree. Holds the Claude Design exports and Project Hub — a single server that nests Mikes_AI_Lab, Mike_IAM, and Mike_Finance under one Projects folder in the sidebar, plus Documents, My Custom Skills, Pictures, Automations, Links and the shared user-scope agent config, with the Projects folder itself as the combined landing view. The sidebar opens collapsed except the path to whatever's currently open, with Bookmarks and Recent lists above the tree.
-updated: 2026-09-09
----
-
 <a id="html-design-top"></a>
+
+<h1 align="center">🖥️ HTML Project Design</h1>
+
+<p align="center">
+  <em>Markdown is what the agents read. This folder is about what I read.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/status-1_hub_3_projects-2ea44f?style=for-the-badge" alt="Status: 1 hub, 3 projects">
+  <img src="https://img.shields.io/badge/source-Claude_Design-8B5CF6?style=for-the-badge" alt="Source: Claude Design">
+  <a href="../README.md"><img src="https://img.shields.io/badge/↩-My_AI_Tools-6B7280?style=for-the-badge" alt="My AI Tools"></a>
+</p>
+
+---
 
 ## 🌐 Project Hub
 

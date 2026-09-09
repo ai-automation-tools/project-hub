@@ -14,20 +14,6 @@ updated: 2026-09-09
 
 <a id="html-design-top"></a>
 
-<h1 align="center">🖥️ HTML Project Design</h1>
-
-<p align="center">
-  <em>Markdown is what the agents read. This folder is about what I read.</em>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/status-1_hub_3_projects-2ea44f?style=for-the-badge" alt="Status: 1 hub, 3 projects">
-  <img src="https://img.shields.io/badge/source-Claude_Design-8B5CF6?style=for-the-badge" alt="Source: Claude Design">
-  <a href="../README.md"><img src="https://img.shields.io/badge/↩-My_AI_Tools-6B7280?style=for-the-badge" alt="My AI Tools"></a>
-</p>
-
----
-
 ## 🌐 Project Hub
 
 One console, one port, three project workspaces nested under one **Projects** folder in the sidebar:

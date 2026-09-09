@@ -4,6 +4,11 @@
 Project-Hub/hub.config.json
 Projects/*/hub.config.json
 
+# Everything about *this* copy of the hub -- real ports, real workspaces, the
+# scheduled task, the VS Code wiring. The root README describes the program;
+# Projects/README.md describes our instance of it.
+Projects/README.md
+
 # ── generated at runtime ───────────────────────────────────────────────────
 # scan.json is a full index of every path the hub can reach. Never commit it.
 scan.json

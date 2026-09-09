@@ -1,7 +1,11 @@
 <a id="readme-top"></a>
 <a id="html-design-top"></a>
 
-<h1 align="center">Project Hub</h1>
+<p align="center">
+  <a href="Docs/README.md">
+    <img src="Images/Public/project-hub-header.svg" alt="Project Hub brings workspaces, documents, and AI tools into one local browser." width="720">
+  </a>
+</p>
 
 <p align="center">
   <em>Your workspaces, docs, and AI tools<br>in one local browser.</em>

@@ -47,6 +47,7 @@ secrets*.json
 !/Images/Public/
 /Images/Public/*
 !/Images/Public/README.md
+!/Images/Public/project-hub-header.svg
 !/Images/Public/project-overview.png
 !/Images/Public/document-reader.png
 /Zip/

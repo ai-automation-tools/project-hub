@@ -36,7 +36,7 @@ test('search routes round-trip so Back returns to the results, not the previous 
   assert.equal(searchHash(''), '');
 
   // Document routes and search routes must not be mistaken for one another.
-  assert.equal(parseSearch(routeHash('Projects/Mikes_AI_Lab')), null);
+  assert.equal(parseSearch(routeHash('Projects/Example_Workspace')), null);
   assert.equal(parseSearch(routeHash('Docs/README.md', 'install')), null);
   assert.equal(parseSearch('#'), null);
   assert.equal(parseSearch('#?scoped=1'), null);
@@ -49,10 +49,10 @@ test('search routes round-trip so Back returns to the results, not the previous 
 });
 
 test('heading routes preserve old links and round-trip punctuation and Unicode', () => {
-  for (const id of ['Projects/Mikes_AI_Lab', '~/skills/test/SKILL.md', 'Documents/A & B/日本語.md']) {
+  for (const id of ['Projects/Example_Workspace', '~/skills/test/SKILL.md', 'Documents/A & B/日本語.md']) {
     assert.deepEqual(parseRoute(routeHash(id, 'setup & use')), { id, heading: 'setup & use' });
   }
-  assert.deepEqual(parseRoute('#Projects/Mikes_AI_Lab'), { id: 'Projects/Mikes_AI_Lab', heading: '' });
+  assert.deepEqual(parseRoute('#Projects/Example_Workspace'), { id: 'Projects/Example_Workspace', heading: '' });
   assert.deepEqual(parseRoute('#bad%zz'), { id: '', heading: '' });
   assert.deepEqual(documentTarget('Docs/Guide/README.md', '../Other%20Doc.md#install%20now'), { id: 'Docs/Other Doc.md', heading: 'install now' });
   assert.deepEqual(documentTarget('Docs/README.md', '#top'), { id: 'Docs/README.md', heading: 'top' });

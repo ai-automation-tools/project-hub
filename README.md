@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/runtime-Node_18.17+-339933?style=for-the-badge" alt="Node 18.17+">
   <img src="https://img.shields.io/badge/dependencies-none-2ea44f?style=for-the-badge" alt="Zero dependencies">
-  <img src="https://img.shields.io/badge/tests-65_passing-2ea44f?style=for-the-badge" alt="65 tests passing">
+  <img src="https://img.shields.io/badge/tests-66_passing-2ea44f?style=for-the-badge" alt="66 tests passing">
   <img src="https://img.shields.io/badge/license-MIT-6B7280?style=for-the-badge" alt="MIT license">
 </p>
 
@@ -25,16 +25,15 @@ invisible to anything that only walks the repo.
 **Project Hub** is one Node process that scans the whole picture — every mounted workspace,
 the document roots they share, and the user-scope agent config — and serves it as a
 browsable HTML console at `http://127.0.0.1:<port>`. It re-renders on its own when you add
-a skill, a routine or a repo. No dependencies, no build step, nothing leaves the machine.
+a skill, a routine or a repo. No runtime dependencies or build step. Workspace scanning stays local; the browser can request Google Fonts and external images linked by documents.
 
-The idea is to keep every durable fact in Markdown where the agents can search and diff it,
-and put a browsable layer on top for the human. This repo holds three stages of that: the
-research that framed it, the [Claude Design](https://claude.ai/design) artifacts that gave
-it a look, and the one build that actually runs.
+Durable project facts stay in Markdown, where agents can search and diff them. Project Hub supplies the browsable layer. Private design exports are excluded from the public source tree.
+
+The bundled [project-hub-scaffold-mfs skill](Skills/project-hub-scaffold-mfs/SKILL.md) helps an agent add workspaces or create a standalone installation. Copy that whole skill folder into your agent's skills directory and provide the path to this checkout when invoking it.
 
 ## 🔧 Setup
 
-Node 18.17+ and nothing else. **The real configs are gitignored** — they hold absolute
+Node 18.17+ and Git on PATH; the Windows launchers require PowerShell 7 (`pwsh`). **The real configs are gitignored** — they hold absolute
 paths into one machine — so a fresh clone needs two copies before it will start:
 
 ```powershell
@@ -54,9 +53,11 @@ cd ..\Project-Hub
 | `base` | server config | The drive root every id in the tree is relative to. `/api/*` refuses anything resolving outside the mounted roots. |
 | `sharedRoots` | server config | Folders mounted next to *every* project — `Documents`, `Pictures`, whatever else. A root named `Pictures` also turns on the picture library. |
 | `dir` | project config | Absolute path to one workspace. One folder per project under `Projects/`. |
-| `repoScope` | project config | Which of that project's repos reach its overview table: `groups` for a `Repos/<group>/` tier, `pathPrefix` for a flat one, neither for all. |
+| `repoScope` | project config | Which of that project's repos reach its overview table: `groups` for a `Repos/<group>/` tier, `pathPrefix` ending in `/` for a flat one, neither for all. |
 
 Both shapes are documented in full under [Hub/README.md → The config](Hub/README.md#the-config).
+For other systems, start with `node Hub/hub.mjs --config Project-Hub/hub.config.json`; native launch actions are Windows-specific.
+
 Run the tests with `npm test` in [`Hub/`](Hub).
 
 ## 📂 What's in here
@@ -66,32 +67,9 @@ Run the tests with `npm test` in [`Hub/`](Hub).
 | [**⚙️ Hub**](Hub/README.md) | **The program.** Scanner, server, markdown renderer, watcher, UI and tests — one copy, shared by every instance. Edit here; the hub picks it up at its next restart. |
 | [**🚀 Project-Hub**](Project-Hub/README.md) | **The running instance** — its `hub.config.json` (port, title, favicon, base, shared roots) and the launcher. Also the full user manual: page order, keyboard map, reading and image tools, health and the watchdog. **Start here if you want to use something rather than read about it.** |
 | [**📁 Projects**](Projects) | One subfolder per mounted workspace, each holding a small `hub.config.json`. Adding a project is a new subfolder here, nothing else. Contents are local to your machine and gitignored — see [`_example/`](Projects/_example) for the shape. |
-| [**🎨 Src**](Src/README.md) | The Claude Design exports the interface came from — a generic first pass and a version tailored to a real workspace. `Project Hub v2.dc.html` is the one this was built from. |
-| [**🖼️ Images**](Images/README.md) | Screenshots of both designs, plus the VS Code folder tree that was pasted in as the design brief. |
+| [**🎨 Src**](Src/README.md) | Notes about private design exports, which are excluded from Git. |
+| [**🖼️ Images**](Images/README.md) | Notes about local screenshots, which are excluded from Git. |
 | [**📄 Docs**](Docs) | [`ChatGPT-HTML-Design.md`](Docs/ChatGPT-HTML-Design.md) — the research write-up that started this: where the Markdown/HTML line should fall, and six existing HTML-artifact skills weighed up with a verdict on each. [`ROADMAP.md`](Docs/ROADMAP.md) — the defect audits, the backlog, and the full shipping record. [`BOOKMARKS.md`](Docs/BOOKMARKS.md) — how to use the sidebar's Bookmarks and Recent lists. |
-| [**📦 Zip**](Zip) | The raw `.zip` downloads from Claude Design, kept as-is. `Src/` is these unpacked — there's nothing in one that isn't in the other. |
-
-## 🧭 How the pieces relate
-
-```text
-Docs/ChatGPT-HTML-Design.md     the argument: Markdown for agents, HTML for humans
-        ↓
-Images/Screenshots/             the brief: a VS Code capture of a real folder tree
-        ↓
-Src/Claude-Design-Doc-Hub/      first pass, generic — a made-up "My-Library" repo
-        ↓
-Src/…/Project Hub v2            same design, real repo names and real structure
-        ↓
-Hub/                            one program: scanner, server, renderer, watcher, UI, tests
-        ↓
-Project-Hub/                    the running instance — port, title, favicon, base, roots
-        ↓
-Projects/<Name>/                a config naming that workspace's dir + repoScope
-```
-
-The Claude Design files are static mockups with invented data. Project Hub is the same
-design wired to the filesystem, so the repo count, the git state and the skill descriptions
-are read fresh each time rather than typed in.
 
 ## 🚀 Run the hub
 
@@ -137,8 +115,8 @@ under [Page order](Project-Hub/README.md#page-order).
 > like any other folder.
 
 > [!NOTE]
-> The `.dc.html` files under `Src/` are Claude Design exports, not something you can edit
-> locally — they use Claude Design's own template syntax and need `support.js` to render.
+> Original Claude Design exports are local reference material excluded from Git.
+> The maintained application lives in `Hub/`.
 
 ---
 
@@ -149,3 +127,9 @@ under [Page order](Project-Hub/README.md#page-order).
 </p>
 
 <p align="right"><sub><a href="#html-design-top">back to top</a></sub></p>
+
+## Public release preparation
+
+This is a local filesystem browser. Keep it bound to loopback; it is not a hosted multi-user service. Scan output, logs, local configs, editor settings, screenshots, and original design archives are ignored. Inspect diagnostics before sharing them.
+
+Current-file cleanup does not remove earlier commits. Before changing repository visibility, remove private material from published history and review commit author/email metadata, tags, branches, and hosted attachments. See [release notes](Docs/PUBLIC-RELEASE.md).

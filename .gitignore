@@ -1,23 +1,56 @@
-# ── machine-specific config ────────────────────────────────────────────────
-# These hold absolute paths into one person's disk. Copy the .example files
-# beside them and point those at your own workspace.
-Project-Hub/hub.config.json
-Projects/*/hub.config.json
+# Local configuration: publish examples only.
+hub.config.json
+/Projects/*
+!/Projects/_example/
+/Projects/_example/*
+!/Projects/_example/hub.config.json.example
 
-# Everything about *this* copy of the hub -- real ports, real workspaces, the
-# scheduled task, the VS Code wiring. The root README describes the program;
-# Projects/README.md describes our instance of it.
-Projects/README.md
-
-# ── generated at runtime ───────────────────────────────────────────────────
-# scan.json is a full index of every path the hub can reach. Never commit it.
+# Runtime indexes, logs, caches and test output contain local paths/content.
 scan.json
 *.log
-*.log.1
+*.log.*
+*.pid
 node_modules/
+coverage/
+.cache/
+.playwright-mcp/
+playwright-report/
+test-results/
+artifacts/
+temp/
+tmp/
 
-# ── OS / editor noise ──────────────────────────────────────────────────────
+# Credentials and machine-specific agent/editor configuration.
+.env
+.env.*
+!.env.example
+!.env.sample
+*.key
+*.pem
+*.pfx
+*.p12
+*.ppk
+credentials*.json
+secrets*.json
+.mcp.json
+.claude/settings.local.json
+.codex/config.toml
+.vscode/
+.idea/
+*.code-workspace
+
+# Private original design exports and screenshots (retained locally).
+/Src/*
+!/Src/README.md
+/Images/*
+!/Images/README.md
+/Zip/
+*.zip
+*.bak
+*.tmp
+*~
+
+# OS metadata
 Thumbs.db
 desktop.ini
 .DS_Store
-.vscode/

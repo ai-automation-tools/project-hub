@@ -499,7 +499,7 @@ Three bugs of my own surfaced while running it, which is rather the point of run
 
 **Registered 2026-08-31** as `\AI-Maintenance\Project Hub Watchdog (15 min)`, on the
 user's say-so, matching the conventions of the nine jobs already in that folder: PowerShell 7,
-`-NoProfile -ExecutionPolicy Bypass -File`, interactive token as `mikes`, start-when-available,
+`-NoProfile -ExecutionPolicy Bypass -File`, interactive token as the configured local user, start-when-available,
 `IgnoreNew` for overlapping runs, ten-minute execution limit. It runs `-Restart -Quiet`
 every 15 minutes and appends to `Hub/watchdog.log`.
 
@@ -507,7 +507,7 @@ Proved on the failure path rather than the happy one — the Finance hub was kil
 to reproduce the August shape:
 
 ```text
-13:57:59  DOWN Mike_Finance (port 4275): no answer on 4275 - target machine actively refused it
+13:57:59  DOWN Finance_Workspace (port 4275): no answer on 4275 - target machine actively refused it
 13:58:04       restarted OK (pid 17344)
 ```
 
@@ -572,10 +572,10 @@ not — but something else is. Twenty seconds of a completely idle machine, watc
 same roots the hub watches:
 
 ```text
-12x  Mikes_AI_Lab :: Repos/Live_Apps/Agent-Chat/db/.sync-state.json.tmp
- 8x  Mikes_AI_Lab :: Repos/Live_Apps/Agent-Chat/db/.sync-state.json
- 8x  Mikes_AI_Lab :: Repos/Live_Apps/Agent-Chat/db          <-- this one gets through
- 3x  Mikes_AI_Lab :: Repos/Live_Apps/michaelschecht.github.io/.git
+12x  Example_Workspace :: Repos/Live_Apps/Agent-Chat/db/.sync-state.json.tmp
+ 8x  Example_Workspace :: Repos/Live_Apps/Agent-Chat/db/.sync-state.json
+ 8x  Example_Workspace :: Repos/Live_Apps/Agent-Chat/db          <-- this one gets through
+ 3x  Example_Workspace :: Repos/Live_Apps/example.github.io/.git
  2x  ... .git/index.lock  (x6 repos)
 ```
 
@@ -622,7 +622,7 @@ The watchdog is now registered and running — see [#19](#19-nothing-notices-whe
 
 A second pass over the shared `Hub/` engine, run by Antigravity rather than Claude, against
 the AI Lab hub at `127.0.0.1:4273`. Full writeup:
-`Mikes_AI_Lab/Agents/Antigravity/.agents/temp/project-hub-enhancements-and-recommendations.md`.
+`Example_Workspace/Agents/Antigravity/.agents/temp/project-hub-enhancements-and-recommendations.md`.
 
 **All four defects fixed and verified 2026-09-03** (by Claude, against the reported
 locations — not independently re-derived by a third audit). Of the six ideas, five are
@@ -632,7 +632,7 @@ also fixed (#31, #32, #33, #34, #35); #36 is still open — see [Still open](#st
 
 | # | Defect | Where | Impact | Status |
 |:--:|:---|:---|:---|:---|
-| 27 | `blurb()` skipped every line starting with `<`, so house-style READMEs (`<h1>` + badge row, real summary inside a plain `<p><em>…</em></p>`) fell through to the first *unwrapped* prose line further down | `Hub/hub.mjs` `blurb()` | Root card and search showed `michaelschecht.github.io`'s sub-repo blurb as the description for all of `Mikes_AI_Lab` | ✅ fixed |
+| 27 | `blurb()` skipped every line starting with `<`, so house-style READMEs (`<h1>` + badge row, real summary inside a plain `<p><em>…</em></p>`) fell through to the first *unwrapped* prose line further down | `Hub/hub.mjs` `blurb()` | Root card and search showed `example.github.io`'s sub-repo blurb as the description for all of `Example_Workspace` | ✅ fixed |
 | 28 | `rootDocs` hardcoded `Agents/Claude/CLAUDE.md` as the 4th featured doc | `Hub/hub.mjs` (`rootDocs` construction) | Ignored `Agents/README.md`, the file the repo itself names as the vendor-neutral source of truth | ✅ fixed |
 | 29 | `href="#anchor"` links inside rendered markdown called `preventDefault()` and stopped, with no scroll-to-target handler — and headings had no `id` to scroll to even if it had | `Hub/hub.mjs` `md2html()`, `Hub/index.html` `loadDoc()` | Every in-page table of contents (this file's included) was dead | ✅ fixed |
 | 30 | Antigravity had no entry in `USER_RUNTIMES`, unlike Claude/Codex/Gemini/OpenCode | `Hub/hub.mjs` `USER_RUNTIMES` | User-scope Antigravity config (`~/.gemini/antigravity-cli`) never appeared in the hub | ✅ fixed |
@@ -643,10 +643,10 @@ Fixed by making the `<`-prefixed branch strip tags and use what's left, instead 
 unconditionally skipping the line — an `<h1>`/`<h2>`…`<h6>` tag is still skipped (that
 text belongs to the title, not the blurb) and a pure-markup line (a lone `<p align="center">`,
 a badge row) still falls through to the next line, exactly as before. Verified against the
-running hub: `rootDocs[0].desc` for `Mikes_AI_Lab/README.md` now reads *"Workspace for the
-apps that ship under mikesailab.com — plus a couple of internal tools."* — the file's own
+running hub: `rootDocs[0].desc` for `Example_Workspace/README.md` now reads *"Workspace for the
+apps that ship under example.com — plus a couple of internal tools."* — the file's own
 summary — where it previously read a description belonging to
-`michaelschecht.github.io/`. A regression test (`blurb reads text out of house-style HTML
+`example.github.io/`. A regression test (`blurb reads text out of house-style HTML
 wrapper tags`) pins the exact shape that broke it.
 
 > Not part of this fix, but noticed while verifying it: `Documents/README.md` carries the
@@ -660,7 +660,7 @@ Fixed by locating `Agents/README.md` under the hub's own project root (`ROOTS[0]
 instead of regex-matching `/Agents/Claude/CLAUDE\.md$/` across every node. Degrades to "no
 4th doc" on a hub with no `Agents/README.md`, rather than the old regex's behaviour of
 either wrongly matching something on that hub or silently finding nothing. Verified: the
-overview's 4th featured doc is now `Projects/Mikes_AI_Lab/Agents/README.md`.
+overview's 4th featured doc is now `Projects/Example_Workspace/Agents/README.md`.
 
 ### 29. In-document anchor links were dead — and had nowhere to land anyway
 
@@ -712,7 +712,7 @@ duplicate-id behaviour).
 |:--:|:---|:---|:---|
 | 31 | Dual-mode `.html` viewer — sandboxed iframe preview alongside the existing source view, plus an "Artifacts" shelf for `artifacts/`/`dashboards/`/`prototypes/` folders | Right now every `.html` file, including interactive dashboards, is dumped as escaped text in a `<pre>` — the exact thing `ChatGPT-HTML-Design.md` says artifacts are for goes unrendered | ✅ fixed |
 | 32 | Multi-hub workspace switcher in the header, polling each hub's `/api/health` for a status dot | AI Lab (4273), IAM (4274) and Finance (4275) run side by side with no link between them — switching means retyping the port | ✅ fixed |
-| 33 | "Live Sites & Deployments" block on the overview | The hub's whole subject is the portfolio that ships to `mikesailab.com`, but it has zero awareness of the 10 live subdomains or their hosts | ✅ fixed |
+| 33 | "Live Sites & Deployments" block on the overview | The hub's whole subject is the portfolio that ships to `example.com`, but it has zero awareness of the 10 live subdomains or their hosts | ✅ fixed |
 | 34 | Surface `Repos/Draft/` initiatives (AI Whisper Clone, AI Voice Cloning, Hotel Loyalty Club, etc.) as a `kind: 'draft'` card cluster | `isRepo` requires `.git`, so pre-repo R&D with real content just disappears from the tree | ✅ fixed |
 | 35 | GitHub-style alert callouts (`[!NOTE]`/`[!TIP]`/`[!WARNING]`/etc.) rendered as styled boxes, plus light keyword/string/comment highlighting on code blocks | `md2html()` currently renders callout blockquotes as plain quotes and code as unstyled `<pre>` | ✅ fixed |
 | 36 | Skip the `git status`/`git log` spawns entirely when a repo's `.git/index` and `.git/refs/heads` mtimes haven't moved since the last scan | Extends [#17](#17-the-scan-blocks-the-event-loop) / [#18](#18-any-change-triggers-a-full-re-walk) rather than replacing them — the reported 8.5–23.7s scans line up with the same git-spawn cost already identified there | open |
@@ -827,8 +827,8 @@ different entry counts, different app names — while checking what to source fr
 find the heading matching `/live sites/i`, take the first markdown table under it, map
 columns by header name (`app`, `subdomain`/`url`, `status`, `stack`). It can never drift
 from the doc a human actually edits when a subdomain changes, and it disappears entirely
-on a hub whose workspace has no such table — confirmed empty on Mike_IAM, 10 rows on
-Mikes_AI_Lab. Rendered as a card grid under the stats strip; a card opens its live URL in
+on a hub whose workspace has no such table — confirmed empty on Identity_Workspace, 10 rows on
+Example_Workspace. Rendered as a card grid under the stats strip; a card opens its live URL in
 a new tab.
 
 Test suite: **28 tests, 28 passing** (2 more: `parseLiveSites`'s column-mapping and
@@ -922,8 +922,8 @@ project root in the tree — plus a combined **Portfolio** view as the new landi
 `scopeRepos(repos, projects)` filters each project's own dir-prefix *before* applying that
 project's `repoScope` — not after. With three projects' repos sharing one flat pool, doing
 it the other order risks one project's `repoScope.groups` matching a same-named
-`Repos/<group>/` folder that actually belongs to a *different* project (Mike_IAM and
-Mike_Finance both default their flat repos to a group literally named `Repos`). Covered by
+`Repos/<group>/` folder that actually belongs to a *different* project (Identity_Workspace and
+Finance_Workspace both default their flat repos to a group literally named `Repos`). Covered by
 a regression test (`scopeRepos filters each project to its own dir before applying its
 repoScope`) using two fixture projects that intentionally share a group name.
 
@@ -933,17 +933,17 @@ Search was already global (one client-side index over the whole tree) — the "c
 across all three projects" half needed no new code. Added: a "this project only" toggle,
 shown only when the current selection is inside a project, filtering the same index by
 `topAncestorOf(hit.id) === project`. Verified live: searching `agent` from inside
-`Mike_Finance` showed 200 combined matches; toggling narrowed it to 90, every one under
-`Projects/Mike_Finance/`.
+`Finance_Workspace` showed 200 combined matches; toggling narrowed it to 90, every one under
+`Projects/Finance_Workspace/`.
 
 ### Verified
 
 - `npm test`: **34/34** (4 new: split config validation, the `scopeRepos` collision test).
 - Live scan against the merged config: 3 project roots + 4 shared roots + Portfolio node,
-  repos correctly split **19 / 5 / 1** across Mikes_AI_Lab / Mike_Finance / Mike_IAM,
+  repos correctly split **19 / 5 / 1** across Example_Workspace / Finance_Workspace / Identity_Workspace,
   `rootDocs` and `liveSites` covering all three projects (not just one).
-- Per-project overview scoping confirmed live for `Mike_Finance` (stats, repos table,
-  readmes, and the `Mike_Finance/Agents` CLI-scope label all correctly narrowed) and for
+- Per-project overview scoping confirmed live for `Finance_Workspace` (stats, repos table,
+  readmes, and the `Finance_Workspace/Agents` CLI-scope label all correctly narrowed) and for
   `Automations` (a shared root, previously unscoped — now correctly empty).
 - Portfolio view: project cards with correct per-project repo counts, combined stats
   strip, combined repos table with a per-project chip facet.
@@ -1003,9 +1003,9 @@ only that one project's path in the tree, not every root at once.
 
 Verified live: the bare URL shows all six top-level rows (Projects, Documents, My Custom
 Skills, Pictures, Automations, User CLIs) collapsed with the Projects-folder view as the
-main pane; `#Projects/Mikes_AI_Lab` shows Projects → Mikes_AI_Lab expanded (revealing its
+main pane; `#Projects/Example_Workspace` shows Projects → Example_Workspace expanded (revealing its
 Agents/Repos/Resources children) with the other two projects and all shared roots
-collapsed; the search "only Mikes_AI_Lab" toggle still resolves correctly through the
+collapsed; the search "only Example_Workspace" toggle still resolves correctly through the
 fixed `topAncestorOf()`. `npm test`: 34/34 unchanged (no test asserted the old flat
 sibling-root shape or the removed persistence).
 
@@ -1027,9 +1027,9 @@ assumed — removing the repo doc-filter entirely, keeping only the existing
 
 | Project | Visible today | Would newly appear |
 |:---|---:|---:|
-| Mikes_AI_Lab | 20,938 | **+95,507** |
-| Mike_IAM | 336 | **+20,602** (mostly a vendored SailPoint SDK tree) |
-| Mike_Finance | 581 | **+489** |
+| Example_Workspace | 20,938 | **+95,507** |
+| Identity_Workspace | 336 | **+20,602** (mostly a vendored SailPoint SDK tree) |
+| Finance_Workspace | 581 | **+489** |
 | **Total** | 21,855 | **+116,598** |
 
 Roughly doubling the whole hub's payload to make actual source code (`.ts`/`.py`/vendor
@@ -1283,7 +1283,7 @@ On the final build, startup and ordinary scans performed **zero Pictures directo
 
 New modules: `Hub/pictures.mjs` (asynchronous browse/search cache), `Hub/pictures-client.mjs` (loaded-node cache), and `Hub/pictures.test.mjs`. Updated `Hub/hub.mjs`, `Hub/index.html`, test wiring, and the refresh test's UI ports. The identified local hub was restarted on **4273**. Reload an existing tab to use the new client.
 
-Evidence is saved under `D:\AI_Agents\Projects\Mikes_AI_Lab\Agents\Codex\temp\`: `pictures-performance-before.json`, `pictures-performance-after.json`, and `pictures-live-checks.json`. Source snapshots are in `project-hub-before-lazy-pictures/`.
+Evidence is saved under `D:\Work\Projects\Example_Workspace\Agents\Codex\temp\`: `pictures-performance-before.json`, `pictures-performance-after.json`, and `pictures-live-checks.json`. Source snapshots are in `project-hub-before-lazy-pictures/`.
 
 **Remaining limits:** the first Pictures search after startup or a real change rebuilds the metadata index. Extremely active photo writes can require retrying a search; one automatic conflict retry and a visible Retry action are provided. A single very large folder still returns its immediate children as one list. Full-content search, thumbnail galleries, and virtualized rows remain separate work. The depth limit matches the former scan rather than silently expanding the indexed photo library.
 
@@ -1297,7 +1297,7 @@ Changed `Hub/hub.mjs`, `Hub/index.html`, and the test command in `Hub/package.js
 - A live scan measured **11.811 s**: **6.229 s walk**, **3.263 s Git**, **2.319 s assembly**, plus **131 ms serialization** and **258 ms gzip**. An earlier post-restart scan measured 23.256 s. These are diagnostic samples, not a controlled speedup comparison. The payload remained about **19.36 MiB / 1.60 MiB gzip**; revision timestamps are used internally without adding a field to every transmitted node.
 - Browser discovery still returned no available browser. Visual PDF rendering, chart execution, focus/scroll behavior, and browser-enforced sandbox isolation remain to be checked. Positive OS app launches were mocked in tests; live native-action checks exercised rejection paths only. Recent read errors persisted (11 across three scans in the recorded sample); the cause remains open.
 
-Live check output is saved at `D:\AI_Agents\Projects\Mikes_AI_Lab\Agents\Codex\temp\p7-live-checks.json`. Reusable, non-sensitive report fixtures are in the adjacent `p7-smoke/` folder. Pre-change source snapshots are in `temp/project-hub-before-p7/`.
+Live check output is saved at `D:\Work\Projects\Example_Workspace\Agents\Codex\temp\p7-live-checks.json`. Reusable, non-sensitive report fixtures are in the adjacent `p7-smoke/` folder. Pre-change source snapshots are in `temp/project-hub-before-p7/`.
 
 **Preview limits:** companion assets must stay inside the report's directory (nested folders work). Parent-directory escapes and root-relative project assets are not supported by this route. Existing external dependencies still depend on network availability. Signed preview URLs expire on server restart; reopen the report through its stable Hub link. Restricted capabilities such as origin storage remain unavailable in sandboxed reports. PDF availability depends on the browser's built-in viewer, with Open/Download provided as the fallback.
 
@@ -1964,7 +1964,7 @@ Three small additions, all requested directly rather than found by an audit.
 
 ### A fifth shared root: `Links`
 
-`D:/AI_Agents/Documents/Links` is now mounted as its own top-level root
+`D:/Work/Documents/Links` is now mounted as its own top-level root
 (`SHARED_ROOTS`, tinted purple) rather than being reached three clicks deep inside
 `Documents`. It is a link library — a destination people go to on purpose, not a
 branch of the docs tree — and the sidebar now reflects that.
@@ -2027,7 +2027,7 @@ it; `Documents` (a `docroot`, so the `⊞ folder` label) does the same; `Links/D
 confirms it at sub-folder depth, and its `⊞ folder` returns the card grid with `☰
 readme` beside the cards/list toggle; `Agents/Claude` still renders the full CLI runtime
 page despite having a README; `Agents/Claude/temp`, which has none, still renders cards;
-and `Mikes_AI_Lab` still shows its stats strip and 20-repo table with no README button
+and `Example_Workspace` still shows its stats strip and 20-repo table with no README button
 anywhere.
 
 ### Eight color schemes, up from four

@@ -27,11 +27,8 @@
 .EXAMPLE
     .\Watch-Hubs.ps1 -Restart -Quiet
 .EXAMPLE
-    # Register it to run every 15 minutes. Goes through run-watchdog-hidden.vbs, not
-    # pwsh.exe directly -- a direct pwsh action pops a visible console window every
-    # 15 minutes (found 2026-09-07; see the warning in Hub\README.md's watchdog section).
-    schtasks /Create /TN "\AI-Maintenance\Monitoring\Project Hub Watchdog (15 min)" /SC MINUTE /MO 15 /RL LIMITED ^
-      /TR "C:\Windows\System32\wscript.exe \"D:\AI_Agents\Documents\My-Documents\My-IT-Tools\HTML-Project-Design\Hub\run-watchdog-hidden.vbs\""
+    # Optional: configure Task Scheduler to run wscript.exe with the absolute path
+    # to run-watchdog-hidden.vbs in this folder. Requires PowerShell 7 on PATH.
 #>
 [CmdletBinding()]
 param(

@@ -491,7 +491,7 @@ export function frontmatter(text) {
 
 /** First real sentence of a markdown doc — used as a card blurb. */
 // House-style READMEs open with an <h1>/badge-row wrapper and put the actual one-line
-// summary inside a plain <p><em>…</em></p> a few lines down (see Mikes_AI_Lab/README.md).
+// summary inside a plain <p><em>…</em></p> a few lines down (see Example_Workspace/README.md).
 // Unconditionally skipping every line that starts with '<' — the original rule — walked
 // straight past that summary and fell through to the first *unwrapped* prose line, which
 // on that file was a sub-repo's description, not the workspace's. HTML lines now have
@@ -1116,9 +1116,9 @@ async function gitState(repo) {
 const DOT = { clean: 'var(--green)', dirty: 'var(--orange)', behind: 'var(--blue)', ahead: 'var(--blue)', conflict: 'var(--red)' };
 
 /**
- * Which repos reach the overview table, per project, unioned into one list. Mikes_AI_Lab
+ * Which repos reach the overview table, per project, unioned into one list. Example_Workspace
  * names its four Repos/ groups so runtime and scaffold repos stay in the tree only;
- * Mike_IAM and Mike_Finance keep their repos directly under Repos/ with no group tier, so
+ * Identity_Workspace and Finance_Workspace keep their repos directly under Repos/ with no group tier, so
  * they scope by path instead -- matching on a group name alone would pull in any Repos/
  * folder found under Documents, which is not part of those projects. With several
  * projects sharing one repos[] pool, scoping to the project's OWN `idPrefix` first (before
@@ -1178,7 +1178,7 @@ async function scan(fresh = false) {
 
   // The 4th featured doc used to be hardcoded to Agents/Claude/CLAUDE.md — one vendor's
   // instruction file, in every hub, regardless of which one actually has an Agents/
-  // folder. Mikes_AI_Lab names Agents/README.md as the vendor-neutral contract every
+  // folder. Example_Workspace names Agents/README.md as the vendor-neutral contract every
   // CLAUDE.md/AGENTS.md syncs from ("if anything conflicts, that file wins"), so it is
   // the one worth featuring — and it degrades to "no 4th doc" on a project that has
   // none, rather than silently matching nothing the way the old regex would. This used
@@ -1196,7 +1196,7 @@ async function scan(fresh = false) {
   // Parsed straight from each project's own root README's "Live sites" table rather
   // than maintained separately here, so the overview can never drift from the doc a
   // human actually edits when a subdomain changes — it only shows up on projects that
-  // have such a table (Mike_IAM and Mike_Finance don't), read fresh each scan. Also
+  // have such a table (Identity_Workspace and Finance_Workspace don't), read fresh each scan. Also
   // used to check only ROOTS[0]; now checks every project. Tagged with `project` since
   // a parsed table row has no tree id of its own for the client to scope by ancestry.
   const liveSites = PROJECTS.flatMap((p) => {
@@ -1232,7 +1232,7 @@ async function scan(fresh = false) {
     ms: Date.now() - t0,
     timings: { walkMs, gitMs, assembleMs: Date.now() - t0 - walkMs - gitMs },
     nodes: flat.length,
-    home: HOME,
+    home: HOME, base: BASE,
     roots: ROOTS.map((r) => ({ name: r.name, dir: r.dir })),
     tree, stats, rootDocs, liveSites, artifacts: artifactList, drafts: draftList,
     runtimes: runtimes.map((r) => ({

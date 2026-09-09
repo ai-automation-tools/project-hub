@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
-  resolveBookmarks, RECENT_MAX } from './navigation.mjs';
+  resolveBookmarks, RECENT_MAX, absolutePath } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -139,7 +139,7 @@ test('renders the basics', () => {
 test('markdown headings get GitHub-style slug ids so in-doc anchors resolve', () => {
   const seen = new Map();
   assert.equal(slugifyHeading('Phase 0 — what shipped', seen), 'phase-0--what-shipped');
-  assert.equal(slugifyHeading("Mike's AI Lab", new Map()), 'mikes-ai-lab');
+  assert.equal(slugifyHeading("Example's AI Lab", new Map()), 'examples-ai-lab');
   assert.equal(slugifyHeading('P0 — Verified defects', new Map()), 'p0--verified-defects');
   // Repeated heading text gets GitHub's -1, -2, … suffix.
   assert.equal(slugifyHeading('Notes', seen), 'notes');
@@ -281,15 +281,15 @@ test('blurb takes the first real sentence, skipping chrome', () => {
 });
 
 // A house-style README's real summary lives inside <p><em>…</em></p> under an <h1> and a
-// badge row (see Mikes_AI_Lab/README.md) — blurb() used to skip every '<'-prefixed line
+// badge row (see Example_Workspace/README.md) — blurb() used to skip every '<'-prefixed line
 // outright and fall through to the first unwrapped prose line further down, which for
 // that file was a sub-repo's description standing in for the whole workspace.
 test('blurb reads text out of house-style HTML wrapper tags', () => {
   const doc = [
-    '<h1 align="center">Mike\'s AI Lab</h1>',
+    '<h1 align="center">Example\'s AI Lab</h1>',
     '',
     '<p align="center">',
-    '  <em>Workspace for the apps that ship under <a href="https://mikesailab.com"><b>mikesailab.com</b></a> — plus a couple of internal tools.</em>',
+    '  <em>Workspace for the apps that ship under <a href="https://example.com"><b>example.com</b></a> — plus a couple of internal tools.</em>',
     '</p>',
     '',
     '<p align="center">',
@@ -298,20 +298,20 @@ test('blurb reads text out of house-style HTML wrapper tags', () => {
     '',
     '## Next section',
   ].join('\n');
-  assert.equal(blurb(doc), 'Workspace for the apps that ship under mikesailab.com — plus a couple of internal tools.');
+  assert.equal(blurb(doc), 'Workspace for the apps that ship under example.com — plus a couple of internal tools.');
 });
 
 // ── live sites (overview dashboard) ─────────────────────────────────────────
 test('parseLiveSites reads the root README\'s own table, and nothing when there is none', () => {
   const doc = [
-    '# Mike\'s AI Lab',
+    '# Example\'s AI Lab',
     '',
     '## \u{1F310} Live sites',
     '',
     '| App | Subdomain | Status | Stack |',
     '|:---|:---|:---:|:---|',
-    '| **Mike\'s AI Lab** *(home)* | [mikesailab.com](https://mikesailab.com) | \u{1F7E2} Live | Static HTML, GH Pages |',
-    '| **Edge Radar** | [edge-radar.mikesailab.com](https://edge-radar.mikesailab.com) | \u{1F7E2} Live | GH Pages |',
+    '| **Example\'s AI Lab** *(home)* | [example.com](https://example.com) | \u{1F7E2} Live | Static HTML, GH Pages |',
+    '| **Edge Radar** | [edge-radar.example.com](https://edge-radar.example.com) | \u{1F7E2} Live | GH Pages |',
     '',
     '## Next section',
     '',
@@ -321,9 +321,9 @@ test('parseLiveSites reads the root README\'s own table, and nothing when there 
   ].join('\n');
   const sites = parseLiveSites(doc);
   assert.equal(sites.length, 2);
-  assert.deepEqual(sites[0], { app: "Mike's AI Lab (home)", url: 'https://mikesailab.com', status: '\u{1F7E2} Live', stack: 'Static HTML, GH Pages' });
+  assert.deepEqual(sites[0], { app: "Example's AI Lab (home)", url: 'https://example.com', status: '\u{1F7E2} Live', stack: 'Static HTML, GH Pages' });
   assert.equal(sites[1].app, 'Edge Radar');
-  assert.equal(sites[1].url, 'https://edge-radar.mikesailab.com');
+  assert.equal(sites[1].url, 'https://edge-radar.example.com');
 
   assert.deepEqual(parseLiveSites('# No such section\n\ntext'), []);
 });
@@ -388,7 +388,10 @@ test('every hub config is valid, unique and points somewhere real', () => {
   const seen = new Map();
   for (const d of HUB_DIRS) {
     const file = path.join(ROOT, d, 'hub.config.json');
-    assert.ok(fs.existsSync(file), `${d} has no hub.config.json`);
+    if (!fs.existsSync(file)) {
+      loadConfig(path.join(ROOT, d, 'hub.config.example.json'));
+      continue;
+    }
     const c = loadConfig(file);
     assert.ok(!seen.has(c.port), `${d} reuses port ${c.port} (already ${seen.get(c.port)})`);
     seen.set(c.port, d);
@@ -397,7 +400,7 @@ test('every hub config is valid, unique and points somewhere real', () => {
 
 test('every project config is valid, and points somewhere real', () => {
   const dirs = projectConfigDirs();
-  assert.ok(dirs.length >= 1, 'expected at least one Projects/<name>/hub.config.json');
+  if (!dirs.length) loadProjectConfig(path.join(ROOT, 'Projects/_example/hub.config.json.example'));
   for (const d of dirs) {
     const file = path.join(d, 'hub.config.json');
     const c = loadProjectConfig(file);
@@ -714,4 +717,12 @@ test('image thumbnails are lazy and the viewer has its controls', () => {
   assert.ok(keys.includes("closest('#tree')"), 'arrow keys must not be stolen from the tree');
   assert.ok(keys.includes('INPUT|TEXTAREA|SELECT'), 'arrow keys must not be stolen from a text field');
   assert.ok(keys.includes('e.altKey'), 'Alt+arrow is Back/Forward and must still work');
+});
+
+test('copy paths use the configured base, home and cross-drive ids', () => {
+  assert.equal(absolutePath('Projects/Demo/a #1.md', 'E:/Work', 'C:/Users/demo'), 'E:/Work/Projects/Demo/a #1.md');
+  assert.equal(absolutePath('~/Pictures/photo.png', 'E:/Work', 'C:/Users/demo'), 'C:/Users/demo/Pictures/photo.png');
+  assert.equal(absolutePath('F:/Reports/a.md', 'E:/Work'), 'F:/Reports/a.md');
+  assert.equal(absolutePath('../Docs/a.md', '/work/projects'), '/work/Docs/a.md');
+  assert.equal(absolutePath('@projects', 'E:/Work'), '');
 });

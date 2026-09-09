@@ -1,23 +1,19 @@
 # 🚀 Project Hub
 
-A local navigation UI for all three of Mike's project workspaces at once —
-`D:\AI_Agents\Projects\Mikes_AI_Lab`, `Mike_IAM`, and `Mike_Finance` — plus
-`D:\AI_Agents\Documents`, the custom-skills library at
-`Documents\Agent-Resources\Skills\.My-Custom-Skills`, `Pictures`, `Automations`, the link
-library at `Documents\Links`, and the user-scope agent config in `%USERPROFILE%`, in one explorer built to the
-[design screenshots](../Images/README.md) from
-[`Src/Claude-Design-Doc-Hub_AI-Lab`](../Src/README.md).
+A local navigation UI for your project workspaces, shared documents, pictures, and user-scope agent configuration. Configure the roots on your machine using the [setup guide](../README.md#-setup).
+
+The [project-hub-scaffold-mfs skill](../Skills/project-hub-scaffold-mfs/SKILL.md) adds workspaces to this server or creates a portable installation.
 
 Nothing is hard-coded. Every repo, runtime, skill, command, sub-agent, hook, MCP server,
 and doc on the page comes from a live filesystem scan, and the page re-renders on its
 own when anything changes.
 
-**One process, three project roots.** Until 2026-09-07 each workspace ran its own hub on
+**One process, any number of project roots.** Until 2026-09-07 each workspace ran its own hub on
 its own port, independently re-scanning the same Documents/Skills/Pictures/Automations
 content. Now one process scans the shared roots once and nests each project workspace
 under one **Projects** folder in the tree — click a project to see it scoped on its own,
 or click **Projects** itself (the default landing page) for the combined picture across
-all three. The sidebar opens collapsed except the path to whatever you're currently
+all mounted workspaces. The sidebar opens collapsed except the path to whatever you're currently
 looking at. See [Changing what this hub scans](#changing-what-this-hub-scans) for how a
 project is configured now, and [`../Docs/ROADMAP.md`](../Docs/ROADMAP.md) for the merge
 itself.
@@ -50,7 +46,7 @@ Requires Node 18+ and `git` on PATH. No dependencies, no build step.
 
 | View | Shows |
 |:---|:---|
-| **Projects** (landing page) | The Projects folder's own view — combined stats and a repos table across all three projects, each row tagged with which one it belongs to. Click a project (card or sidebar) to see it scoped on its own. |
+| **Projects** (landing page) | The Projects folder's own view — combined stats and a repos table across all mounted workspaces projects, each row tagged with which one it belongs to. Click a project (card or sidebar) to see it scoped on its own. |
 | **Overview** | One project, scoped: a stat strip that doubles as the table of contents, then the three sections it points at, in order: **Repos** (that project's own, with live git state), **Readmes** (its root docs), and its agent runtimes last in two labelled groups — **Project CLIs** and **User CLIs**. |
 | **Stat strip** | Runtimes / repos / skills / commands / sub-agents / MCP servers / uncommitted, each noting the user-scope share. Every tile is a link: clicking one scrolls to its section and flashes the heading. Repo counts jump to **Repos**, artifact counts to the agents block. |
 | **CLI runtime** | A `project scope` / `user scope` tag matching its category, config file chips (`CLAUDE.md`, `.mcp.json`, `.env`…), then a masonry column per bucket — skills, commands, sub-agents, hooks, output styles, routines, MCP servers, and (user-scope Claude Code) installed plugins — so expanding one long panel only pushes what's below it in its own column, not every panel beside it. A project CLI (Claude/Codex/Gemini/Antigravity/OpenCode) that matches a user-scope runtime gets a second, clearly labeled **Inherited from user scope** block below its own, with a link to the full user-CLI page — see [Inherited artifacts](#inherited-artifacts). Each file-backed item is titled from its frontmatter `name` and blurbed from its `description`; MCP servers and plugins are read out of config instead. |
@@ -327,10 +323,10 @@ title, favicon:
 one subfolder per project:
 
 ```json
-// ../Projects/Mikes_AI_Lab/hub.config.json
+// ../Projects/Example_Workspace/hub.config.json
 {
-  "name": "Mikes_AI_Lab",
-  "dir": "D:/AI_Agents/Projects/Mikes_AI_Lab",
+  "name": "Example_Workspace",
+  "dir": "D:/Work/Projects/Example_Workspace",
   "repoScope": { "groups": ["Live_Apps", "Other_Apps", "Tools", "Draft"] }
 }
 ```
@@ -348,7 +344,7 @@ halfway through a scan.
 The shared `Documents`, `My Custom Skills`, `Pictures`, `Automations`, and `Links` roots and the
 six user-scope runtimes are the same for every project, so they stay in
 [`../Hub/hub.mjs`](../Hub/hub.mjs) — `SHARED_ROOTS` and `USER_RUNTIMES` — and are now
-scanned once for all three projects instead of once per hub. `My Custom Skills` is a root
+scanned once for all mounted workspaces projects instead of once per hub. `My Custom Skills` is a root
 rather than a branch of `Documents` because its folder is dot-prefixed
 (`.My-Custom-Skills`, hidden from Obsidian's indexer) and the walker prunes
 dot-directories. `Pictures` (OneDrive) sits outside `Documents` entirely, at
@@ -363,10 +359,10 @@ nothing else in this repo needs touching.
 > [!NOTE]
 > **`Project-Hub-IAM` and `Project-Hub-Finance` are retired.** Until 2026-09-07 they ran
 > the same code from [`../Hub`](../Hub/README.md) as separate processes on 4274/4275.
-> Before that, until 2026-08-31, all three were literal copies of the whole program and a
-> fix had to land three times — which is how one bad edit left gzip broken in all three
+> Before that, until 2026-08-31, all mounted workspaces were literal copies of the whole program and a
+> fix had to land three times — which is how one bad edit left gzip broken in all mounted workspaces
 > at once. Splitting the config out to `hub.config.json` per folder fixed the
-> triplication; mounting all three inside one process removes the "per hub" framing
+> triplication; mounting all mounted workspaces inside one process removes the "per hub" framing
 > entirely. Ports 4274 and 4275 are free.
 
 ## Health and the watchdog
@@ -396,7 +392,7 @@ never kill something that merely happens to hold the port:
 It exits non-zero if anything needed attention, and appends to `..\Hub\watchdog.log`.
 
 **It runs on a schedule.** Registered 2026-08-31 as
-`\AI-Maintenance\Project Hub Watchdog (15 min)`, every 15 minutes as `mikes`, with
+`\AI-Maintenance\Project Hub Watchdog (15 min)`, every 15 minutes as the configured local user, with
 `-Restart -Quiet`. Check it, or turn it off, with:
 
 ```powershell
@@ -514,7 +510,7 @@ which pins the row under the tree cursor, so you can pin a file without opening 
 
 Each row says in small dim text **what it belongs to** — its repo if it is inside one,
 otherwise its project or shared root — so three folders all called `Agents` read as
-`Mike_Finance`, `Mike_IAM` and `Mikes_AI_Lab` without opening anything. Two documents with
+`Finance_Workspace`, `Identity_Workspace` and `Example_Workspace` without opening anything. Two documents with
 the same name inside the *same* repo additionally pick up their parent folder
 (`setup/README.md`, `design/README.md`).
 
@@ -586,7 +582,7 @@ but the fix is always the same: point a real browser view at the running server.
 
 ### Starting it with the workspace
 
-`Mikes-AI-Lab.code-workspace` carries a `folderOpen` task that runs `Start-Hub.ps1
+For optional VS Code integration, a local `.code-workspace` file can carry a `folderOpen` task that runs `Start-Hub.ps1
 -NoBrowser` when the workspace opens, so the server is up before you look at it.
 `Restart Project Hub` is there too, for after an edit to `../Hub/hub.mjs` or `../Hub/index.html`
 (`Ctrl+Shift+P` -> `Tasks: Run Task`).
@@ -602,17 +598,17 @@ the collapsed combined view every other entry point opens to:
 "auto-run-command.rules": [
   {
     "condition": "always",
-    "command": "simpleBrowser.show http://127.0.0.1:4273/#Projects/Mikes_AI_Lab",
-    "message": "Opening Project Hub — Mikes_AI_Lab (4273)"
+    "command": "simpleBrowser.show http://127.0.0.1:4273/#Projects/Example_Workspace",
+    "message": "Opening Project Hub — Example_Workspace (4273)"
   }
 ]
 ```
 
-`Mike_IAM.code-workspace` and `Mike_Finance.code-workspace` carry the identical rule with
+Other workspace files can carry the identical rule with
 their own project name in the hash — same port, same shared server, different landing spot.
 
-A fourth workspace, `Projects.code-workspace`, opens the whole `D:/AI_Agents/Projects`
-folder — Mikes_AI_Lab, Mike_IAM, and Mike_Finance all at once — rather than one project's
+A combined workspace, `Projects.code-workspace`, opens the whole `D:/Work/Projects`
+folder — Example_Workspace, Identity_Workspace, and Finance_Workspace all at once — rather than one project's
 own root, so there's no single project to hash-deep-link into. It carries the same
 `folderOpen` task, but its rule points at the bare URL instead:
 
@@ -627,7 +623,7 @@ own root, so there's no single project to hash-deep-link into. It carries the sa
 ```
 
 No hash means it lands on the same collapsed combined Projects view (stats + repos table
-across all three) the bare URL always has — the one landing spot that actually matches
+across all mounted workspaces) the bare URL always has — the one landing spot that actually matches
 what this workspace has open.
 
 The URL belongs **inside the command string**, not in a separate `args` array. The
@@ -716,7 +712,7 @@ try {
 finally { if (fd !== undefined) try { fs.closeSync(fd); } catch {} }
 ```
 
-Applied to all three hubs on 2026-08-31 — the IAM and Finance copies carried the
+Applied to all mounted workspaces hubs on 2026-08-31 — the IAM and Finance copies carried the
 same code. **AI Lab hit it first because it watches the most paths**; a hub over a
 smaller root leaks the same way, just slower.
 

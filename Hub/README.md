@@ -216,13 +216,12 @@ The panel reuses the context menu's floating layer wholesale — same element bo
 ## The watchdog
 
 The AI Lab hub died of a file-descriptor leak on 2026-08-31 and nobody noticed for hours,
-because nothing was checking. `Watch-Hubs.ps1` is what checks now, registered as a
-scheduled task on the same day:
+because nothing was checking. `Watch-Hubs.ps1` is what checks now, available for optional Task Scheduler setup:
 
 | | |
 |:---|:---|
 | Task | `\AI-Maintenance\Project Hub Watchdog (15 min)` |
-| Runs | every 15 minutes, as `mikes`, through `run-watchdog-hidden.vbs` → `pwsh -NoProfile -ExecutionPolicy Bypass -File Watch-Hubs.ps1 -Restart -Quiet` |
+| Runs | optional: every 15 minutes, as the configured local user, through `run-watchdog-hidden.vbs` → `pwsh -NoProfile -ExecutionPolicy Bypass -File Watch-Hubs.ps1 -Restart -Quiet` |
 | Log | `watchdog.log` beside this file — one line per run, trimmed at 512KB |
 | Exit code | `0` all healthy, `1` something needed attention |
 
@@ -264,10 +263,10 @@ favicon: there's only one process now) and one small config per project it mount
   "name": "Portfolio",
   "port": 4273,
   "title": "Project Hub",
-  "base": "D:/AI_Agents",
+  "base": "D:/Work",
   "favicon": { "glyph": "/", "ink": "#5fe3a1", "line": "#2f6b52" },
   "sharedRoots": [
-    { "name": "Documents", "dir": "D:/AI_Agents/Documents", "tint": "var(--red)" },
+    { "name": "Documents", "dir": "D:/Work/Documents", "tint": "var(--red)" },
     { "name": "Pictures", "dir": "C:/Users/you/OneDrive/Pictures", "tint": "var(--orange)" }
   ]
 }
@@ -291,12 +290,12 @@ favicon: there's only one process now) and one small config per project it mount
 The config folder is also the server's own directory — `hub.log`, `hub.err.log` and
 `scan.json` are written there.
 
-**A project config** (e.g. `../Projects/Mikes_AI_Lab/hub.config.json`):
+**A project config** (e.g. `../Projects/Example_Workspace/hub.config.json`):
 
 ```json
 {
-  "name": "Mikes_AI_Lab",
-  "dir": "D:/AI_Agents/Projects/Mikes_AI_Lab",
+  "name": "Example_Workspace",
+  "dir": "D:/Work/Projects/Example_Workspace",
   "repoScope": { "groups": ["Live_Apps", "Other_Apps", "Tools", "Draft"] }
 }
 ```
@@ -363,7 +362,7 @@ inside the `Documents` root, but dot-prefixed to keep Obsidian from indexing it,
 also puts it behind the walker's dot-directory rule. Mounting it as its own root shows it
 at the top of the tree instead of three levels down, and leaves `DOT_OK` alone.
 
-`Pictures` is `C:/Users/<you>/OneDrive/Pictures` — outside `D:/AI_Agents` entirely, so it
+`Pictures` is `C:/Users/<you>/OneDrive/Pictures` — outside `D:/Work` entirely, so it
 gets its own root rather than a spot under an existing one. Image files anywhere in any
 root (not just this one) render as `kind: 'image'`: `kindOfFile()` recognizes
 `png/jpg/jpeg/gif/svg/webp/avif/bmp/ico`, and the UI shows them inline via `/api/raw`

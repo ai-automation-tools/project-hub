@@ -127,3 +127,18 @@ export function resolveBookmarks(list, exists, suggest = () => '') {
     return { ...e, unresolved: true, suggestion: suggest(e.path) || '' };
   });
 }
+
+// Resolve display/copy paths with the same base and home supplied by the scanner.
+export function absolutePath(id, base = '', home = '~') {
+  if (id === '@projects') return '';
+  const value = id === '~' ? home : id.startsWith('~/') ? home + id.slice(1)
+    : /^(?:[A-Za-z]:[\\/]|\/)/.test(id) ? id : base.replace(/[\\/]$/, '') + '/' + id;
+  const normalized = value.replace(/\\/g, '/');
+  const parts = [];
+  for (const part of normalized.split('/')) {
+    if (part === '.') continue;
+    if (part === '..' && parts.length && parts.at(-1) !== '' && !/^[A-Za-z]:$/.test(parts.at(-1))) parts.pop();
+    else if (part !== '..') parts.push(part);
+  }
+  return parts.join('/');
+}

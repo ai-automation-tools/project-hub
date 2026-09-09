@@ -78,15 +78,15 @@ stay live, because the last known path is exactly what you want when you go look
 Every row carries, in small dim text on the right, **what it belongs to**:
 
 - inside a repo → **the repo's name**
-- anywhere else → **the project or shared root** it lives under (`Mike_Finance`, `Documents`, `Pictures`, …)
+- anywhere else → **the project or shared root** it lives under (`Finance_Workspace`, `Documents`, `Pictures`, …)
 
 That is usually all it takes. Three folders all called `Agents` are three different projects,
 and the list says so without you opening anything:
 
 ```text
-Agents                              Mike_Finance
-Agents                              Mike_IAM
-Agents                              Mikes_AI_Lab
+Agents                              Finance_Workspace
+Agents                              Identity_Workspace
+Agents                              Example_Workspace
 ```
 
 When that still isn't enough — two documents with the same name *inside the same repo* — the
@@ -115,7 +115,7 @@ offer appears under the row naming where it went:
 
 ```text
 ✕  pin-probe.md
-   moved? relink to Projects/Mikes_AI_Lab/…/p7-10-smoke/b/pin-probe.md
+   moved? relink to Projects/Example_Workspace/…/p7-10-smoke/b/pin-probe.md
 ```
 
 Click it and the bookmark repoints. Nothing is ever repointed automatically, and if there is

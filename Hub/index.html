@@ -524,7 +524,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
-  pushRecent, resolveBookmarks } from '/navigation.mjs';
+  pushRecent, resolveBookmarks, absolutePath } from '/navigation.mjs';
 import { PictureNodes } from '/pictures-client.mjs';
 const pictureNodes = new PictureNodes();
 const pictureRequests = new Map();
@@ -602,9 +602,7 @@ const fmtAgo = (ms) => {
   return v + ' ' + unit + (v === 1 ? '' : 's') + ' ago';
 };
 // Ids are drive-relative, except user-scope ones which the server prefixes with `~/`.
-const absOf = id => id === '~' ? (S.data?.home || '~')
-  : id.startsWith('~/') ? (S.data?.home || '~') + id.slice(1)
-  : 'D:/AI_Agents/' + id;
+const absOf = id => absolutePath(id, S.data?.base || '', S.data?.home || '~');
 const winPath = id => absOf(id).replace(/\//g, '\\');
 
 let toastTimer;
@@ -1800,8 +1798,8 @@ function viewOverview(page, root) {
   page.append(statsStrip(stats));
 
   // Straight from the root README's own "Live sites" table (parsed server-side each
-  // scan) — absent entirely on projects whose workspace has no such table (Mike_IAM,
-  // Mike_Finance), rather than showing an empty section.
+  // scan) — absent entirely on projects whose workspace has no such table (Identity_Workspace,
+  // Finance_Workspace), rather than showing an empty section.
   if (liveSites.length) {
     const cards = el('div', 'cards two');
     for (const s of liveSites) {
@@ -2002,7 +2000,7 @@ function phRow() {
   return s;
 }
 
-/** Section heading with a dimmed right-hand note — `Project CLIs   Mikes_AI_Lab/Agents`. */
+/** Section heading with a dimmed right-hand note — `Project CLIs   Example_Workspace/Agents`. */
 function sectionWith(title, note, id) {
   const h = el('div');
   h.style.cssText = 'display:flex;align-items:baseline;justify-content:space-between;gap:12px';

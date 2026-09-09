@@ -44,6 +44,11 @@ secrets*.json
 !/Src/README.md
 /Images/*
 !/Images/README.md
+!/Images/Public/
+/Images/Public/*
+!/Images/Public/README.md
+!/Images/Public/project-overview.png
+!/Images/Public/document-reader.png
 /Zip/
 *.zip
 *.bak

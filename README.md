@@ -1,16 +1,32 @@
+<a id="readme-top"></a>
 <a id="html-design-top"></a>
 
-<h1 align="center">🖥️ Project Hub</h1>
+<h1 align="center">Project Hub</h1>
 
 <p align="center">
-  <em>Your workspaces, docs, and AI tools in one local browser.</em>
+  <em>Your workspaces, docs, and AI tools<br>in one local browser.</em>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/runtime-Node_18.17+-339933?style=for-the-badge" alt="Node 18.17+">
-  <img src="https://img.shields.io/badge/dependencies-none-2ea44f?style=for-the-badge" alt="Zero dependencies">
-  <img src="https://img.shields.io/badge/tests-66_passing-2ea44f?style=for-the-badge" alt="66 tests passing">
-  <img src="https://img.shields.io/badge/license-MIT-6B7280?style=for-the-badge" alt="MIT license">
+  <a href="Docs/README.md"><strong>Explore the docs »</strong></a>
+</p>
+
+<p align="center">
+  <a href="#-screenshots">Screenshots</a> ·
+  <a href="#-setup">Quick start</a> ·
+  <a href="Skills/project-hub-scaffold-mfs/SKILL.md">Scaffold skill</a>
+</p>
+
+<p align="center">
+  <a href="Project-Hub/README.md"><img src="https://img.shields.io/badge/runs-locally-0078D4?style=for-the-badge" alt="Runs locally"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea44f?style=for-the-badge" alt="MIT license"></a>
+  <a href="Docs/ROADMAP.md"><img src="https://img.shields.io/badge/plan-roadmap-8B5CF6?style=for-the-badge" alt="Project roadmap"></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-18.17+-339933?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js 18.17 or later">
+  <img src="https://img.shields.io/badge/JavaScript-vanilla-F7DF1E?style=flat-square&amp;logo=javascript&amp;logoColor=black" alt="Vanilla JavaScript">
+  <img src="https://img.shields.io/badge/dependencies-none-6B7280?style=flat-square" alt="No runtime dependencies">
 </p>
 
 ---
@@ -20,6 +36,19 @@ and AI agent tools in one browser interface. Browse files, search, bookmark page
 and preview Markdown, PDFs, HTML reports, and images. The view updates as files change.
 
 One local server handles all your workspaces. No build step or runtime dependencies.
+
+## 📸 Screenshots
+
+Sample workspaces with fictional content. Click an image for the full view.
+
+[![Project overview in the midnight theme, with two workspaces, repository status, and shared tools.](Images/Public/project-overview.png)](Images/Public/project-overview.png)
+
+<details>
+<summary><strong>📖 Document reader · paper theme</strong></summary>
+
+[![Release guide in the paper theme, with an outline, code blocks, and a checklist.](Images/Public/document-reader.png)](Images/Public/document-reader.png)
+
+</details>
 
 ## 🔧 Setup
 
@@ -64,17 +93,18 @@ server. Run tests with `npm test` from `Hub/`.
 
 | Location | Contents |
 |:---|:---|
-| [Hub](Hub/README.md) | Server, scanner, interface, and tests |
-| [Project-Hub](Project-Hub/README.md) | Launcher, configuration, and user manual |
-| [Projects](Projects/_example/hub.config.json.example) | Example workspace config |
-| [Docs](Docs) | [Roadmap](Docs/ROADMAP.md), [bookmarks guide](Docs/BOOKMARKS.md), and design research |
-| [Scaffold skill](Skills/project-hub-scaffold-mfs/SKILL.md) | Add workspaces or create a portable installation |
-| [Src](Src/README.md) · [Images](Images/README.md) | Notes about local design references excluded from Git |
+| [**⚙️ Hub**](Hub/README.md) | Server, scanner, interface, and tests |
+| [**🚀 Project-Hub**](Project-Hub/README.md) | Launcher, configuration, and user manual |
+| [**📁 Projects**](Projects/_example/hub.config.json.example) | Example workspace config |
+| [**📚 Docs**](Docs/README.md) | Guides, roadmap, and design research |
+| [**🧩 Scaffold skill**](Skills/project-hub-scaffold-mfs/SKILL.md) | Add workspaces or create a portable installation |
+| [**🖼️ Images**](Images/README.md) | Public screenshots and local design references |
+| [**🎨 Src**](Src/README.md) | Notes about the original design exports |
 
 To use the scaffold skill, copy its whole folder into your agent's skills directory
 and provide the path to this checkout.
 
-## Privacy and publishing
+## 🔒 Privacy and publishing
 
 The server runs on loopback for local use. Configs, scans, logs, and private design
 assets are ignored. Browser fonts and images linked in documents may make external requests.
@@ -85,9 +115,10 @@ still contain personal material. See [public release notes](Docs/PUBLIC-RELEASE.
 ---
 
 <p align="center">
-  <a href="Project-Hub/README.md">🚀 User manual</a> ·
-  <a href="Skills/project-hub-scaffold-mfs/SKILL.md">🧩 Scaffold skill</a> ·
-  <a href="Docs/ROADMAP.md">📄 Roadmap</a>
+  Built with Node.js and vanilla JavaScript · <a href="LICENSE">MIT license</a><br>
+  <a href="Project-Hub/README.md">User manual</a> ·
+  <a href="Skills/project-hub-scaffold-mfs/SKILL.md">Scaffold skill</a> ·
+  <a href="Docs/ROADMAP.md">Roadmap</a>
 </p>
 
-<p align="right"><sub><a href="#html-design-top">back to top</a></sub></p>
+<p align="right"><sub><a href="#readme-top">back to top</a></sub></p>

@@ -1,7 +1,20 @@
-# Images reference material
+<h1 align="center">🖼️ Images</h1>
 
-Original design exports and screenshots are kept locally and excluded from Git because they contain private workspace details. They are not required to run Project Hub.
+<p align="center"><em>Screenshots for the README and notes about local design references.</em></p>
 
-The maintained interface is [Hub/index.html](../Hub/index.html). Reusable design guidance is in the [scaffold skill](../Skills/project-hub-scaffold-mfs/SKILL.md).
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
+</p>
 
-[Back to Project Hub](../README.md)
+---
+
+| Collection | Contents |
+|:---|:---|
+| [**📸 Public screenshots**](Public/README.md) | The running app with fictional workspaces and documents |
+
+Original screenshots and design exports remain local and ignored. Only the reviewed
+files listed in `Public/` are included in Git.
+
+---
+
+<p align="center"><a href="../README.md">← Project Hub</a> · <a href="../Src/README.md">Design references</a></p>

@@ -16,17 +16,27 @@ update both copies together when the engine changes.
 - Fresh-clone tests accept example configs without requiring a developer's local setup.
 - The scaffold supports the single-server Projects model and copies every required module.
 
-## Before changing visibility
+## Visibility — changed 2026-09-10
 
-The existing commits still contain the original files and personal references.
-Ignore rules and a deletion commit do not erase those versions. Commit metadata
-also includes author/committer identities. No history rewrite or force-push was
-performed as part of this cleanup.
+The repository is **public**, under `ai-automation-tools/project-hub` (renamed the same day
+from `html-project-design`). The decision was made with the history caveat below understood
+and accepted, not overlooked.
 
-Choose either a new public repository populated from a reviewed clean snapshot,
-or an explicit history rewrite of the existing repository. Preserve a private
-backup first. Review all branches/tags and hosted issues, releases, attachments,
-and automation logs before publishing. Committing and pushing this cleanup does not change repository visibility or remove historical content.
+**What was verified before the flip:** every tracked file was scanned for personal
+identifiers, email addresses, machine paths and credential-shaped tokens, and the remaining
+local specifics in `Hub/README.md`, `Hub/hub.mjs` and `Project-Hub/README.md` were replaced
+with generic placeholders. Private design exports under `Src/` and `Images/` stay untracked.
+
+**What was not done, and still has not been:** the existing commits still contain the
+original files and personal references. Ignore rules and a deletion commit do not erase
+those versions, and commit metadata carries author/committer identities. **No history
+rewrite or force-push has been performed.** A clean working tree and a clean history are
+separate properties; this repo has the first and not the second.
+
+Closing that gap later means either a new public repository populated from a reviewed clean
+snapshot, or an explicit history rewrite of this one. Either way, preserve a private backup
+first and review all branches, tags, issues, releases, attachments and automation logs.
+Neither is scheduled.
 
 ## Local operation
 

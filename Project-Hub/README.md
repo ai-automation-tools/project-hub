@@ -62,7 +62,7 @@ Two chrome controls sit outside the views:
 |:---|:---|
 | **Sidebar** | The `«` / `»` button at the left of the breadcrumb bar (or `⌘B` / `Ctrl+B`) folds the panel away and back. It lives in the header rather than the panel so it stays put in both states — and stays clear of the explorer's own `collapse all` link, which is a different thing: that one closes every open tree node without hiding anything. |
 | **Back / Forward** | The `‹` / `›` buttons next to the sidebar toggle walk the hash history — same effect as the browser's own Back/Forward, just reachable when that chrome isn't (VS Code's Simple Browser keeps its arrows on the tab toolbar, above the page). `Alt+←` / `Alt+→` do the same from anywhere on the page. |
-| **README as the landing view** | **Any folder that documents itself opens on its own README** — the shared roots (`Documents`, `Links`, `Automations`, `My Custom Skills`) and every sub-folder down the tree, rather than on a card grid or a stats overview. A folder with no `README.md` (or `index.md`/`INDEX.md`) skips all of this and behaves exactly as before. One button in the header — `⊞ folder`, or `⊞ overview` on a root — drops to the view it would otherwise have had, and `☰ readme` comes back; the switch is per-folder and lasts the session, so a fresh open always lands on the README. **Project roots, CLI runtimes, repos, skills, commands, sub-agents and routines are excluded** — each has a purpose-built page, and the repo and entity pages already render their document beside it. |
+| **README as the landing view** | **Any folder that documents itself opens on its own README** — the shared roots (`Documents`, `Links`, `Automations`) and every sub-folder down the tree, rather than on a card grid or a stats overview. A folder with no `README.md` (or `index.md`/`INDEX.md`) skips all of this and behaves exactly as before. One button in the header — `⊞ folder`, or `⊞ overview` on a root — drops to the view it would otherwise have had, and `☰ readme` comes back; the switch is per-folder and lasts the session, so a fresh open always lands on the README. **Project roots, CLI runtimes, repos, skills, commands, sub-agents and routines are excluded** — each has a purpose-built page, and the repo and entity pages already render their document beside it. |
 | **Color scheme** | The picker beside **rescan**, eight schemes — six dark: `midnight` (default, terminal green), `oxide` (warm amber), `cobalt` (blue/cyan), `plum` (violet on aubergine), `nord` (muted arctic blue-grey), `mono` (pure greyscale, no hue); and two light: `paper` (ink on warm white) and `sepia` (brown ink on aged cream). Every color in the UI resolves from one block of CSS variables, so a new scheme is a copied block, an `<option>`, and a name in the `THEMES` array. |
 
 Both remember themselves in `localStorage`, and the scheme is applied before first
@@ -341,17 +341,17 @@ repos reach its overview table — `groups` for a workspace with a `Repos/<group
 config loader rejects that and every other malformed shape at startup rather than
 halfway through a scan.
 
-The shared `Documents`, `My Custom Skills`, `Pictures`, `Automations`, and `Links` roots and the
-six user-scope runtimes are the same for every project, so they stay in
-[`../Hub/hub.mjs`](../Hub/hub.mjs) — `SHARED_ROOTS` and `USER_RUNTIMES` — and are now
-scanned once for all mounted workspaces projects instead of once per hub. `My Custom Skills` is a root
-rather than a branch of `Documents` because its folder is dot-prefixed
-(`.My-Custom-Skills`, hidden from Obsidian's indexer) and the walker prunes
-dot-directories. `Pictures` (OneDrive) sits outside `Documents` entirely, at
-`C:/Users/<you>/OneDrive/Pictures`. `Links` (`Documents\Links`, added 2026-09-09) is the one
-root that does sit inside another — it is a top-level destination in its own right, so it is
-mounted as its own root and the walker prunes it from the `Documents` walk (`MOUNTED_ROOTS`)
-rather than indexing the same subtree twice under two parents with colliding ids.
+The shared roots — `Documents`, `Pictures`, `Automations`, `Links` and whatever else you
+configure — and the six user-scope runtimes are the same for every project, so they stay in
+[`../Hub/hub.mjs`](../Hub/hub.mjs) (`SHARED_ROOTS` and `USER_RUNTIMES`) and are scanned once
+for all mounted workspaces rather than once per hub. Two rules decide whether a folder deserves
+its own root. A folder the walker cannot otherwise reach needs one: a dot-prefixed directory,
+hidden from an editor's indexer, is pruned by the dot-directory rule and would never appear.
+A folder outside every other root needs one too — `Pictures` at `C:/Users/<you>/OneDrive/Pictures`
+sits outside `Documents` entirely. `Links` (`Documents/Links`) is the interesting case: it does
+sit inside another root, and is mounted separately anyway because it is a destination in its own
+right. The walker prunes it from the `Documents` walk (`MOUNTED_ROOTS`) rather than indexing the
+same subtree twice under two parents with colliding ids.
 
 **Adding a fourth project** is a new folder under `Projects/` and a `hub.config.json` —
 nothing else in this repo needs touching.

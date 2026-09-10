@@ -148,8 +148,8 @@ const PROJECTS = IS_MAIN ? discoverProjects() : [];
 //
 // A shared root may sit physically inside another one (Links inside Documents): mount it
 // anyway, MOUNTED_ROOTS below prunes it from the parent's walk so it appears once rather
-// than twice with colliding ids. A dot-prefixed dir (`.My-Custom-Skills`, hidden from
-// Obsidian) likewise has to be its own root — the walker skips dot-dirs.
+// than twice with colliding ids. A dot-prefixed dir (one hidden from an editor's
+// indexer, say) likewise has to be its own root — the walker skips dot-dirs.
 const SHARED_ROOTS = CONFIG.sharedRoots;
 const BASE = CONFIG.base;
 const ROOTS = [

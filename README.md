@@ -25,6 +25,7 @@
   <a href="Project-Hub/README.md"><img src="https://img.shields.io/badge/runs-locally-0078D4?style=for-the-badge" alt="Runs locally"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea44f?style=for-the-badge" alt="MIT license"></a>
   <a href="Docs/ROADMAP.md"><img src="https://img.shields.io/badge/plan-roadmap-8B5CF6?style=for-the-badge" alt="Project roadmap"></a>
+  <a href="https://github.com/ai-automation-tools"><img src="https://img.shields.io/badge/org-ai--automation--tools-0078D4?style=for-the-badge&logo=github&logoColor=white" alt="ai-automation-tools"></a>
 </p>
 
 <p align="center">
@@ -113,8 +114,21 @@ and provide the path to this checkout.
 The server runs on loopback for local use. Configs, scans, logs, and private design
 assets are ignored. Browser fonts and images linked in documents may make external requests.
 
-**Before making this repository public, clean its Git history.** Earlier commits
-still contain personal material. See [public release notes](Docs/PUBLIC-RELEASE.md).
+The published files carry no personal paths, hostnames or credentials — every example uses
+generic placeholders. **The commit history is a different question**, and one worth stating
+plainly rather than leaving to be discovered: earlier commits predate that cleanup and were
+never rewritten. See [public release notes](Docs/PUBLIC-RELEASE.md) for what that covers and
+what it does not.
+
+## 🔗 Related repositories
+
+Part of the [**ai-automation-tools**](https://github.com/ai-automation-tools) organization.
+
+| Repo | How it relates |
+|:---|:---|
+| [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold-mfs/`](Skills/project-hub-scaffold-mfs/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present — the two are byte-identical, and a change belongs there first. |
+| [**Agent-chat**](https://github.com/ai-automation-tools/Agent-chat) | MCP server for AI-to-AI conversations. Its workspace is one of the things a hub renders. |
+| [**cronsole**](https://github.com/ai-automation-tools/cronsole) | Scheduled-task control plane. The hub's watchdog is one of the tasks it can see. |
 
 ---
 

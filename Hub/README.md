@@ -316,7 +316,7 @@ alphabetically by folder name) and builds one node per project — but instead o
 those at the top level, `scanTree()` nests them all under one synthetic `@projects` node
 (`kind: 'projects'`) so the tree shows a single **Projects** folder rather than three more
 top-level roots next to Documents. `SHARED_ROOTS` (whatever `sharedRoots` names — here
-`Documents`, `My Custom Skills`, `Pictures`, `Automations`, `Links`) stay top-level, and
+`Documents`, `Pictures`, `Automations`, `Links`) stay top-level, and
 — along with `USER_RUNTIMES`
 (`~/.claude`, `~/.codex`, `~/.gemini`, `~/.agents`, `~/.config/opencode`) — are identical
 regardless of which projects are mounted, so they stay hardcoded in `hub.mjs` and are
@@ -357,10 +357,19 @@ climbing at the nearest `root`/`docroot`/`userroot` ancestor rather than climbin
 the way to "no parent" — otherwise, with projects nested one level deeper now, it would
 climb straight past the project and land on the Projects folder itself.
 
-`My Custom Skills` is `Documents/Agent-Resources/Skills/.My-Custom-Skills` — already
-inside the `Documents` root, but dot-prefixed to keep Obsidian from indexing it, which
-also puts it behind the walker's dot-directory rule. Mounting it as its own root shows it
-at the top of the tree instead of three levels down, and leaves `DOT_OK` alone.
+A shared root that later falls inside a scanned workspace is the case worth studying, because
+it fails in the direction nobody looks. Say a skills library lives at
+`Documents/Notes/Skills/.skill-library` — inside the `Documents` root already, but dot-prefixed
+to keep an editor's indexer off it, which also puts it behind the walker's dot-directory rule.
+Mounting it as its own root shows it at the top of the tree instead of three levels down, and
+leaves `DOT_OK` alone. That is a root earning its place.
+
+Move that same folder to `Projects/<Workspace>/Repos/Tools/skill-library` and the root turns
+harmful: the workspace's `repoScope.groups` already covers `Tools`, so the folder is mounted
+twice. **The visible symptom is a missing row, not a duplicated one** — every node still serves
+correctly under the workspace path, but the repo drops out of the repos list entirely while its
+siblings keep their entries. A shared root is for a folder **no scanned workspace reaches**; the
+moment a workspace reaches it, delete the root rather than repointing it.
 
 `Pictures` is `C:/Users/<you>/OneDrive/Pictures` — outside `D:/Work` entirely, so it
 gets its own root rather than a spot under an existing one. Image files anywhere in any

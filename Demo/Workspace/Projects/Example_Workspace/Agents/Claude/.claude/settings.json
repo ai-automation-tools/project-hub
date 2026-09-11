@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/block-force-push.mjs" },
+          { "type": "command", "command": "node .claude/hooks/scan-for-secrets.mjs" }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "node .claude/hooks/guard-migrations.mjs" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "npx prettier --write CHANGED_FILES" }]
+      }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/summarise-session.mjs" }] }
+    ]
+  }
+}

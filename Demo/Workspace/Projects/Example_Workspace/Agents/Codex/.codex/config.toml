@@ -1,0 +1,15 @@
+model = "gpt-5-codex"
+approval_policy = "on-request"
+
+[mcp_servers.postgres]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-postgres", "postgres://localhost/atlas_dev"]
+
+[[hooks.PreToolUse]]
+matcher = "shell"
+[[hooks.PreToolUse.hooks]]
+command = "node .codex/hooks/block-force-push.mjs"
+
+[[hooks.SessionEnd]]
+[[hooks.SessionEnd.hooks]]
+command = "node .codex/hooks/summarise-session.mjs"

@@ -60,3 +60,10 @@ secrets*.json
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Demo site: the fixture under Demo/ is published on purpose, so the general rules above
+# (agent configs, local hub configs) must not swallow it. The build output is generated.
+/Demo/.build/
+/Demo/site/
+!/Demo/**/.mcp.json
+!/Demo/**/.codex/config.toml

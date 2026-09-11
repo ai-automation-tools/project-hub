@@ -1,0 +1,47 @@
+name: Demo site
+
+# Builds Demo/site by running the real hub against the fixture workspace, then publishes
+# it to GitHub Pages at project-hub.ai-automation-tools.dev.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Hub/**'
+      - 'Demo/**'
+      - '.github/workflows/demo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a queued run supersedes an older one rather than racing it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # The fixture repos are created by the build itself, with their own identity and
+      # their own git config — nothing here needs the runner's.
+      - run: node Demo/build-demo.mjs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: Demo/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

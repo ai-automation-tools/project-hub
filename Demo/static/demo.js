@@ -64,9 +64,34 @@
     });
   };
 
+  var LANDING = 'https://ai-automation-tools.dev';
+
+  /**
+   * The `/` mark in the sidebar header is inert in a local hub — there is nowhere for it
+   * to go. On the demo it is the way back out to the landing page, which is the one piece
+   * of navigation a hosted page needs and the app has no reason to carry.
+   *
+   * Swapped for a real anchor rather than given a click handler, so middle-click, Ctrl+click
+   * and keyboard focus all behave. `.glyph` is sized and centred by class, so the anchor
+   * inherits the whole look; only the underline needs removing.
+   */
+  function linkTheMark() {
+    var mark = document.querySelector('.ex-head .glyph');
+    if (!mark) return;
+    var link = document.createElement('a');
+    link.className = mark.className;
+    link.textContent = mark.textContent;
+    link.href = LANDING;
+    link.title = 'ai-automation-tools.dev';
+    link.setAttribute('aria-label', 'Back to ai-automation-tools.dev');
+    link.style.textDecoration = 'none';
+    mark.replaceWith(link);
+  }
+
   // A one-line banner, dismissed for the session once. Inline styles on purpose: the
   // interface's own stylesheet is copied verbatim and nothing is added to it.
   document.addEventListener('DOMContentLoaded', function () {
+    linkTheMark();
     try { if (sessionStorage.getItem('demo.banner') === 'off') return; } catch (_) { /* private mode */ }
     var bar = document.createElement('div');
     bar.setAttribute('role', 'note');

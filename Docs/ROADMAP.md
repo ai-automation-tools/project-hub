@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-blocked_on_a_viewport-e0a458?style=for-the-badge" alt="P7-14 blocked on reaching a narrow viewport">
   <img src="https://img.shields.io/badge/tests-64_passing-8B5CF6?style=for-the-badge" alt="64 tests passing">
-  <a href="../README.md"><img src="https://img.shields.io/badge/↩-HTML_Project_Design-6B7280?style=for-the-badge" alt="HTML Project Design"></a>
+  <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
 ---
@@ -2162,7 +2162,7 @@ the payload and a check that the health fields the watchdog reads still exist.
 ---
 
 <p align="center">
-  <a href="../README.md">← HTML Project Design</a> ·
+  <a href="../README.md">← Project Hub</a> ·
   <a href="ChatGPT-HTML-Design.md">ChatGPT HTML Design</a> ·
   <a href="../Hub/README.md">Hub source</a> ·
   <a href="../Project-Hub/README.md">Project Hub →</a>

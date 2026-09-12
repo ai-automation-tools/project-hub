@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/storage-this_browser_only-8B5CF6?style=for-the-badge" alt="Stored in this browser only">
   <img src="https://img.shields.io/badge/shortcut-Ctrl%2BD-339933?style=for-the-badge" alt="Ctrl+D">
   <a href="./ROADMAP.md#p7-10-shipped--two-lists-above-the-tree"><img src="https://img.shields.io/badge/spec-P7--10-6B7280?style=for-the-badge" alt="P7-10 in the roadmap"></a>
-  <a href="../README.md"><img src="https://img.shields.io/badge/↩-HTML_Project_Design-6B7280?style=for-the-badge" alt="HTML Project Design"></a>
+  <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
 ---
@@ -158,5 +158,5 @@ backlog item ([P7-20](./ROADMAP.md#p7-review)), not something bookmarks will gro
   <a href="#bookmarks-top">↑ top</a> ·
   <a href="./ROADMAP.md">Roadmap</a> ·
   <a href="../Hub/README.md">Hub source</a> ·
-  <a href="../README.md">HTML Project Design</a>
+  <a href="../README.md">Project Hub</a>
 </p>

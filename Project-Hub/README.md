@@ -2,6 +2,12 @@
 
 A local navigation UI for your project workspaces, shared documents, pictures, and user-scope agent configuration. Configure the roots on your machine using the [setup guide](../README.md#-setup).
 
+To see what the pages described here look like before configuring anything, there is a
+read-only copy over a fictional workspace at
+**[project-hub.ai-automation-tools.dev](https://project-hub.ai-automation-tools.dev)** —
+the real interface and real scan output, minus the two things that need a local server
+(live updates and opening files). [How it is built](../Demo/README.md).
+
 The [project-hub-scaffold-mfs skill](../Skills/project-hub-scaffold-mfs/SKILL.md) adds workspaces to this server or creates a portable installation.
 
 Nothing is hard-coded. Every repo, runtime, skill, command, sub-agent, hook, MCP server,
@@ -730,7 +736,7 @@ Two things are worth carrying forward from this one:
 ---
 
 <p align="center">
-  <a href="../README.md">← HTML Project Design</a> ·
+  <a href="../README.md">← Project Hub</a> ·
   <a href="../Src/README.md">Src</a> ·
   <a href="../Images/README.md">Images</a>
 </p>

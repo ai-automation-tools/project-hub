@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/deps-0-2ea44f?style=for-the-badge" alt="Zero dependencies">
   <img src="https://img.shields.io/badge/node-≥18.17-339933?style=for-the-badge" alt="Node 18.17+">
   <img src="https://img.shields.io/badge/tests-node--test-8B5CF6?style=for-the-badge" alt="node --test">
-  <a href="../README.md"><img src="https://img.shields.io/badge/↩-HTML_Project_Design-6B7280?style=for-the-badge" alt="HTML Project Design"></a>
+  <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
 ---
@@ -422,7 +422,7 @@ bypass harmless; the filter is what stops there being one.
 ---
 
 <p align="center">
-  <a href="../README.md">← HTML Project Design</a> ·
+  <a href="../README.md">← Project Hub</a> ·
   <a href="../Docs/ROADMAP.md">Roadmap</a> ·
   <a href="../Project-Hub/README.md">Project Hub →</a>
 </p>

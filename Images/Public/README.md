@@ -18,10 +18,16 @@ Screenshots captured at 1600 × 1100 on 2026-09-09 using an isolated demo and an
 seeded with sample agent configuration. All repository names and documents are fictional.
 The displayed `C:/Temp/ProjectHub-Demo` path belongs to that fixture.
 
-To refresh: run the current engine against a disposable demo, open the Projects page
-and a sample Markdown document, then capture each at the same viewport size. Review
-visible paths and content before replacing these files. The root `.gitignore` allows
-only the header SVG, these two PNGs, and this index; other screenshots remain excluded.
+That fixture was disposable and is gone; [`../../Demo/`](../../Demo/README.md) is the
+committed replacement, and it is what these should be recaptured against from now on.
+Its workspaces and repos differ from the ones pictured here, so a refresh changes what the
+images show — the table above describes the 2026-09-09 fixture until someone reshoots them.
+
+To refresh: `node Demo/build-demo.mjs`, serve `Demo/site` with any static server, open the
+Projects page and a sample Markdown document, and capture each at the same viewport size.
+Review visible paths and content before replacing these files, and update the table above
+to match. The root `.gitignore` allows only the header SVG, these two PNGs, and this index;
+other screenshots remain excluded.
 
 ---
 

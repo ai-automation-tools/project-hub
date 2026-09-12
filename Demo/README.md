@@ -27,6 +27,7 @@ fails loudly.
 | Live updates | Absent. There is no server to stream changes from, so the event stream is never opened |
 | Opening files | Absent. A hosted page has no filesystem to open; the button says so |
 | Pictures | Not configured in the fixture |
+| The `/` mark | Links home, to the site root. Inert in a local hub — a deep-linked visitor here needs a way back to the top |
 
 ## The fixture
 

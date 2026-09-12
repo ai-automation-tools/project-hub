@@ -1,0 +1,59 @@
+name: Tests
+
+# The 66 Node tests in Hub/ existed for weeks with nothing running them. This is that.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to the same branch supersedes the run in flight. Not on main, where every
+# commit's result is worth keeping.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 18.17 is the floor the README and Hub/package.json both claim, and nothing has
+        # ever verified it. 22 is what the demo deploy runs on.
+        node: ['18.17', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # No lockfile and no dependencies — npm ci would have nothing to do.
+      - run: npm test
+        working-directory: Hub
+
+  demo-build:
+    # The demo build is an integration test as much as a publishing step: it runs the real
+    # scanner over a fixture and asserts the exact string literals it rewrites in
+    # index.html are still there, so an interface change that moves them fails here rather
+    # than shipping a demo that half works. Node 22 to match the deploy job.
+    name: demo build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node Demo/build-demo.mjs
+      # A capture that suddenly holds nothing is the failure this would otherwise miss:
+      # the build is happy to write an empty site if the fixture stops being found.
+      - name: Check the capture is not empty
+        run: |
+          test -s Demo/site/index.html
+          test -s Demo/site/api/manifest.json
+          captured=$(node -p "Object.keys(require('./Demo/site/api/manifest.json')).length")
+          echo "captured $captured API responses"
+          test "$captured" -gt 100

@@ -64,12 +64,11 @@
     });
   };
 
-  var LANDING = 'https://ai-automation-tools.dev';
-
   /**
    * The `/` mark in the sidebar header is inert in a local hub — there is nowhere for it
-   * to go. On the demo it is the way back out to the landing page, which is the one piece
-   * of navigation a hosted page needs and the app has no reason to carry.
+   * to go. Here it goes home: the site root, with no fragment, which is the overview the
+   * demo opens on. A deep-linked visitor lands on one document with no obvious way back
+   * to the top, and this is it.
    *
    * Swapped for a real anchor rather than given a click handler, so middle-click, Ctrl+click
    * and keyboard focus all behave. `.glyph` is sized and centred by class, so the anchor
@@ -81,9 +80,9 @@
     var link = document.createElement('a');
     link.className = mark.className;
     link.textContent = mark.textContent;
-    link.href = LANDING;
-    link.title = 'ai-automation-tools.dev';
-    link.setAttribute('aria-label', 'Back to ai-automation-tools.dev');
+    link.href = '/';
+    link.title = 'Back to the overview';
+    link.setAttribute('aria-label', 'Back to the overview');
     link.style.textDecoration = 'none';
     mark.replaceWith(link);
   }

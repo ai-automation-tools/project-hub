@@ -120,6 +120,25 @@ server. Run tests with `npm test` from `Hub/`.
 To use the scaffold skill, copy its whole folder into your agent's skills directory
 and provide the path to this checkout.
 
+### 🧠 Skills for working on this repo
+
+Three agent skills cover the hub's own internals. They are not shipped here — they live in
+[**agent-skills**](https://github.com/ai-automation-tools/agent-skills/tree/main/Skills/Projects/project-hub),
+which is canonical for them, and install as an overlay into this clone's `.claude/skills/`.
+
+| Skill | Covers |
+|:---|:---|
+| [`project-hub-scan`](https://github.com/ai-automation-tools/agent-skills/blob/main/Skills/Projects/project-hub/project-hub-scan/SKILL.md) | `Hub/hub.mjs` — the scan filter chain, node kinds, the agent-runtime tables, the `resolveId()` deny gate, caching and the watcher |
+| [`project-hub-client`](https://github.com/ai-automation-tools/agent-skills/blob/main/Skills/Projects/project-hub/project-hub-client/SKILL.md) | `Hub/index.html` — the view dispatch, the eight colour schemes, state and routes, the CSP nonce contract |
+| [`project-hub-demo`](https://github.com/ai-automation-tools/agent-skills/blob/main/Skills/Projects/project-hub/project-hub-demo/SKILL.md) | `Demo/build-demo.mjs` — the fixture, the capture, the literal assertions against `index.html`, and the Pages deploy |
+
+```powershell
+pwsh scripts/install-skills.ps1 -Project project-hub -Destination <this-clone>/.claude/skills
+```
+
+Run that from an `agent-skills` checkout. `.claude/skills/` is not gitignored here, so the
+install lands in `git status` — commit it deliberately, or leave it out.
+
 ## 🔒 Privacy and publishing
 
 The server runs on loopback for local use. Configs, scans, logs, and private design
@@ -137,7 +156,7 @@ Part of the [**ai-automation-tools**](https://github.com/ai-automation-tools) or
 
 | Repo | How it relates |
 |:---|:---|
-| [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold-mfs/`](Skills/project-hub-scaffold-mfs/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present — the two are byte-identical, and a change belongs there first. |
+| [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold-mfs/`](Skills/project-hub-scaffold-mfs/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present — the two are byte-identical, and a change belongs there first. It also carries three **maintainer skills for this codebase** — see below. |
 | [**Agent-chat**](https://github.com/ai-automation-tools/Agent-chat) | MCP server for AI-to-AI conversations. Its workspace is one of the things a hub renders. |
 | [**cronsole**](https://github.com/ai-automation-tools/cronsole) | Scheduled-task control plane. The hub's watchdog is one of the tasks it can see. |
 

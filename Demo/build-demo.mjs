@@ -328,6 +328,12 @@ try {
 
   sub('<script type="module">', '<script src="/demo.js"></script>\n<script type="module">', 1);
 
+  // Consent gate, injected here rather than in Hub/index.html because it belongs to the
+  // hosted demo and not to the hub: a local hub serves one person their own filesystem,
+  // has no third party in it, and should not be reaching out to a CDN to say so.
+  // Shared copy lives at ai-automation-tools.dev/consent.js.
+  sub('</body>', '<script src="https://ai-automation-tools.dev/consent.js" defer></script>\n</body>', 1);
+
   write(path.join(SITE, 'index.html'), html);
   log('wrote', SITE);
 } catch (err) {

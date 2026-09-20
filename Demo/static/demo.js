@@ -87,14 +87,35 @@
     mark.replaceWith(link);
   }
 
+  var REPO = 'https://github.com/ai-automation-tools/project-hub';
+
+  /**
+   * The way back to the source, and the only one this page has: the banner below is
+   * dismissed for the session on first click, so the repo link inside it cannot be the
+   * whole answer. This chip outlives it.
+   */
+  function repoChip() {
+    var chip = document.createElement('a');
+    chip.href = REPO;
+    chip.target = '_blank';
+    chip.rel = 'noopener';
+    chip.textContent = 'source on GitHub ↗';
+    chip.style.cssText = 'position:fixed;z-index:9998;right:16px;bottom:16px;'
+      + 'padding:6px 11px;border:1px solid #22272e;border-radius:999px;background:#0e1114;'
+      + 'color:#5fe3a1;text-decoration:none;font:12px/1.4 ui-sans-serif,system-ui,sans-serif;'
+      + 'box-shadow:0 6px 20px rgba(0,0,0,.45)';
+    return chip;
+  }
+
   // A one-line banner, dismissed for the session once. Inline styles on purpose: the
   // interface's own stylesheet is copied verbatim and nothing is added to it.
   document.addEventListener('DOMContentLoaded', function () {
     linkTheMark();
+    document.body.append(repoChip());
     try { if (sessionStorage.getItem('demo.banner') === 'off') return; } catch (_) { /* private mode */ }
     var bar = document.createElement('div');
     bar.setAttribute('role', 'note');
-    bar.style.cssText = 'position:fixed;z-index:9999;left:50%;bottom:18px;transform:translateX(-50%);'
+    bar.style.cssText = 'position:fixed;z-index:9999;left:50%;bottom:58px;transform:translateX(-50%);'
       + 'max-width:min(760px,calc(100vw - 32px));display:flex;gap:14px;align-items:center;'
       + 'padding:9px 14px;border:1px solid #2f6b52;border-radius:8px;background:#0e1114;'
       + 'color:#a7b0ba;font:13px/1.5 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.5)';

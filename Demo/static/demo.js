@@ -92,30 +92,56 @@
   /**
    * The way back to the source, and the only one this page has: the banner below is
    * dismissed for the session on first click, so the repo link inside it cannot be the
-   * whole answer. This chip outlives it.
+   * whole answer. This bar outlives it.
+   *
+   * The shared source bar every ai-automation-tools site carries in the same place:
+   * full width at the very top, note on the left, repo link in the right corner.
+   *
+   * In normal flow above #app rather than fixed over it, because `html{zoom}` scales a
+   * fixed strip too and #app already divides the zoom out of its own height. One
+   * injected rule shortens #app by the bar; the interface's own stylesheet is still
+   * copied verbatim and still has nothing added to it.
    */
-  function repoChip() {
-    var chip = document.createElement('a');
-    chip.href = REPO;
-    chip.target = '_blank';
-    chip.rel = 'noopener';
-    chip.textContent = 'source on GitHub ↗';
-    chip.style.cssText = 'position:fixed;z-index:9998;right:16px;bottom:16px;'
-      + 'padding:6px 11px;border:1px solid #22272e;border-radius:999px;background:#0e1114;'
-      + 'color:#5fe3a1;text-decoration:none;font:12px/1.4 ui-sans-serif,system-ui,sans-serif;'
-      + 'box-shadow:0 6px 20px rgba(0,0,0,.45)';
-    return chip;
+  function mountSourceBar() {
+    var style = document.createElement('style');
+    style.textContent = ':root{--demo-bar-h:34px}'
+      + '#app{height:calc(100vh / var(--zoom) - var(--demo-bar-h))}';
+    document.head.append(style);
+
+    var bar = document.createElement('div');
+    bar.style.cssText = 'display:flex;align-items:center;gap:16px;height:34px;padding:0 14px;'
+      + 'box-sizing:border-box;background:var(--panel);border-bottom:1px solid var(--line);'
+      + 'font:12px/1.4 ui-sans-serif,system-ui,sans-serif';
+
+    var note = document.createElement('p');
+    note.style.cssText = 'margin:0;min-width:0;overflow:hidden;white-space:nowrap;'
+      + 'text-overflow:ellipsis;color:var(--dim)';
+    note.innerHTML = '<strong style="font-weight:600;color:var(--green)">Read-only demo</strong>'
+      + ' &middot; a fictional workspace, captured from a real hub.';
+
+    var link = document.createElement('a');
+    link.href = REPO;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true" style="flex:none"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg><span>View source</span>';
+    link.style.cssText = 'margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;'
+      + 'color:var(--fg-mid);text-decoration:none;font-weight:500';
+    link.onmouseenter = function () { link.style.color = 'var(--fg-max)'; link.style.textDecoration = 'none'; };
+    link.onmouseleave = function () { link.style.color = 'var(--fg-mid)'; };
+
+    bar.append(note, link);
+    document.body.prepend(bar);
   }
 
   // A one-line banner, dismissed for the session once. Inline styles on purpose: the
   // interface's own stylesheet is copied verbatim and nothing is added to it.
   document.addEventListener('DOMContentLoaded', function () {
     linkTheMark();
-    document.body.append(repoChip());
+    mountSourceBar();
     try { if (sessionStorage.getItem('demo.banner') === 'off') return; } catch (_) { /* private mode */ }
     var bar = document.createElement('div');
     bar.setAttribute('role', 'note');
-    bar.style.cssText = 'position:fixed;z-index:9999;left:50%;bottom:58px;transform:translateX(-50%);'
+    bar.style.cssText = 'position:fixed;z-index:9999;left:50%;bottom:16px;transform:translateX(-50%);'
       + 'max-width:min(760px,calc(100vw - 32px));display:flex;gap:14px;align-items:center;'
       + 'padding:9px 14px;border:1px solid #2f6b52;border-radius:8px;background:#0e1114;'
       + 'color:#a7b0ba;font:13px/1.5 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.5)';

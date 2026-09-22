@@ -138,7 +138,7 @@ tag split across lines has only its first line filtered; the rest is escaped int
 `<p>` and swallowed as attributes of the still-open tag. That one did not execute in
 testing, but it corrupts the rendering of any legitimate multi-line HTML block.
 
-This is not purely theoretical content. `Repos/Tools/` holds three third-party clones
+This is not purely theoretical content. `Repos/Private/Tools/` holds three third-party clones
 (`odysseus`, `Deepseek-Harness`, `Gods-Eye-View`) whose READMEs come from GitHub and are
 rendered by the hub, and the same origin serves `/api/file`, `/api/raw` and `/api/open`
 over the whole vault — so an executing handler can read and exfiltrate anything under a
@@ -561,7 +561,7 @@ Deliberate rather than forgotten:
 | 21–25 | The P4 ideas | Speculative until one of them is actually wanted |
 | ~~26~~ | ~~Directory-level watcher events cause near-continuous rescans~~ | ✅ **fixed 2026-08-31** — see below |
 | ~~31~~ | ~~HTML artifact preview — sandboxed iframe viewer + an Artifacts shelf~~ | ✅ **fixed 2026-09-03** — see [P5](#31-dual-mode-html-viewer--artifacts-shelf) |
-| ~~34~~ | ~~Surface `Repos/Draft/` initiatives as a `kind: 'draft'` card cluster~~ | ✅ **fixed 2026-09-03** — see [P5](#34-draft-initiatives-card-cluster) |
+| ~~34~~ | ~~Surface `Repos/Private/Draft/` initiatives as a `kind: 'draft'` card cluster~~ | ✅ **fixed 2026-09-03** — see [P5](#34-draft-initiatives-card-cluster) |
 | ~~35~~ | ~~GitHub-style alert callouts + light code syntax highlighting~~ | ✅ **fixed 2026-09-03** — see below |
 | 36 | Git-mtime cache invalidation to skip unneeded `git status`/`git log` spawns | Extends #17/#18, which were already measured and left alone for the same reason |
 
@@ -572,10 +572,10 @@ not — but something else is. Twenty seconds of a completely idle machine, watc
 same roots the hub watches:
 
 ```text
-12x  Example_Workspace :: Repos/Live_Apps/Agent-Chat/db/.sync-state.json.tmp
- 8x  Example_Workspace :: Repos/Live_Apps/Agent-Chat/db/.sync-state.json
- 8x  Example_Workspace :: Repos/Live_Apps/Agent-Chat/db          <-- this one gets through
- 3x  Example_Workspace :: Repos/Live_Apps/example.github.io/.git
+12x  Example_Workspace :: Repos/AI-Automation-Tools/Live_Apps/Agent-Chat/db/.sync-state.json.tmp
+ 8x  Example_Workspace :: Repos/AI-Automation-Tools/Live_Apps/Agent-Chat/db/.sync-state.json
+ 8x  Example_Workspace :: Repos/AI-Automation-Tools/Live_Apps/Agent-Chat/db          <-- this one gets through
+ 3x  Example_Workspace :: Repos/Private/Live_Apps/example.github.io/.git
  2x  ... .git/index.lock  (x6 repos)
 ```
 
@@ -713,7 +713,7 @@ duplicate-id behaviour).
 | 31 | Dual-mode `.html` viewer — sandboxed iframe preview alongside the existing source view, plus an "Artifacts" shelf for `artifacts/`/`dashboards/`/`prototypes/` folders | Right now every `.html` file, including interactive dashboards, is dumped as escaped text in a `<pre>` — the exact thing `ChatGPT-HTML-Design.md` says artifacts are for goes unrendered | ✅ fixed |
 | 32 | Multi-hub workspace switcher in the header, polling each hub's `/api/health` for a status dot | AI Lab (4273), IAM (4274) and Finance (4275) run side by side with no link between them — switching means retyping the port | ✅ fixed |
 | 33 | "Live Sites & Deployments" block on the overview | The hub's whole subject is the portfolio that ships to `example.com`, but it has zero awareness of the 10 live subdomains or their hosts | ✅ fixed |
-| 34 | Surface `Repos/Draft/` initiatives (AI Whisper Clone, AI Voice Cloning, Hotel Loyalty Club, etc.) as a `kind: 'draft'` card cluster | `isRepo` requires `.git`, so pre-repo R&D with real content just disappears from the tree | ✅ fixed |
+| 34 | Surface `Repos/Private/Draft/` initiatives (AI Whisper Clone, AI Voice Cloning, Hotel Loyalty Club, etc.) as a `kind: 'draft'` card cluster | `isRepo` requires `.git`, so pre-repo R&D with real content just disappears from the tree | ✅ fixed |
 | 35 | GitHub-style alert callouts (`[!NOTE]`/`[!TIP]`/`[!WARNING]`/etc.) rendered as styled boxes, plus light keyword/string/comment highlighting on code blocks | `md2html()` currently renders callout blockquotes as plain quotes and code as unstyled `<pre>` | ✅ fixed |
 | 36 | Skip the `git status`/`git log` spawns entirely when a repo's `.git/index` and `.git/refs/heads` mtimes haven't moved since the last scan | Extends [#17](#17-the-scan-blocks-the-event-loop) / [#18](#18-any-change-triggers-a-full-re-walk) rather than replacing them — the reported 8.5–23.7s scans line up with the same git-spawn cost already identified there | open |
 | 37 | In-page `‹`/`›` Back/Forward buttons in the header, next to the sidebar toggle | #11 already wired `history.back()`/`forward()` up to real work via the hash trail, but nothing on the page exposed it — a user hopping README → linked README had only the browser's own chrome to fall back on, invisible in embeds like VS Code's Simple Browser tab | ✅ fixed |
@@ -758,7 +758,7 @@ Verified against a throwaway fixture repo (a `.git` folder plus an `artifacts/*.
 with an inline `<script>`) confirming the doc-filter bypass, the `/api/raw` header
 override (`curl -D-` showing `content-security-policy: frame-ancestors 'self'` and
 `content-type: text/html`), and the rendered preview actually executing its script — then
-again against the **real** hub: `Agents/Specialized/Codex-HTML/artifacts/` turned out to
+again against the **real** hub: `Repos/AI-Automation-Tools/Org_Agents/Codex-HTML/artifacts/` turned out to
 already hold five real `.html` exports (an artifact catalog page, several converted
 reports) that were already in the tree — that folder sits outside any `.git` repo, so the
 doc-only filter never touched them — but had only ever rendered as escaped source text,
@@ -768,7 +768,7 @@ hub's new Artifacts shelf and the catalog page rendered live with working intern
 
 ### 34. Draft Initiatives card cluster
 
-`Repos/Draft/` is pre-repo R&D by the workspace's own convention (its `CLAUDE.md`: "most
+`Repos/Private/Draft/` is pre-repo R&D by the workspace's own convention (its `CLAUDE.md`: "most
 are not git repos... an initiative graduates by getting its own remote and moving into
 `Live_Apps/` or `Other_Apps/`"), so `isRepo`'s `.git` check never fires for any of them.
 Before this fix that meant two separate problems, not one: the folder was invisible to
@@ -778,7 +778,7 @@ its subtree was walked with no doc-only filtering at all — that filter is gate
 unlike a real repo's docs-only view.
 
 Fixed with one new branch in `scanTree()`'s `walk()`, keyed on `ctx.group === 'Draft' &&
-depth === 2` (true only for entries directly inside `Repos/Draft/`): give the entry its
+depth === 2` (true only for entries directly inside `Repos/Private/Draft/`): give the entry its
 own `kind: 'draft'`, grab its README the same way a repo card does, and recurse with
 `ctx.repo` set so it gets the exact same doc-only filtering real repos get, reusing that
 logic rather than duplicating it. Collected into a new `drafts` array on the scan
@@ -792,7 +792,7 @@ click-through needs no dedicated view function — `kind: 'draft'` isn't `repo`,
 `viewFolder()` already does the right thing.
 
 Verified against the running AI Lab hub, which has genuinely un-committed real content —
-no synthetic fixture needed: `/api/scan` returned all four current `Repos/Draft/` folders
+no synthetic fixture needed: `/api/scan` returned all four current `Repos/Private/Draft/` folders
 (`AI-Artifact-Playground`, `AI-Voice-Cloning`, `Enterprise-Network`, `Hotel-Loyalty-Club`)
 as `drafts`, with `AI-Voice-Cloning` and `Hotel-Loyalty-Club` carrying their README blurb
 and the other two correctly blank (no top-level README); `repos.filter(r => r.group ===
@@ -801,7 +801,7 @@ through to `AI-Voice-Cloning` showed only its `README.md` plus folder-level chil
 (`incoming-samples/`, `podcast-voices/`, `repo-deliverable-voice-poc/`, `tts-engine/`) —
 not the raw sample-audio tree underneath — confirming the doc-only filter is actually
 active on a draft's subtree, not just inherited in name. `npm test`: 28/28 before and
-after; IAM and Finance (neither has a `Repos/Draft/`, so the new branch's condition never
+after; IAM and Finance (neither has a `Repos/Private/Draft/`, so the new branch's condition never
 matches there) restarted clean with `drafts: []`.
 
 ### 32. Multi-hub workspace switcher
@@ -1615,7 +1615,7 @@ export/import, no nesting inside bookmarks, no tags. Saved searches stay P7-20, 
 P7-11's search route already made them addressable.
 
 Method note: the relink and deleted-file cases used two throwaway probe files created under
-`Repos/Tools/Repo-Clones/`, the workspace's documented scratch folder, and deleted afterwards; the
+`Repos/Private/Tools/Repo-Clones/`, the workspace's documented scratch folder, and deleted afterwards; the
 folder is empty again. Test bookmarks and recents were cleared from the browser at the end. No user
 documents were modified.
 

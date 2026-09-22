@@ -1824,7 +1824,7 @@ function viewOverview(page, root) {
 
   page.append(repoTableSection(repos, groups, dirtyCount));
 
-  // Pre-repo R&D under Repos/Draft/ (#34) \u2014 no `.git`, so it never reaches `repos` above
+  // Pre-repo R&D under Repos/Private/Draft/ (#34) \u2014 no `.git`, so it never reaches `repos` above
   // and has no git state to show; a lighter card cluster instead, cardless entirely on a
   // project whose workspace has no such folder.
   if (drafts.length) {

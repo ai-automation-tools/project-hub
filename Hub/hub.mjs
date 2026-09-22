@@ -686,7 +686,7 @@ function scanTree() {
           continue;
         }
 
-        // Repos/Draft/ is pre-repo R&D by convention (see the workspace's own CLAUDE.md)
+        // Repos/Private/Draft/ is pre-repo R&D by convention (see the workspace's own CLAUDE.md)
         // -- no `.git`, so `isRepo` above never fires, and it would otherwise fall through
         // to a plain, unfiltered `folder` walk: every source file included, invisible to
         // the Repos table and its git-state stats, and absent from the overview entirely
@@ -1215,7 +1215,7 @@ async function scan(fresh = false) {
     repoName: repoNameById.get(a.repo) || '',
   }));
 
-  // Pre-repo R&D under Repos/Draft/ (#34) — no git state to show, so a lighter list than
+  // Pre-repo R&D under Repos/Private/Draft/ (#34) — no git state to show, so a lighter list than
   // `repos`: just enough to card it on the overview and jump to its folder page.
   const draftList = drafts.map((d) => ({ id: d.id, name: d.name, desc: d.desc || '' }));
 

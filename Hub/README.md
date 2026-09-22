@@ -364,7 +364,7 @@ to keep an editor's indexer off it, which also puts it behind the walker's dot-d
 Mounting it as its own root shows it at the top of the tree instead of three levels down, and
 leaves `DOT_OK` alone. That is a root earning its place.
 
-Move that same folder to `Projects/<Workspace>/Repos/Tools/skill-library` and the root turns
+Move that same folder to `Projects/<Workspace>/Repos/Private/Tools/skill-library` and the root turns
 harmful: the workspace's `repoScope.groups` already covers `Tools`, so the folder is mounted
 twice. **The visible symptom is a missing row, not a duplicated one** — every node still serves
 correctly under the workspace path, but the repo drops out of the repos list entirely while its

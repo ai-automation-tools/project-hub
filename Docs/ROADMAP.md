@@ -31,6 +31,10 @@
 > defects — all fixed same day — plus six enhancement ideas, five of which are also now
 > fixed. See [P5](#p5--2026-09-03-antigravity-audit). **On 2026-09-07 the three hubs
 > became one** — see [P6](#p6--2026-09-07-one-process-not-three).
+> **The work queue now lives in [P9](#p9)**: every open item below, plus new
+> improvements, as one checklist that a weekly roadmap routine works through one item at a
+> time (since 2026-09-22).
+>
 > **Current next steps:** every numbered item in [P7](#p7-review) has shipped except **P7-14**, which is *blocked rather than deferred* — no genuine 640–1024px viewport has ever been reached with the available tooling, so nothing about the layout at that width is measured and building to a guess would just ship a second wrong layout. After that: the remaining third of **P7-07** (root/type filters, typo tolerance, opt-in content search), the remaining third of **P7-15** (keyboard access to context menus and the sidebar divider), and the optional **P7-17–21**. One thing was found rather than planned — the `EISDIR`/`ENOENT` read errors under `~/.gemini/skills/` that P7-16's status panel made visible, still unexamined. Connection recovery and any clipboard write remain unverified; see [Verification still needed](#verification-still-needed). Three requested additions shipped the same day — the `Links` root, README-first landing views for every folder that has one, and four more color schemes; see [P8](#p8--2026-09-09-the-links-root-readme-landing-views-and-four-more-color-schemes).
 
 ## What was audited
@@ -2046,6 +2050,107 @@ also added to the `THEMES` array in the client:
 No `TINT` changes were needed: node tints resolve from the same
 `--green`/`--blue`/`--purple` variables each block redefines, so every new scheme
 recolored the tree for free.
+
+---
+
+<a id="p9"></a>
+
+## P9 — 2026-09-22: the weekly backlog
+
+Everything open from P4–P8, plus new improvements, as one ordered checklist. **A weekly
+roadmap routine works this list:** each Tuesday night it takes the first unchecked item it
+can finish and verify, then opens a PR, and the Sunday PR sweep merges it. The sections
+above stay as the record of why things were built the way they were. This section is
+where the work queue lives.
+
+How items are marked: `- [ ]` open · `- [-]` claimed by a run in progress · `- [x]` done,
+with a dated note · `- [!]` blocked, with the reason. `🔒 Needs Mike` means only a person
+can do it, so the routine skips it. Order is priority within each group. Groups are worked
+top to bottom.
+
+### Finish what's open
+
+- [ ] **P9-01 · Start `Docs/CHANGELOG.md`.** Newest first, seeded from merged PRs #1–#5
+  and the phases recorded above, one line per meaningful change. Link it from
+  `Docs/README.md`. From here on, every checked item below gets a changelog line in the
+  same commit.
+- [ ] **P9-02 · Search: root and type filters** (the first third of P7-07's remainder).
+  Filter chips for each shared root and for document kind (md / html / pdf / image), kept
+  in the search route so Back restores them.
+- [ ] **P9-03 · Search: typo tolerance** (P7-07, and #13's fuzzy search). A bounded edit
+  distance on titles and filenames that only runs when the exact and prefix passes return
+  nothing, so ranking for real matches doesn't change. Tested against a fixed index.
+- [ ] **P9-04 · Search: opt-in content search** (the last third of P7-07). Off by default,
+  toggled per query, with a bounded index: markdown and text only, capped per file and in
+  total, built lazily on first use. Record the memory cost in this file.
+- [ ] **P9-05 · Keyboard access to context menus** (P7-15). The ContextMenu key and
+  Shift+F10 open the sidebar menu on the focused row. Escape returns focus to that row.
+- [ ] **P9-06 · Keyboard-resizable sidebar divider** (P7-15). `role="separator"` with
+  `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the
+  mouse width.
+- [ ] **P9-07 · Settle the `~/.gemini/skills` read errors** that P7-16's status panel
+  surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a
+  directory named like a file, and make the scanner skip it quietly or report it once.
+  Add a test using a fixture that reproduces it.
+- [ ] **P9-08 · Skip git spawns for unchanged repos** (#36). Cache each repo's
+  `.git/index` and `.git/refs/heads` mtimes, and reuse the last `git status` /
+  `git log` result when neither has moved. Measure scan time before and after on the
+  demo fixture and record both numbers here.
+- [ ] **P9-09 · Close the testable verification gaps.** Unit tests for malformed or
+  missing heading destinations, and for copy-link output on paths containing spaces.
+  These are two of the gaps listed under
+  [Verification still needed](#verification-still-needed) that don't need a browser.
+
+### Optional features (P7-17–21 and P4)
+
+- [ ] **P9-10 · Repo changes detail** (P7-18 / #23). "uncommitted" on a repo card
+  expands into the changed filenames. A read-only diff loads on demand for one file at a
+  time, size-capped.
+- [ ] **P9-11 · On-demand document link check** (P7-19). An endpoint plus a panel listing
+  broken relative links, missing images, and missing heading targets, each linked to its
+  source document. It never runs as part of a routine scan.
+- [ ] **P9-12 · Routine pass/fail, not just run count** (#24). Read the last line of the
+  newest log for each routine and show ok / failed / unknown beside the run count.
+- [ ] **P9-13 · Related report files** (P7-17). Group a report's `.md` / `.html` / `.pdf`
+  / charts into one entry with format buttons, inferred from shared basenames in one
+  folder.
+- [ ] **P9-14 · Copy context for an agent** (P7-21). Multi-select files, then copy a
+  compact list of titles, relative paths, and hub links. Content stays out unless
+  explicitly included, and is capped.
+- [ ] **P9-15 · Saved views** (P7-20). Save a search plus its filters under a name, list
+  saved views above Bookmarks, and give each one a hub link.
+- [ ] **P9-16 · `--init` for a new workspace** (#21). `node hub.mjs --init <dir>` writes a
+  commented `hub.config.json` skeleton for a new workspace and prints the next step. It
+  never overwrites an existing config.
+
+### New improvements
+
+- [ ] **P9-17 · Roadmap progress on repo cards.** Count `- [ ]` / `- [x]` in each repo's
+  `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos
+  in the lab now carry one, and the routines work them weekly.
+- [ ] **P9-18 · "Changed this week" view.** A landing-page list of documents modified in
+  the last 7 days across every root, newest first, built from data the scan already has.
+- [ ] **P9-19 · Frontmatter tags.** Show a document's frontmatter (tags, dates, status) in
+  a small metadata strip, and let search filter by tag. `frontmatter()` already parses it.
+- [ ] **P9-20 · Scan-time history in the status panel.** Keep the last 20 scan durations
+  in memory and draw a tiny inline sparkline. This makes a slow scan visible before it
+  becomes a complaint.
+- [ ] **P9-21 · Split `hub.mjs`.** Move markdown rendering and sanitizing into
+  `Hub/markdown.mjs`, and the scanner into `Hub/scan.mjs`. Exports stay the same and every
+  existing test passes unchanged. No behaviour change. At 1,874 lines, the file is the
+  largest single thing a weekly run has to read.
+- [ ] **P9-22 · Syntax check in CI.** `node --check` over every `Hub/*.mjs`, plus a
+  check that the inline script in `index.html` parses. No new dependencies.
+- [ ] **P9-23 · Keep the demo showing what shipped.** Add fixture content to
+  `Demo/Workspace/` that shows off P9 features already shipped (filters, progress bars,
+  tags) wherever the fixture can't show them yet.
+
+### Needs a person
+
+- [ ] 🔒 Needs Mike · **P9-24 · Narrow-pane layout (P7-14).** Blocked until someone drags a
+  real 640–1024px window. Tooling can't reach that width.
+- [ ] 🔒 Needs Mike · **P9-25 · Connection-recovery check.** It means stopping the live hub
+  on 4273, which an unattended run must never do.
 
 ---
 

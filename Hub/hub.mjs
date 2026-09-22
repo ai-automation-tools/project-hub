@@ -692,7 +692,9 @@ function scanTree() {
         // the Repos table and its git-state stats, and absent from the overview entirely
         // (#34). Giving it its own kind and the same doc-only filtering a real repo gets
         // is the fix -- collected into `drafts` for a dedicated overview card cluster.
-        if (!isCli && ctx.group === 'Draft' && depth === 2) {
+        // Matched on the parent folder's name, not a fixed depth, so it holds whether Draft/
+        // sits directly under Repos/ or under an owner tier (Repos/Private/Draft/).
+        if (!isCli && ctx.group === 'Draft' && path.basename(dir) === 'Draft') {
           const node = leaf(id, e.name, 'draft', full, '');
           const readme = childNames.find((n) => /^readme\.md$/i.test(n));
           if (readme) {
@@ -716,7 +718,11 @@ function scanTree() {
         const nextCtx = { ...ctx, bucket: null };
 
         if (depth === 0 && dir === ctx.rootDir && (e.name === 'Agents' || e.name === 'Repos')) kind = 'section';
-        else if (ctx.section === 'Repos' && depth === 1) { kind = 'group'; nextCtx.group = e.name; }
+        // Repos/ may carry an owner tier above the groups (Repos/<owner>/<group>/<repo>), so
+        // the group is the innermost non-repo folder of the first two levels: a repo's
+        // `group` stays Live_Apps / Tools / Draft / … either way, and repoScope.groups keeps
+        // matching. Repos found at depth 1 short-circuit above and never reach this.
+        else if (ctx.section === 'Repos' && depth <= 2) { kind = 'group'; nextCtx.group = e.name; }
         else if (isCli) { kind = 'cli'; nextCtx.cli = e.name; }
         else if (CONFIG_DIRS.has(e.name)) kind = 'folder';
         else if (ctx.inConfig && BUCKETS[e.name.toLowerCase()]) { kind = 'folder'; nextCtx.bucket = BUCKETS[e.name.toLowerCase()]; }

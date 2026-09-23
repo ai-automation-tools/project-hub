@@ -15,6 +15,7 @@
 | [**🌐 Demo site**](../Demo/README.md) | The fixture workspace, and how the hosted demo is built |
 | [**⭐ Bookmarks**](BOOKMARKS.md) | Save, rename, and revisit pages |
 | [**📋 Roadmap**](ROADMAP.md) | Shipped changes and remaining work |
+| [**📝 Changelog**](CHANGELOG.md) | What changed, newest first |
 | [**🎨 Design research**](ChatGPT-HTML-Design.md) | Markdown and HTML in an agent workspace |
 | [**🔒 Public release**](PUBLIC-RELEASE.md) | Privacy cleanup and the remaining history review |
 

@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-blocked_on_a_viewport-e0a458?style=for-the-badge" alt="P7-14 blocked on reaching a narrow viewport">
-  <img src="https://img.shields.io/badge/tests-64_passing-8B5CF6?style=for-the-badge" alt="64 tests passing">
+  <img src="https://img.shields.io/badge/tests-66_passing-8B5CF6?style=for-the-badge" alt="66 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
@@ -2070,7 +2070,7 @@ top to bottom.
 
 ### Finish what's open
 
-- [ ] **P9-01 · Start `Docs/CHANGELOG.md`.** Newest first, seeded from merged PRs #1–#5
+- [x] **P9-01 · Start `Docs/CHANGELOG.md`.** *(done 2026-09-22: [`CHANGELOG.md`](CHANGELOG.md) seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `Docs/README.md`.)* Newest first, seeded from merged PRs #1–#5
   and the phases recorded above, one line per meaningful change. Link it from
   `Docs/README.md`. From here on, every checked item below gets a changelog line in the
   same commit.

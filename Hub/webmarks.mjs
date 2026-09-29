@@ -100,13 +100,14 @@ export function saveFavorites(file, roots) {
 
 /** Whether response headers allow a page on another origin to frame this one. */
 export function allowsFraming(headers) {
-  const xfo = (headers.get('x-frame-options') || '').trim().toLowerCase();
-  if (xfo === 'deny' || xfo === 'sameorigin' || xfo.startsWith('allow-from')) return false;
+  // A header sent twice arrives joined with commas ("SAMEORIGIN, SAMEORIGIN"), so check each value.
+  const xfo = (headers.get('x-frame-options') || '').toLowerCase().split(',').map((v) => v.trim());
+  if (xfo.some((v) => v === 'deny' || v === 'sameorigin' || v.startsWith('allow-from'))) return false;
   const ancestors = /(?:^|;)\s*frame-ancestors\s+([^;]*)/i.exec(headers.get('content-security-policy') || '')?.[1];
   return ancestors == null || /(^|\s)\*(\s|$)/.test(ancestors.trim());
 }
 
-/** One answer per URL, cached for the process. An unreachable site answers false: a browser tab always works. */
+/** One answer per URL, cached for the process. An unreachable or erroring site answers false: a browser tab always works. */
 export function createFrameCheck({ fetchImpl = fetch, timeoutMs = 5000 } = {}) {
   const cache = new Map();
   const check = async (url) => {
@@ -117,7 +118,9 @@ export function createFrameCheck({ fetchImpl = fetch, timeoutMs = 5000 } = {}) {
         headers: { 'user-agent': 'Mozilla/5.0 (Project Hub embed check)', accept: 'text/html,*/*' },
       });
       r.body?.cancel?.().catch(() => {});
-      return allowsFraming(r.headers);
+      // An error or bot-challenge page (403, 429, 5xx) carries that page's headers, not the
+      // site's, so it cannot vouch for framing. A browser tab always works; a blank frame doesn't.
+      return r.status < 400 && allowsFraming(r.headers);
     } catch { return false; }
   };
   return (url) => {

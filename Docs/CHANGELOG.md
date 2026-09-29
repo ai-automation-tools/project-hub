@@ -16,6 +16,12 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-09-29
 
+- Pin both new settings to opt-in with a test: links open in a browser tab and Favorites is the hub's own list until a viewer switches them.
+
+- Label favorites and Live Sites cards that can't be shown in a hub tab with **↗ browser**, checked as they scroll into view while hub tabs are on.
+
+- Fix hub tabs sending some embeddable-looking sites to a blank frame: a doubled `X-Frame-Options` header now counts, and error or bot-challenge responses no longer vouch for a site. Name the site in the fallback note, keep it on screen longer, and mark known browser-only favorites with ↗.
+
 - Add a Settings view (gear icon) with the color scheme, interface size, a hub-tabs switch and the favorites source. *(roadmap: P9-32)*
 - Make Favorites the hub's own editable list by default, with add, edit, delete, drag, undo, bookmarks-file import and export, and one-time import from a browser profile. Browser sync becomes a setting. *(roadmap: P9-28, P9-33)*
 - Open websites in tabs inside the hub when that setting is on, with an embed check that sends sites refusing to be framed to a browser tab. *(roadmap: P9-34)*

@@ -14,6 +14,7 @@ way by those rather than by line number, which moves.
 | settings | `prefs`, `renderSettings`, the `#set-*` handlers, import/export via `favorites.mjs` |
 | favorites | `web` (sync), `fav` (manual), `loadWebmarks`, `ensureFavorites`, `saveFavoriteList`, `renderWebmarks`, `editable`, `favForm`, `favIcon` + `iconFallback`, `followLink` — tree logic in `favorites.mjs` |
 | hub tabs | `tabs`, `openSite`, `activateTab`, `closeTab`, `renderTabs` — `#tabs` strip, `#frames` host, `/api/frameable` first |
+| embed labels | `checkFrameable` (queue of 4, urgent jumps it), `watchEmbed` + `embedObserver`, `placeLabel` — **↗ browser** on favorites and Live Sites cards |
 | sidebar | `renderTree`, `focusNode`, context menu, `showStatusPanel` |
 | header | `renderCrumbs`, the search box, rail + width + theme controls, keyboard handlers |
 | views | `renderView` → `renderPage` → one `view*` per kind |

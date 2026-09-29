@@ -522,6 +522,8 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .favtile{width:16px;height:16px;flex:0 0 16px;display:flex;align-items:center;justify-content:center;border-radius:3px;
   background:var(--line);color:var(--fg);font-family:var(--mono);font-size:9.5px;text-transform:uppercase}
 .webrow .ctx{font-family:var(--mono);font-size:9.5px;color:var(--dimmer);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ext{font-family:var(--mono);font-size:9px;color:var(--dimmer);border:1px solid var(--line);padding:0 4px;border-radius:3px;white-space:nowrap;flex:0 0 auto}
+.card .hd .ext{margin-left:auto}
 .pin{display:flex;align-items:center;gap:6px;height:23px;padding:0 8px 0 12px;cursor:pointer;
   border-left:2px solid transparent;user-select:none}
 .pin:hover{background:var(--row-hi)}
@@ -738,9 +740,9 @@ const absOf = id => absolutePath(id, S.data?.base || '', S.data?.home || '~');
 const winPath = id => absOf(id).replace(/\//g, '\\');
 
 let toastTimer;
-function toast(msg) {
+function toast(msg, ms = 1400) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('on');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 1400);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), ms);
 }
 
 // ── data ───────────────────────────────────────────────────────────────────
@@ -1154,6 +1156,7 @@ function renderSettings() {
 $('#set-links').onchange = (e) => {
   prefs.hubTabs = e.target.checked;
   try { localStorage.setItem('hub.links', prefs.hubTabs ? 'hub' : 'browser'); } catch {}
+  renderView();   // the embed labels only apply while hub tabs are on
 };
 $('#set-favsync').onchange = (e) => {
   prefs.favSync = e.target.checked;
@@ -1318,8 +1321,69 @@ function webLink(n, depth, ctx) {
   a.style.paddingLeft = (12 + depth * 14) + 'px';
   a.append(favIcon(n), el('span', 'nm', n.name));
   if (ctx) a.append(el('span', 'ctx', ctx));
+  watchEmbed(a, n.url);
   followLink(a, n.url, n.name);
   return a;
+}
+
+// ── embed labels ───────────────────────────────────────────────────────────
+// With hub tabs on, favorites and Live Sites cards are checked as they scroll into view,
+// and a site that can't be shown inside the hub is labelled before anyone clicks it -- so
+// the setting never looks like it silently did nothing. Each URL is asked once per page
+// load (the server caches it too), at most four at a time, and a click jumps the queue.
+const frameChecks = new Map();   // url → Promise<boolean>
+const checkQueue = [];
+let checksRunning = 0;
+function checkFrameable(url, urgent = false) {
+  if (!frameChecks.has(url)) {
+    frameChecks.set(url, new Promise((resolve) => {
+      checkQueue[urgent ? 'unshift' : 'push']([url, resolve]);
+      pumpChecks();
+    }));
+  } else if (urgent) {
+    // Already queued behind visible rows: move it to the front.
+    const i = checkQueue.findIndex(([u]) => u === url);
+    if (i > 0) checkQueue.unshift(...checkQueue.splice(i, 1));
+  }
+  return frameChecks.get(url);
+}
+function pumpChecks() {
+  while (checksRunning < 4 && checkQueue.length) {
+    const [url, resolve] = checkQueue.shift();
+    checksRunning++;
+    fetch('/api/frameable?url=' + encodeURIComponent(url))
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((j) => j.frameable === true, () => false)
+      .then((ok) => { tabs.frameable.set(url, ok); resolve(ok); })
+      .finally(() => { checksRunning--; pumpChecks(); });
+  }
+}
+
+function embedLabel() {
+  const m = el('span', 'ext', '↗ browser');
+  m.title = 'Opens in a browser tab: this site doesn’t allow being shown inside another page';
+  return m;
+}
+function placeLabel(node) {
+  if (!node.isConnected || node.querySelector('.ext')) return;
+  const name = node.querySelector('.nm');
+  if (name) name.after(embedLabel()); else node.querySelector('.hd')?.append(embedLabel());
+}
+const embedObserver = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (!e.isIntersecting) continue;
+    embedObserver.unobserve(e.target);
+    checkFrameable(e.target.dataset.embedUrl).then((ok) => { if (!ok) placeLabel(e.target); });
+  }
+}, { rootMargin: '150px' });
+/** Label node once its site is known to refuse framing. Only while hub tabs are on. */
+function watchEmbed(node, url) {
+  if (!prefs.hubTabs || !/^https?:\/\//i.test(url || '')) return;
+  const known = tabs.frameable.get(url);
+  if (known === false) { queueMicrotask(() => placeLabel(node)); return; }
+  if (known === true) return;
+  node.dataset.embedUrl = url;
+  embedObserver.observe(node);
 }
 
 const FAV_DRAG = 'application/x-hub-favorite';
@@ -1522,15 +1586,14 @@ async function openSite(url, title) {
   if (!prefs.hubTabs) return openInBrowser(url);
   const open = tabs.list.find((t) => t.url === url);
   if (open) return activateTab(open.id);
-  let ok = tabs.frameable.get(url);
-  if (ok === undefined) {
-    try {
-      const r = await fetch('/api/frameable?url=' + encodeURIComponent(url));
-      ok = r.ok && (await r.json()).frameable === true;
-    } catch { ok = false; }
-    tabs.frameable.set(url, ok);
+  const ok = await checkFrameable(url, true);
+  if (!ok) {
+    openInBrowser(url);
+    let host = url;
+    try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+    toast(`${host} doesn’t allow being shown inside another page, so it opened in a browser tab`, 4500);
+    return;
   }
-  if (!ok) { openInBrowser(url); toast('this site doesn’t allow embedding — opened in a browser tab'); return; }
   const frame = el('iframe');
   frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals');
   frame.referrerPolicy = 'no-referrer';
@@ -2429,6 +2492,7 @@ function viewOverview(page, root) {
       c.append(hd, el('p', '', detail));
       c.title = `open ${s.url}`;
       activate(c, () => openSite(s.url, s.app));
+      watchEmbed(c, s.url);
       cards.append(c);
     }
     page.append(foldable('Live Sites',
@@ -2522,6 +2586,7 @@ function viewPortfolio(page, n) {
       c.append(hd, el('p', '', detail));
       c.title = `open ${s.url}`;
       activate(c, () => openSite(s.url, s.app));
+      watchEmbed(c, s.url);
       siteCards.append(c);
     }
     page.append(foldable('Live Sites',

@@ -570,7 +570,7 @@ Clicking a favorite opens it in a new browser tab, or in a hub tab if that setti
 
 Turn on **Open websites in hub tabs** in Settings and websites open inside the hub. That covers favorites, Live Sites cards and web links in documents. A tab strip appears under the header. **⌂ Hub** goes back to your documents. Each site tab has × to close it, and a middle click closes it too. The active site has ↻ to reload, ☆ to add it to your favorites, and ↗ to open it in a real browser tab. Switching tabs doesn't reload a page, and opening a document from the sidebar takes you back to the Hub tab.
 
-Many sites refuse to be shown inside another page, GitHub and Google among them. The hub checks first, and opens those in a browser tab instead with a short note. Sites you sign in to may show you as signed out inside a hub tab, because browsers block their cookies there. Use ↗ for those.
+Many sites refuse to be shown inside another page, and roughly half of a typical favorites list does: GitHub, Google, Reddit, Notion, Claude, Microsoft 365 and more. No web page can embed those, so the hub checks first and opens them in a browser tab, with a note naming the site. While hub tabs are on, the hub checks your favorites and Live Sites cards as they come into view. Any site that can't be shown inside the hub gets a small **↗ browser** label, so you know before you click. Sites you sign in to may show you as signed out inside a hub tab, because browsers block their cookies there. Use ↗ for those.
 
 ## What the scan is doing
 

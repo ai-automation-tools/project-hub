@@ -742,3 +742,14 @@ test('index.html declares nothing it also imports', () => {
   const clashes = imported.filter((name) => declared.has(name));
   assert.deepEqual(clashes, [], `declared and imported: ${clashes.join(', ')}`);
 });
+
+// Both are opt-in: a new viewer's links open in a browser tab, and Favorites is the hub's own
+// list. Each turns on only when its exact stored value says so, so a missing, corrupt or
+// older value lands on the default.
+test('hub tabs and favorites sync are off unless a viewer turns them on', () => {
+  const html = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.ok(html.includes('const prefs = { hubTabs: false, favSync: false };'), 'both settings must default to off');
+  assert.ok(html.includes("prefs.hubTabs = localStorage.getItem('hub.links') === 'hub';"), 'hub tabs must need an explicit opt-in');
+  assert.ok(html.includes("prefs.favSync = localStorage.getItem('hub.favsource') === 'sync';"), 'favorites sync must need an explicit opt-in');
+  assert.ok(!/id="set-links"[^>]*\bchecked\b/.test(html) && !/id="set-favsync"[^>]*\bchecked\b/.test(html), 'neither switch starts checked in the markup');
+});

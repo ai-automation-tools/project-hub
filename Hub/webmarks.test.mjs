@@ -144,6 +144,7 @@ test('framing is allowed only when neither X-Frame-Options nor frame-ancestors f
   assert.equal(allowsFraming(h({})), true);
   assert.equal(allowsFraming(h({ 'x-frame-options': 'DENY' })), false);
   assert.equal(allowsFraming(h({ 'x-frame-options': 'sameorigin' })), false);
+  assert.equal(allowsFraming(h({ 'x-frame-options': 'SAMEORIGIN, SAMEORIGIN' })), false, 'a header sent twice still counts');
   assert.equal(allowsFraming(h({ 'content-security-policy': "default-src 'self'; frame-ancestors 'self'" })), false);
   assert.equal(allowsFraming(h({ 'content-security-policy': "frame-ancestors 'none'" })), false);
   assert.equal(allowsFraming(h({ 'content-security-policy': 'frame-ancestors *' })), true);
@@ -155,11 +156,13 @@ test('the frame check caches per URL and treats an unreachable site as not frame
   const check = createFrameCheck({ fetchImpl: async (url) => {
     calls++;
     if (url.includes('down')) throw new Error('ECONNREFUSED');
+    if (url.includes('blocked')) return new Response('slow down', { status: 429 });
     return new Response('x', { headers: url.includes('deny') ? { 'x-frame-options': 'DENY' } : {} });
   } });
   assert.equal(await check('https://ok.example/'), true);
   assert.equal(await check('https://ok.example/'), true);
   assert.equal(await check('https://deny.example/'), false);
   assert.equal(await check('https://down.example/'), false);
-  assert.equal(calls, 3);
+  assert.equal(await check('https://blocked.example/'), false, 'a bot-challenge page cannot vouch for the site');
+  assert.equal(calls, 4);
 });

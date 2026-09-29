@@ -149,6 +149,7 @@ there, and commit the result. Don't edit the copies here.
 
 The server runs on loopback for local use. Configs, scans, logs, and private design
 assets are ignored. Browser fonts and images linked in documents may make external requests.
+Browser favorites sync, when switched on, reads the Edge, Chrome or Brave profile files on this computer. To draw favicons and to decide whether a site can open in a hub tab, the **server** requests those sites' pages and icons directly, and never through a third-party favicon service. Manual favorites are saved in `favorites.json` beside the server config, which is gitignored.
 
 The published files carry no personal paths, hostnames or credentials — every example uses
 generic placeholders. **The commit history is a different question**, and one worth stating

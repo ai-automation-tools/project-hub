@@ -16,6 +16,8 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-09-29
 
+- Bring the docs in line with the new sidebar: the scaffold's layout reference, the privacy notes (browser profiles, favicon and embed requests, `favorites.json`), and what the demo does with Settings, Favorites and hub tabs.
+
 - Pin both new settings to opt-in with a test: links open in a browser tab and Favorites is the hub's own list until a viewer switches them.
 
 - Label favorites and Live Sites cards that can't be shown in a hub tab with **↗ browser**, checked as they scroll into view while hub tabs are on.

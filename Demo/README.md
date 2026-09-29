@@ -27,6 +27,9 @@ fails loudly.
 | Live updates | Absent. There is no server to stream changes from, so the event stream is never opened |
 | Opening files | Absent. A hosted page has no filesystem to open; the button says so |
 | Pictures | Not configured in the fixture |
+| Settings | Real, and remembered per browser like the local hub's |
+| Favorites | Absent. Both sources are served by the local server, so the view says the server is needed |
+| Hub tabs | The switch works, but with no server to ask whether a site can be embedded, every site opens in a browser tab |
 | The `/` mark | Links home, to the site root. Inert in a local hub — a deep-linked visitor here needs a way back to the top |
 
 ## The fixture

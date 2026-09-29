@@ -67,23 +67,31 @@ plain white-on-grey for mono).
 
 ```
 #app (flex row, full viewport height / --zoom)
-├── aside            284px fixed, collapses to 0 via #app.rail (Ctrl+B / the «/» toggle)
-│   ├── .ex-head       glyph + "Explorer" label + "collapse all"
-│   ├── #pins          collapsed Bookmarks and Recent lists
-│   ├── #tree          the scrollable node tree (role="tree")
+├── aside            --sbw wide (284px default, drag to resize); folds to a 34px rail via
+│   │                #app.rail (Ctrl+B, the «/» toggle, or clicking the active view icon)
+│   ├── #activity      VS Code-style view icons: Explorer · Bookmarks · Recent · Favorites,
+│   │                  then the Settings gear at the right end; stacks vertically on the rail
+│   ├── .ex-head       glyph + view title + "collapse all" (Explorer only) + «/» toggle
+│   ├── #pins          Bookmarks or Recent, whichever view is active
+│   ├── #webmarks      Favorites: the hub's own list or a synced browser profile
+│   ├── #settings      Settings: theme, interface size, hub tabs, favorites source, tools
+│   ├── #tree          the scrollable node tree (role="tree") — the Explorer view
 │   └── .ex-foot       current file + live/scanning status dot
 └── main (flex column, fills remaining width)
     ├── header         42px, fixed height
-    │     sidetoggle · back/forward · breadcrumbs · search · theme · rescan
-    └── #view          the scrollable content pane — everything else renders here
+    │     back/forward · breadcrumbs · search · rescan
+    ├── #tabs          hub-tab strip, shown only while a website is open in a hub tab
+    ├── #view          the scrollable content pane — everything else renders here
+    └── #frames        the hub tabs' iframes, shown in place of #view when one is active
 ```
 
-- The sidebar toggle lives in the **header**, not the sidebar itself, so it stays in a
-  fixed spot regardless of collapsed state, and stays clear of the explorer's own
-  "collapse all" (which folds tree nodes, a different action from hiding the panel).
-- The header's control order, left to right: sidebar toggle → **Back/Forward** →
-  breadcrumbs → (grow) → search →
-  theme picker → rescan button.
+- `#app[data-side]` names the active sidebar view, and CSS shows only the matching host,
+  so switching views never re-renders the tree.
+- The «/» sidebar toggle sits at the right end of `.ex-head`, the one strip the rail keeps,
+  so it is always reachable. It stays clear of "collapse all", which folds tree nodes, a
+  different action from hiding the panel.
+- The header's control order, left to right: **Back/Forward** → breadcrumbs → (grow) →
+  search → rescan button. The theme picker moved into the Settings view on 2026-09-29.
 - `#view` is the only scrolling container for content; `.page` inside it caps at
   `max-width: 1200px`, centered, with `22px 24px 48px` padding.
 

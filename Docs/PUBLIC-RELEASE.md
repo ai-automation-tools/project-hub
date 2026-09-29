@@ -45,6 +45,8 @@ to the local browser and is not a hosted service with user authentication. Brows
 fonts and document images may make external requests. Do not share scan JSON or
 logs without reviewing their contents.
 
+Browser favorites sync, when switched on, reads the Edge, Chrome or Brave profile files on this computer. To draw favicons and to decide whether a site can open in a hub tab, the **server** requests those sites' pages and icons directly, and never through a third-party favicon service. Manual favorites are saved in `favorites.json` beside the server config, which is gitignored. Websites opened in hub tabs load in sandboxed frames that cannot navigate the hub itself.
+
 ## The hosted demo — added 2026-09-11
 
 There is now a public page at **project-hub.ai-automation-tools.dev**, and the sentence

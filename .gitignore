@@ -67,3 +67,6 @@ desktop.ini
 /Demo/site/
 !/Demo/**/.mcp.json
 !/Demo/**/.codex/config.toml
+
+# Local Claude Code scratch (screenshots, notes) - never published.
+.claude/temp/

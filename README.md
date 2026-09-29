@@ -41,6 +41,8 @@
 **Project Hub** scans your workspaces and displays their repos, Git status, documents,
 and AI agent tools in one browser interface. Browse files, search, bookmark pages,
 and preview Markdown, PDFs, HTML reports, and images. The view updates as files change.
+A VS Code-style activity bar switches the sidebar between the file explorer, your
+bookmarks, recent documents, and your Edge, Chrome or Brave favorites.
 
 One local server handles all your workspaces. No build step or runtime dependencies.
 
@@ -122,9 +124,11 @@ and provide the path to this checkout.
 
 ### 🧠 Skills for working on this repo
 
-Three agent skills cover the hub's own internals. They are not shipped here — they live in
+Three agent skills cover the hub's own internals. They live in
 [**agent-skills**](https://github.com/ai-automation-tools/agent-skills/tree/main/Skills/Projects/project-hub),
-which is canonical for them, and install as an overlay into this clone's `.claude/skills/`.
+which is canonical for them. They are installed as an overlay into this clone's `.claude/skills/`,
+and that installed copy is committed here, next to [`CLAUDE.md`](CLAUDE.md) and a small
+`.claude/` setup: a `hub-reviewer` agent and a `/check` command to run before committing.
 
 | Skill | Covers |
 |:---|:---|
@@ -136,8 +140,8 @@ which is canonical for them, and install as an overlay into this clone's `.claud
 pwsh scripts/install-skills.ps1 -Project project-hub -Destination <this-clone>/.claude/skills
 ```
 
-Run that from an `agent-skills` checkout. `.claude/skills/` is not gitignored here, so the
-install lands in `git status` — commit it deliberately, or leave it out.
+Run that from an `agent-skills` checkout to refresh the committed copy after the skills change
+there, and commit the result. Don't edit the copies here.
 
 ## 🔒 Privacy and publishing
 
@@ -156,7 +160,7 @@ Part of the [**ai-automation-tools**](https://github.com/ai-automation-tools) or
 
 | Repo | How it relates |
 |:---|:---|
-| [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold-mfs/`](Skills/project-hub-scaffold-mfs/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present — the two are byte-identical, and a change belongs there first. It also carries three **maintainer skills for this codebase** — see below. |
+| [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold-mfs/`](Skills/project-hub-scaffold-mfs/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present. Its scripts and references match the canonical copy byte for byte, and only the `SKILL.md` name and description differ. A change belongs there first. It also carries three **maintainer skills for this codebase** — see below. |
 | [**Agent-chat**](https://github.com/ai-automation-tools/Agent-chat) | MCP server for AI-to-AI conversations. Its workspace is one of the things a hub renders. |
 | [**cronsole**](https://github.com/ai-automation-tools/cronsole) | Scheduled-task control plane. The hub's watchdog is one of the tasks it can see. |
 

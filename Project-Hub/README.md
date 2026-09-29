@@ -502,8 +502,11 @@ the keyboard — they own the arrows first — and `Alt`+arrow is still Back/For
 
 ## Bookmarks and recents
 
-Two lists sit above the tree, both collapsed on every load so the startup sidebar stays as
-quiet as it was before they existed:
+The icon row at the top of the sidebar switches it between four views, the way VS Code's
+activity bar does: **Explorer** (the tree), **Bookmarks**, **Recent** and **Favorites** (your
+browser's own; see [Browser favorites](#browser-favorites)). The Bookmarks icon
+carries a count badge. Clicking the icon that is already active folds the sidebar to its rail,
+and clicking any icon on the rail opens it again on that view. The last view is remembered.
 
 | | |
 | :--- | :--- |
@@ -533,6 +536,10 @@ copy actions stay live — the last known path is what you want when you go look
 Both lists live in `localStorage` in this browser, hold **paths and labels only**, and
 survive restarting the browser and the hub. They do not sync between browsers or machines —
 copy a Hub link for that. Full how-to: [`../Docs/BOOKMARKS.md`](../Docs/BOOKMARKS.md).
+
+## Browser favorites
+
+The star icon, the fourth in the activity bar, shows the favorites from your Edge, Chrome or Brave profile, with their favicons. Pick the profile from the dropdown at the top. The hub reads the browser's own favorites every time you open the view, so there is nothing to import and nothing to keep in sync. Change your favorites in the browser, and they change here too. Clicking one opens it in a new tab. Middle-click and Ctrl+click work as they do in a browser. The search box matches titles and URLs. Firefox isn't supported, and the hosted demo doesn't have this view because it has no server to read a profile.
 
 ## What the scan is doing
 

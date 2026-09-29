@@ -8,7 +8,7 @@
     "node": ">=18.17"
   },
   "scripts": {
-    "test": "node --test hub.test.mjs reports.test.mjs pictures.test.mjs",
+    "test": "node --test hub.test.mjs reports.test.mjs pictures.test.mjs webmarks.test.mjs",
     "scan": "node hub.mjs --scan --config ../Project-Hub/hub.config.json",
     "start": "node hub.mjs --config ../Project-Hub/hub.config.json"
   }

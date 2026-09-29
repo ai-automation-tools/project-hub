@@ -559,15 +559,18 @@ test('a bookmark whose file is gone survives the scan as unresolved, with one re
 test('the sidebar keeps bookmarks and recents wired, and stores paths only', () => {
   const html = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
   assert.ok(html.includes('<div id="pins">'), 'the sidebar has no pins host');
-  // Both sections start closed -- the collapsed-startup rule this feature must not break.
-  assert.ok(/open: \{ bookmarks: false, recent: false \}/.test(html), 'the lists must start collapsed');
-  for (const call of ['recordRecent(', 'togglePin(', 'renderPins()', 'bookmarkBtn(', 'pinContext(']) {
+  // Each list is its own activity-bar view; a first visit still lands on the Explorer.
+  for (const view of ['explorer', 'bookmarks', 'recent', 'web']) {
+    assert.ok(html.includes(`data-view="${view}"`), `the activity bar has no ${view} button`);
+  }
+  assert.ok(html.includes("let sideView = 'explorer';"), 'the sidebar must default to the Explorer view');
+  for (const call of ['recordRecent(', 'togglePin(', 'renderPins()', 'bookmarkBtn(', 'pinContext(', 'setSideView(']) {
     assert.ok(html.includes(call), `index.html never calls ${call}`);
   }
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'"].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'"].includes(key),
       `unexpected localStorage key ${key}`);
   }
 });

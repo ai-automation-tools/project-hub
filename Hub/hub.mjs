@@ -22,6 +22,7 @@ import zlib from 'node:zlib';
 import { createReportHandler } from './reports.mjs';
 import { launchNative } from './open-native.mjs';
 import { PictureLibrary, ignorePictureEvent } from './pictures.mjs';
+import { browserDirs, listSources, readSource, createFavicons } from './webmarks.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -1606,6 +1607,8 @@ const sameOrigin = (req) => {
 };
 
 const handleReport = createReportHandler({ resolveId, toId: rel });
+const BROWSER_DIRS = browserDirs({ home: os.homedir(), localAppData: process.env.LOCALAPPDATA });
+const favicons = createFavicons();
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
 
@@ -1699,6 +1702,35 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (await handleReport(req, res, url)) return;
+
+  // Browser favorites. The source id is matched against the discovered profiles, never
+  // turned into a path, so nothing here reads a file the client named.
+  if (url.pathname === '/api/webmarks') {
+    if (!sameOrigin(req)) { res.writeHead(403).end('same-origin only'); return; }
+    const sources = listSources(BROWSER_DIRS);
+    const src = sources.find((s) => s.id === url.searchParams.get('source')) || sources[0];
+    const body = { sources: sources.map(({ id, label }) => ({ id, label })), source: src?.id || '', roots: src ? readSource(src) : [] };
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify(body));
+    return;
+  }
+
+  // The server fetches the page and its icon, so the lookup never reaches a third-party
+  // favicon service. Same-origin only: a foreign page must not use the hub as a fetcher.
+  if (url.pathname === '/api/favicon') {
+    if (!sameOrigin(req)) { res.writeHead(403).end('same-origin only'); return; }
+    let page = null;
+    try { page = new URL(url.searchParams.get('url') || ''); } catch {}
+    if (!page || !/^https?:$/.test(page.protocol)) { res.writeHead(400).end('http(s) url required'); return; }
+    const icon = await favicons.get(page.href);
+    if (!icon) { res.writeHead(404, { 'cache-control': 'max-age=86400' }).end(); return; }
+    // An SVG icon opened directly is a document; this policy leaves it no script to run.
+    res.writeHead(200, {
+      'content-type': icon.type,
+      'cache-control': 'max-age=86400',
+      'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'",
+    }).end(icon.body);
+    return;
+  }
 
   if (url.pathname === '/api/file') {
     const p = url.searchParams.get('path') || '';

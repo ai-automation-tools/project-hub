@@ -14,6 +14,13 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#p9) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-09-29
+
+- Replace the sidebar's collapsible Bookmarks and Recent lists with a VS Code-style activity bar: Explorer, Bookmarks and Recent become separate views. *(roadmap: P9-26)*
+- Add a Favorites view that reads Edge, Chrome and Brave favorites live from the browser profile, with server-resolved favicons. *(roadmap: P9-27)*
+- Add `CLAUDE.md` and a committed `.claude/` setup: the three maintainer skills, a `hub-reviewer` agent, a `/check` command and shared permissions.
+- Bring the scaffold skill's travel copy back in line with `agent-skills`, and have the scaffold copy `webmarks.mjs`.
+
 ## 2026-09-22
 
 - Start this changelog, seeded from merged PRs #1–#5 and the phases in the roadmap. *(roadmap: P9-01)*

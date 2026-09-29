@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-blocked_on_a_viewport-e0a458?style=for-the-badge" alt="P7-14 blocked on reaching a narrow viewport">
-  <img src="https://img.shields.io/badge/tests-66_passing-8B5CF6?style=for-the-badge" alt="66 tests passing">
+  <img src="https://img.shields.io/badge/tests-71_passing-8B5CF6?style=for-the-badge" alt="71 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
@@ -2144,6 +2144,29 @@ top to bottom.
 - [ ] **P9-23 · Keep the demo showing what shipped.** Add fixture content to
   `Demo/Workspace/` that shows off P9 features already shipped (filters, progress bars,
   tags) wherever the fixture can't show them yet.
+
+### Sidebar views (added 2026-09-29)
+
+- [x] **P9-26 · VS Code-style activity bar.** *(done 2026-09-29: Explorer, Bookmarks and
+  Recent became separate sidebar views behind an icon row, with a bookmark count badge. The
+  active view persists in `hub.side`, clicking the active icon folds the sidebar to the rail,
+  and on the rail the icons stack vertically.)*
+- [x] **P9-27 · Browser favorites view.** *(done 2026-09-29: `Hub/webmarks.mjs` reads the
+  Edge, Chrome and Brave `Bookmarks` JSON live, with `/api/webmarks` and `/api/favicon`.
+  Favicons come from a server-side lookup with a browser-direct fallback. 5 tests in
+  `webmarks.test.mjs`, and it was checked against real profiles: 3 found, about 6,250
+  favorites, all but 8 of the icons on screen resolved.)*
+- [ ] **P9-28 · Import a bookmarks HTML file.** For Firefox, Safari and other machines: the
+  Netscape-format export every browser writes. Parse it client-side and keep it as an
+  extra source in the profile dropdown. Its `ICON=` data URIs cover the favicons.
+- [ ] **P9-29 · Keep icons visible on dark themes.** Black favicons (GitHub, Plex) disappear
+  on the dark themes. Give an icon a light backing when its average luminance is low,
+  measured once per icon on a canvas.
+- [ ] **P9-30 · Keep favicons across restarts.** The cache is memory-only, so a restart
+  resolves every origin again. Persist it beside `scan.json` if the first open after a
+  restart feels slow.
+- [ ] **P9-31 · Favorites in the demo.** The demo shows a note in place of favorites.
+  Capture a fixture `Bookmarks` file from `Demo/Home` so the view is visible there too.
 
 ### Needs a person
 

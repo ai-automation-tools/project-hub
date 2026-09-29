@@ -18,16 +18,22 @@
 
 The hub's sidebar shows the whole workspace, which is the point of it and also the problem:
 the eight documents you actually reread live at the bottom of eight different folders. The
-two lists at the top of the sidebar are the shortcut.
+two lists behind the sidebar's activity-bar icons are the shortcut.
 
 | | |
 | :--- | :--- |
 | **Bookmarks** | Things you pinned by hand. Ordered how you drag them, renameable, kept until you remove them. |
 | **Recent** | The last 20 documents you opened, newest first. Maintained for you — there is nothing to configure. |
 
-Both start **collapsed on every load**, including when they have things in them. A fresh tab
-looks exactly as quiet as it did before this existed; click a header to open a list, and the
-count beside it tells you what is inside without opening anything.
+Each is a sidebar view of its own. The row of icons at the top of the sidebar switches between
+**Explorer**, **Bookmarks** and **Recent**, the way VS Code's activity bar does. The Bookmarks
+icon shows a count, and hovering over Recent shows its count. Click the active icon again to fold the
+sidebar to its rail. Clicking an icon on the rail reopens it. A first visit opens on the Explorer,
+and after that the hub remembers the last view.
+
+This page covers the hub's own bookmarks, which pin files and folders. The fourth icon, the star,
+is a different thing: it shows your browser's favorites. See the
+[user manual](../Project-Hub/README.md#browser-favorites).
 
 ---
 
@@ -46,7 +52,7 @@ when the cursor is not in the tree. So you can arrow down to a file and pin it *
 opening it. It replaces the browser's own bookmark dialog while the hub has focus, which
 would only ever have bookmarked the hub itself.
 
-Pinning something opens the Bookmarks list, so you can see where it landed.
+Pinning something bumps the count on the Bookmarks icon. It doesn't switch you away from the tree.
 
 > [!TIP]
 > **Anything the tree can select can be pinned** — not just documents. A folder, a repo, a

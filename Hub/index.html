@@ -438,18 +438,40 @@ details[open]>summary .fchev{transform:rotate(90deg)}
   .path{color:#444}
 }
 
-/* bookmarks + recents — collapsed by default, so the startup sidebar stays as quiet
-   as it was before they existed. Rows deliberately reuse the tree's .node metrics. */
-#pins:empty{display:none}
-.pinsec{border-bottom:1px solid var(--line-soft)}
-.pinhead{display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;user-select:none;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
-.pinhead:hover{color:var(--green)}
-.pinhead .chev{width:12px;flex:0 0 12px;font-size:11px;margin:0}
-.pinhead .n{flex:1}
-.pinhead .c{color:var(--dimmer);letter-spacing:0}
-.pinlist{padding-bottom:5px}
-.pin{display:flex;align-items:center;gap:6px;height:23px;padding:0 8px 0 20px;cursor:pointer;
+/* activity bar — VS Code-style view switcher: Explorer, Bookmarks, Recent. Each view
+   owns the whole panel; the rail stacks the icons so a view is one click from collapsed. */
+#activity{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line-soft)}
+.act{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:30px;
+  background:none;border:none;border-bottom:2px solid transparent;color:var(--dimmer);cursor:pointer;padding:0}
+.act svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.act:hover{color:var(--fg)}
+.act.on{color:var(--fg-max);border-bottom-color:var(--green)}
+.act:focus-visible{outline:1px solid var(--green-line);outline-offset:-1px}
+.actbadge{position:absolute;right:1px;bottom:3px;min-width:13px;height:13px;padding:0 3px;border-radius:7px;
+  background:var(--green);color:var(--panel);font-family:var(--mono);font-size:8.5px;line-height:13px;text-align:center}
+#app.rail #activity{flex-direction:column;align-items:center;padding:6px 0;gap:4px}
+#app.rail .act{border-bottom:none;border-left:2px solid transparent;width:34px}
+#app.rail .act.on{border-left-color:transparent}
+#app:not([data-side="explorer"]) #tree,#app:not([data-side="explorer"]) #collapse{display:none}
+#app:not([data-side="bookmarks"]):not([data-side="recent"]) #pins,#app:not([data-side="web"]) #webmarks{display:none}
+#pins,#webmarks{flex:1;overflow-y:auto;padding:6px 0 16px}
+#app.rail #webmarks{display:none}
+/* browser favorites — rows read like a browser's bookmark sidebar: favicon, then title */
+.webbar{display:flex;flex-direction:column;gap:5px;padding:2px 10px 8px}
+.webbar select,.webbar input{font-family:var(--mono);font-size:11px;color:var(--fg);background:var(--bg);
+  border:1px solid var(--line);padding:4px 6px;min-width:0}
+.webbar input:focus,.webbar select:focus{outline:none;border-color:var(--green-line)}
+.webrow{display:flex;align-items:center;gap:7px;height:24px;padding-right:10px;cursor:pointer;user-select:none;
+  color:var(--fg);text-decoration:none;border-left:2px solid transparent}
+.webrow:hover{background:var(--row-hi)}
+.webrow:focus-visible{outline:none;background:var(--sel);border-left-color:var(--green)}
+.webrow .nm{font-size:11px}
+.webrow .chev{margin:0}
+.fav{width:16px;height:16px;flex:0 0 16px;object-fit:contain}
+.favtile{width:16px;height:16px;flex:0 0 16px;display:flex;align-items:center;justify-content:center;border-radius:3px;
+  background:var(--line);color:var(--fg);font-family:var(--mono);font-size:9.5px;text-transform:uppercase}
+.webrow .ctx{font-family:var(--mono);font-size:9.5px;color:var(--dimmer);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pin{display:flex;align-items:center;gap:6px;height:23px;padding:0 8px 0 12px;cursor:pointer;
   border-left:2px solid transparent;user-select:none}
 .pin:hover{background:var(--row-hi)}
 .pin.sel{background:var(--sel);border-left-color:var(--green)}
@@ -463,9 +485,9 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .pin .x:hover{color:var(--red)}
 .pin.drop{border-top:2px solid var(--green)}
 .pin.dragging{opacity:.4}
-.pinnote{font-family:var(--mono);font-size:10px;color:var(--dimmer);padding:2px 10px 5px 20px}
+.pinnote{font-family:var(--mono);font-size:10px;color:var(--dimmer);padding:2px 10px 5px 14px}
 .pinnote button{font:inherit;color:var(--blue);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
-.pinempty{font-family:var(--mono);font-size:10px;color:var(--dimmer);padding:2px 10px 6px 20px}
+.pinempty{font-family:var(--mono);font-size:10px;color:var(--dimmer);padding:4px 12px}
 #app.rail #pins{display:none}
 .btn.star.on{color:var(--orange);border-color:var(--orange)}
 </style>
@@ -473,13 +495,29 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <body>
 <div id="app">
   <aside>
+    <div id="activity" role="tablist" aria-label="Sidebar views">
+      <button class="act" role="tab" data-view="explorer" title="Explorer" aria-label="Explorer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6z"/><path d="M14 3v3h3"/><path d="M9 21h8a2 2 0 0 0 2-2V9"/></svg>
+      </button>
+      <button class="act" role="tab" data-view="bookmarks" title="Bookmarks" aria-label="Bookmarks">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z"/></svg>
+        <span class="actbadge" id="bm-count" hidden></span>
+      </button>
+      <button class="act" role="tab" data-view="recent" title="Recent" aria-label="Recent">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+      </button>
+      <button class="act" role="tab" data-view="web" title="Browser favorites (Edge, Chrome, Brave)" aria-label="Browser favorites">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>
+      </button>
+    </div>
     <div class="ex-head">
       <div class="glyph">/</div>
-      <div class="ex-title">Explorer</div>
+      <div class="ex-title" id="side-title">Explorer</div>
       <div class="ex-act" id="collapse">collapse all</div>
       <div id="sidetoggle" title="Show/hide sidebar (Ctrl+B)"></div>
     </div>
     <div id="pins"></div>
+    <div id="webmarks"></div>
     <div id="tree"></div>
     <div class="ex-foot">
       <span id="foot-file">index.html</span>
@@ -781,11 +819,13 @@ function showFatal(err) {
 }
 
 // ── bookmarks and recents (P7-10) ──────────────────────────────────────────
-// Two lists above the tree. Both start collapsed, so a fresh tab looks exactly like it
-// did before this existed -- which is the whole point of the collapsed-tree startup.
+// Two lists, each a sidebar view of its own beside the Explorer (the activity bar picks
+// one, VS Code-style), so a fresh tab still opens on the quiet collapsed tree.
 // Storage is localStorage, paths only. The list logic lives in navigation.mjs so it can
 // be tested without a DOM; everything here is the sidebar and the wiring.
-const pins = { bookmarks: [], recent: [], open: { bookmarks: false, recent: false } };
+const pins = { bookmarks: [], recent: [] };
+const SIDE_VIEWS = { explorer: 'Explorer', bookmarks: 'Bookmarks', recent: 'Recent', web: 'Favorites' };
+let sideView = 'explorer';
 try {
   pins.bookmarks = parseList(localStorage.getItem(BOOKMARKS_KEY));
   pins.recent = parseList(localStorage.getItem(RECENT_KEY));
@@ -813,8 +853,7 @@ function togglePin(id, label) {
   const was = isBookmarked(pins.bookmarks, id);
   pins.bookmarks = toggleBookmark(pins.bookmarks, id, label || S.byId.get(id)?.name);
   savePins();
-  if (!was) pins.open.bookmarks = true;   // show what just happened
-  renderPins();
+  renderPins();   // the activity-bar badge shows what just happened without leaving the tree
   renderView();
   toast(was ? 'bookmark removed' : 'bookmarked');
 }
@@ -872,15 +911,7 @@ function pinExists(path) {
   return S.byId.has(path) || pictureNodes.owns(path);
 }
 
-function pinSection(key, title, entries, drag) {
-  const sec = el('div', 'pinsec');
-  const head = el('div', 'pinhead');
-  head.append(el('span', 'chev', pins.open[key] ? '▾' : '▸'), el('span', 'n', title), el('span', 'c', String(entries.length)));
-  head.setAttribute('aria-expanded', String(pins.open[key]));
-  activate(head, () => { pins.open[key] = !pins.open[key]; renderPins(); });
-  sec.append(head);
-  if (!pins.open[key]) return sec;
-
+function pinSection(key, entries, drag) {
   const list = el('div', 'pinlist');
   list.setAttribute('role', 'list');
   // The context usually does the disambiguating on its own -- three "Agents" rows in three
@@ -967,19 +998,146 @@ function pinSection(key, title, entries, drag) {
       list.append(note);
     }
   });
-  sec.append(list);
-  return sec;
+  return list;
 }
 
 function renderPins() {
   const host = $('#pins');
   host.textContent = '';
+  const badge = $('#bm-count');
+  badge.textContent = String(pins.bookmarks.length);
+  badge.hidden = !pins.bookmarks.length;
+  $('.act[data-view="recent"]').title = `Recent (${pins.recent.length})`;
+  // Only the visible view is built -- the Explorer view has no list to render.
+  if (sideView === 'recent') host.append(pinSection('recent', pins.recent, false));
+  if (sideView !== 'bookmarks') return;
   // Before the first scan lands nothing can be checked, so nothing is called missing.
   const marked = S.data
     ? resolveBookmarks(pins.bookmarks, pinExists, relinkSuggester())
     : pins.bookmarks.map((e) => ({ ...e, unresolved: false, suggestion: '' }));
-  host.append(pinSection('bookmarks', 'Bookmarks', marked, true));
-  host.append(pinSection('recent', 'Recent', pins.recent, false));
+  host.append(pinSection('bookmarks', marked, true));
+}
+
+// Activity bar. Clicking the view that is already showing folds the sidebar to the rail,
+// and any icon on the rail reopens it on that view -- the VS Code behaviour.
+function setSideView(view) {
+  sideView = SIDE_VIEWS[view] ? view : 'explorer';
+  $('#app').dataset.side = sideView;
+  $('#side-title').textContent = SIDE_VIEWS[sideView];
+  for (const b of document.querySelectorAll('#activity .act')) {
+    const on = b.dataset.view === sideView;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', String(on));
+  }
+  try { localStorage.setItem('hub.side', sideView); } catch {}
+  renderPins();
+  if (sideView === 'web') loadWebmarks();   // re-read each time, so browser edits show up
+}
+
+// ── browser favorites ──────────────────────────────────────────────────────
+// Read live from the browser's own profile by the server (/api/webmarks), so there is
+// nothing to import twice or keep in sync. Links are real <a target=_blank> elements:
+// middle-click, Ctrl+click, drag and the native "copy link" menu all behave as in a browser.
+const web = { data: null, error: '', q: '', toggled: new Set() };
+async function loadWebmarks() {
+  let source = '';
+  try { source = localStorage.getItem('hub.websrc') || ''; } catch {}
+  try {
+    const r = await fetch('/api/webmarks?source=' + encodeURIComponent(source));
+    if (!r.ok) throw new Error(String(r.status));
+    web.data = await r.json(); web.error = '';
+  } catch {
+    web.data = null; web.error = 'Browser favorites are read from this machine by the local hub server.';
+  }
+  renderWebmarks();
+}
+
+function favIcon(n) {
+  const img = el('img', 'fav');
+  img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+  img.src = '/api/favicon?url=' + encodeURIComponent(n.url);
+  let url = null;
+  try { url = new URL(n.url); } catch {}
+  // Sites behind bot protection refuse the server's lookup but serve a browser, so ask the
+  // site directly next (https only -- img-src allows nothing else), then draw a letter tile.
+  let direct = url?.protocol === 'https:';
+  img.addEventListener('error', () => {
+    if (direct) { direct = false; img.src = url.origin + '/favicon.ico'; return; }
+    img.replaceWith(el('span', 'favtile', (url?.hostname.replace(/^www\./, '') || n.name || '?')[0]));
+  });
+  return img;
+}
+
+function webLink(n, depth, ctx) {
+  const a = el('a', 'webrow');
+  a.href = n.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = n.name + '\n' + n.url;
+  a.style.paddingLeft = (12 + depth * 14) + 'px';
+  a.append(favIcon(n), el('span', 'nm', n.name));
+  if (ctx) a.append(el('span', 'ctx', ctx));
+  return a;
+}
+
+function renderWebmarks() {
+  const host = $('#webmarks');
+  host.textContent = '';
+  if (web.error) return host.append(el('div', 'pinempty', web.error));
+  if (!web.data) return host.append(el('div', 'pinempty', 'loading…'));
+  const { sources, source, roots } = web.data;
+  if (!sources.length) return host.append(el('div', 'pinempty', 'No Edge, Chrome or Brave profile with favorites was found on this machine.'));
+
+  const bar = el('div', 'webbar');
+  const pick = el('select');
+  pick.setAttribute('aria-label', 'Browser profile');
+  for (const s of sources) { const o = el('option', '', s.label); o.value = s.id; o.selected = s.id === source; pick.append(o); }
+  pick.onchange = () => { try { localStorage.setItem('hub.websrc', pick.value); } catch {} web.toggled.clear(); loadWebmarks(); };
+  const q = el('input');
+  q.type = 'search'; q.placeholder = 'Search favorites'; q.value = web.q;
+  q.setAttribute('aria-label', 'Search favorites');
+  q.oninput = () => { web.q = q.value; draw(); };
+  bar.append(pick, q);
+  const list = el('div');
+  host.append(bar, list);
+
+  // Top-level roots start open, like a browser's favorites panel; everything below starts closed.
+  const isOpen = (key, depth) => (depth === 0) !== web.toggled.has(key);
+  const walk = (nodes, depth, prefix) => {
+    for (const n of nodes) {
+      if (n.url) { list.append(webLink(n, depth)); continue; }
+      const key = prefix + '/' + n.name, open = isOpen(key, depth);
+      const row = el('div', 'webrow');
+      row.style.paddingLeft = (8 + depth * 14) + 'px';
+      row.setAttribute('aria-expanded', String(open));
+      row.append(el('span', 'chev', open ? '▾' : '▸'), el('span', 'nm', n.name), el('span', 'bdg', String(n.children.length)));
+      activate(row, () => { web.toggled.has(key) ? web.toggled.delete(key) : web.toggled.add(key); draw(); });
+      list.append(row);
+      if (open) walk(n.children, depth + 1, key);
+    }
+  };
+  const draw = () => {
+    list.textContent = '';
+    const needle = web.q.trim().toLowerCase();
+    if (!needle) return walk(roots, 0, '');
+    const hits = [];
+    const find = (nodes, folder) => {
+      for (const n of nodes) {
+        if (n.url) { if ((n.name + ' ' + n.url).toLowerCase().includes(needle)) hits.push([n, folder]); }
+        else find(n.children, n.name);
+      }
+    };
+    find(roots, '');
+    for (const [n, folder] of hits.slice(0, 500)) list.append(webLink(n, 0, folder));
+    if (!hits.length) list.append(el('div', 'pinempty', 'no favorites match'));
+    if (hits.length > 500) list.append(el('div', 'pinempty', `first 500 of ${hits.length} — narrow the search`));
+  };
+  draw();
+}
+for (const b of document.querySelectorAll('#activity .act')) {
+  b.onclick = () => {
+    const rail = $('#app').classList.contains('rail');
+    if (!rail && b.dataset.view === sideView) return setRail(true);
+    setSideView(b.dataset.view);
+    if (rail) setRail(false);
+  };
 }
 
 function bookmarkBtn(id) {
@@ -1520,8 +1678,9 @@ const setTheme = (name) => {
 $('#theme').onchange = (e) => setTheme(e.target.value);
 
 let stored = {};
-try { stored = { rail: localStorage.getItem('hub.rail'), theme: localStorage.getItem('hub.theme') }; } catch {}
+try { stored = { rail: localStorage.getItem('hub.rail'), theme: localStorage.getItem('hub.theme'), side: localStorage.getItem('hub.side') }; } catch {}
 setRail(stored.rail === '1');
+setSideView(stored.side);
 setTheme(stored.theme || THEMES[0]);
 
 // Back/forward, a pasted link, or a hand-edited hash all land here. go() sets the hash

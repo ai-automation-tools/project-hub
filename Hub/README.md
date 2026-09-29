@@ -35,6 +35,8 @@ mounts gets a config folder of its own under `../Projects/`. See
 | `reports.mjs` | PDF delivery and signed directory routes for sandboxed HTML reports and their companion assets. |
 | `navigation.mjs` | Shared route helpers: heading routes, search routes, document links, search inclusion — plus the bookmark/recent list logic, kept pure so it is testable without a DOM. |
 | `open-native.mjs` | Validated native launch requests; paths are environment data, not shell command text. |
+| `webmarks.mjs` | Browser favorites read live from Edge/Chrome/Brave profiles, plus the favicon resolver. |
+| `webmarks.test.mjs` | Profile discovery, bookmark parsing, icon ranking, byte sniffing and the favicon cache. |
 | `reports.test.mjs` | Report HTTP, navigation, revision, refresh/recovery, and native-launch regression tests. |
 | `Start-Hub.ps1` | The real launcher. Takes `-ConfigDir`; reads the port from that folder's config, and rotates the logs when they pass 1MB. |
 | `Watch-Hubs.ps1` | Pings every hub's `/api/health` and restarts anything unwell, through `Start-Hub.ps1` so the port-identity rules still hold. Runs every 15 minutes as a scheduled task. |
@@ -73,6 +75,8 @@ node hub.mjs --config ..\Project-Hub\hub.config.json --scan   # writes scan.json
 | `/api/artifact/<signed-directory>/<relative-path>` | Report and companion assets, contained to the report directory after resolving junctions/symlinks. HTML/SVG carry a response-level sandbox. |
 | `/api/open?path=` | Opens a path with PowerShell `Start-Process`; add `&in=code` for VS Code, or `&reveal=1` to select it in its parent Explorer window (`explorer /select,`) instead of opening it. Same-origin only. |
 | `/api/events` | Server-sent events; one `change` per settled watcher burst. |
+| `/api/webmarks?source=` | Browser profiles with favorites, and the chosen profile's tree (the first profile by default). Same-origin only. |
+| `/api/favicon?url=` | One icon per origin, resolved server-side and cached for the process. `http(s)` only, same-origin only, 404 on a miss. |
 
 The watcher ignores three kinds of noise, all of which were measured driving real
 rescans: build output and git internals, the hub's own logs (`hub.log`, `watchdog.log`,
@@ -143,7 +147,7 @@ The September 8 work passed 52 tests plus 11 live HTTP checks and a browser veri
 
 **How to use them: [`../Docs/BOOKMARKS.md`](../Docs/BOOKMARKS.md).** What follows is how they work.
 
-`#pins` sits between the Explorer header and the tree, holding two lists — manually pinned **Bookmarks** and an automatic 20-item **Recent**. Both start collapsed on every load; that state is deliberately not persisted, so a stored pin cannot make the startup sidebar noisier than it was before the feature existed.
+The sidebar has four views, and `#activity`, a VS Code-style icon row above the header, picks one of them: **Explorer** (`#tree`), **Bookmarks** (pinned by hand), **Recent** (automatic, 20 items) and **Favorites** (`#webmarks`, the browser's own favorites; see [Browser favorites](#browser-favorites)). `setSideView()` sets `#app[data-side]`, CSS shows only the matching host, and `renderPins()` builds only the list that is visible. The view persists in `hub.side` and defaults to the Explorer. Clicking the active icon calls `setRail(true)`, and in the rail the icons stack vertically and reopen the sidebar on their view. The Bookmarks icon carries a count badge (`#bm-count`).
 
 The list logic is pure and lives in `navigation.mjs` (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `pushRecent`, `resolveBookmarks`) so it is tested without a DOM; `index.html` owns the sidebar and the wiring. Three entry points — the document header's star button, the tree context menu, and `Ctrl+D` — all route through one `togglePin()`, so the button's `aria-pressed`, the menu label, and the sidebar cannot disagree. `Ctrl+D` prefers the tree's keyboard cursor over the open document.
 
@@ -162,6 +166,16 @@ Renaming swaps the label for an input in place rather than calling `prompt()`, w
 The search box is also a proper combobox as of the same day: `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant`, and one `syncCombobox()` that assigns row ids at sync time so the arrow keys walk the document and Pictures listboxes as one contiguous sequence.
 
 Together the September 8–9 work passes **64 tests** plus the live HTTP and browser checks recorded in [the P7 shipping record](../Docs/ROADMAP.md#p7-review).
+
+## Browser favorites
+
+The fourth activity-bar view (`web`) shows the browser's own favorites. Nothing is imported or copied. `/api/webmarks` reads the Chromium `Bookmarks` JSON of each Edge, Chrome and Brave profile it finds, every time the view opens, so an edit made in the browser shows up here on the next open. Profile names come from each browser's `Local State`. The client sends a source id, and the server only accepts one that is in the list of profiles it discovered, so a request can never name a file path. Only `http(s)` links are kept. That drops bookmarklets, which would otherwise run in the hub's origin, and `edge://`/`chrome://` pages, which a web page cannot open.
+
+It is read-only on purpose. A running browser rewrites that file whenever it likes, so a write from here would be lost or would corrupt it. Add and organise favorites in the browser.
+
+Rows are real `<a target="_blank" rel="noopener noreferrer">` links, so middle-click, Ctrl+click, dragging and the native link menu behave as they do in a browser. Top-level folders start open and the rest start closed. Search matches both names and URLs and shows at most 500 results. The chosen profile persists in `hub.websrc`.
+
+**Favicons.** Chromium keeps its icons in a SQLite database, and a zero-dependency server cannot read one. `/api/favicon` finds icons the way a browser does in the first place. It reads the page's `<link rel=icon>` tags, ranked nearest to 32px, and falls back to `/favicon.ico`. It sniffs the image type from the bytes, because `.ico` files are served with every content type there is, and it caches one result per origin, misses included. The lookup is server-side, so the list of sites never goes to a third-party favicon service. Some sites block non-browser requests with bot protection. For those, the `<img>` retries `https://<origin>/favicon.ico` straight from the browser before it draws a letter tile. An SVG icon gets a script-free CSP of its own.
 
 ## Folder list view
 

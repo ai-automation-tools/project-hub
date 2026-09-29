@@ -28,27 +28,27 @@ breaks scrolling.
 
 ## Color schemes (CSS custom properties)
 
-Four schemes, selected by `html[data-theme="…"]`, applied before first paint via an
+Eight schemes, selected by `html[data-theme="…"]`, applied before first paint via an
 inline `<script>` reading `localStorage.getItem('hub.theme')` so there's no theme flash.
-Every color on the page resolves from one of these four blocks — there is no color
-hardcoded outside them. Adding a fifth scheme is: copy a block, change the hex values,
+Every color on the page resolves from one of these eight blocks — there is no color
+hardcoded outside them. Adding a scheme is: copy a block, change the hex values,
 add an `<option>` to `#theme`.
 
-| Token | midnight (default) | oxide (warm) | cobalt (cool) | paper (light) |
-|:---|:---|:---|:---|:---|
-| `--bg` | `#0a0c0e` | `#0f0d0a` | `#080d14` | `#f7f6f3` |
-| `--panel` | `#0c0f12` | `#13100c` | `#0a1018` | `#efeeea` |
-| `--card` | `#0e1114` | `#17130e` | `#0c131d` | `#ffffff` |
-| `--fg` | `#dbe1e8` | `#e8ded0` | `#d4e0ef` | `#2b2f33` |
-| `--fg-max` | `#f0f4f8` | `#fbf4ea` | `#f1f6fc` | `#0f1215` |
-| `--dim` | `#79838f` | `#8e806d` | `#70859e` | `#6d757d` |
-| `--green` (accent) | `#5fe3a1` | `#e8b04b` | `#4fd6e8` | `#0f7a4e` |
-| `--line` (borders) | `#22272e` | `#332a20` | `#1e2c40` | `#d4d2cb` |
-| `--orange` | `#e0a458` | `#e07b4a` | `#f0b45c` | `#a2670c` |
-| `--purple` | `#b48ce8` | `#c99ae0` | `#a99bf5` | `#6d4bb0` |
-| `--blue` | `#6aa9f0` | `#7fb3a8` | `#5b9df5` | `#1a5fb4` |
-| `--red` | `#e06c75` | `#e0605a` | `#f0707f` | `#b3261e` |
-| `--magenta` | `#d16ba5` | `#d98ba0` | `#e07ac4` | `#a3358a` |
+| Token | midnight (default) | oxide (warm) | cobalt (cool) | paper (light) | plum (dark) | nord (dark) | sepia (light) | mono (dark) |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| `--bg` | `#0a0c0e` | `#0f0d0a` | `#080d14` | `#f7f6f3` | `#0d0912` | `#20242c` | `#f4ecdd` | `#0b0b0b` |
+| `--panel` | `#0c0f12` | `#13100c` | `#0a1018` | `#efeeea` | `#110c17` | `#252a33` | `#ece2d0` | `#101010` |
+| `--card` | `#0e1114` | `#17130e` | `#0c131d` | `#ffffff` | `#150f1c` | `#2a303a` | `#fbf5e9` | `#141414` |
+| `--fg` | `#dbe1e8` | `#e8ded0` | `#d4e0ef` | `#2b2f33` | `#e2d9ee` | `#d8dee9` | `#3b3227` | `#dcdcdc` |
+| `--fg-max` | `#f0f4f8` | `#fbf4ea` | `#f1f6fc` | `#0f1215` | `#f6f2fb` | `#eceff4` | `#1a1510` | `#f7f7f7` |
+| `--dim` | `#79838f` | `#8e806d` | `#70859e` | `#6d757d` | `#8375a0` | `#8993a4` | `#7c705d` | `#7d7d7d` |
+| `--green` (accent) | `#5fe3a1` | `#e8b04b` | `#4fd6e8` | `#0f7a4e` | `#c48cf0` | `#8fbcbb` | `#5c6b2f` | `#e0e0e0` |
+| `--line` (borders) | `#22272e` | `#332a20` | `#1e2c40` | `#d4d2cb` | `#2e2340` | `#3c4350` | `#d2c4a8` | `#2b2b2b` |
+| `--orange` | `#e0a458` | `#e07b4a` | `#f0b45c` | `#a2670c` | `#f0a06c` | `#d08770` | `#a05a12` | `#b8b8b8` |
+| `--purple` | `#b48ce8` | `#c99ae0` | `#a99bf5` | `#6d4bb0` | `#9b8cf5` | `#b48ead` | `#6b4a8c` | `#c9c9c9` |
+| `--blue` | `#6aa9f0` | `#7fb3a8` | `#5b9df5` | `#1a5fb4` | `#6fa8e8` | `#81a1c1` | `#2a5f8f` | `#9e9e9e` |
+| `--red` | `#e06c75` | `#e0605a` | `#f0707f` | `#b3261e` | `#ec6f8e` | `#bf616a` | `#a33326` | `#d4d4d4` |
+| `--magenta` | `#d16ba5` | `#d98ba0` | `#e07ac4` | `#a3358a` | `#f07ad0` | `#c98cb8` | `#93356f` | `#aeaeae` |
 
 Each theme also defines `--card-hi`, `--row-hi`, `--sel`, `--sunken`, `--line-soft`,
 `--line-faint`, `--fg-hi`, `--fg-mid`, `--dimmer`, `--dimmest`, `--green-hi`,
@@ -60,7 +60,8 @@ formula per theme.
 `--green` is the accent used for links, the selected tree row's left border, focus rings,
 badges, and the terminal-green identity of the default theme — despite the variable name,
 each theme repoints it to that theme's own accent hue (amber for oxide, cyan for cobalt,
-a dark forest green for paper).
+a dark forest green for paper, violet for plum, muted teal for nord, olive for sepia, and
+plain white-on-grey for mono).
 
 ## Layout shell
 

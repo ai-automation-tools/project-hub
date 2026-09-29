@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-blocked_on_a_viewport-e0a458?style=for-the-badge" alt="P7-14 blocked on reaching a narrow viewport">
-  <img src="https://img.shields.io/badge/tests-71_passing-8B5CF6?style=for-the-badge" alt="71 tests passing">
+  <img src="https://img.shields.io/badge/tests-81_passing-8B5CF6?style=for-the-badge" alt="81 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
@@ -2156,9 +2156,9 @@ top to bottom.
   Favicons come from a server-side lookup with a browser-direct fallback. 5 tests in
   `webmarks.test.mjs`, and it was checked against real profiles: 3 found, about 6,250
   favorites, all but 8 of the icons on screen resolved.)*
-- [ ] **P9-28 · Import a bookmarks HTML file.** For Firefox, Safari and other machines: the
-  Netscape-format export every browser writes. Parse it client-side and keep it as an
-  extra source in the profile dropdown. Its `ICON=` data URIs cover the favicons.
+- [x] **P9-28 · Import a bookmarks HTML file.** *(done 2026-09-29: Settings → Import bookmarks
+  file…, parsed by `parseBookmarksHtml()` in `favorites.mjs` into the manual list. The favicons
+  come from `/api/favicon` like the rest, so `ICON=` data URIs are not stored.)*
 - [ ] **P9-29 · Keep icons visible on dark themes.** Black favicons (GitHub, Plex) disappear
   on the dark themes. Give an icon a light backing when its average luminance is low,
   measured once per icon on a canvas.
@@ -2166,7 +2166,24 @@ top to bottom.
   resolves every origin again. Persist it beside `scan.json` if the first open after a
   restart feels slow.
 - [ ] **P9-31 · Favorites in the demo.** The demo shows a note in place of favorites.
-  Capture a fixture `Bookmarks` file from `Demo/Home` so the view is visible there too.
+  Capture a fixture `favorites.json` and a `Bookmarks` file from `Demo/Home`, and teach
+  `demo.js` to answer `/api/favorites` read-only, so both modes are visible there.
+- [x] **P9-32 · Settings view.** *(done 2026-09-29: a gear at the end of the activity bar,
+  with the color scheme moved out of the header, interface size (`hub.zoom`, applied before
+  first paint), the hub-tabs and favorites-sync switches, import and export, clear recent, and
+  reset width.)*
+- [x] **P9-33 · Manual favorites by default.** *(done 2026-09-29: `/api/favorites` over a
+  gitignored `favorites.json`, validated by `cleanTree()` and written atomically. Add, edit,
+  delete, drag to move or file, drop a link in, and one-step undo. Browser sync is a switch in
+  Settings. Checked by importing a real Edge profile of about 6,250 favorites.)*
+- [x] **P9-34 · Hub tabs.** *(done 2026-09-29: sandboxed iframes without top navigation,
+  kept alive across switches, and a `/api/frameable` check that sends sites refusing to be
+  framed to a browser tab. Checked live: Wikipedia opens in a hub tab and GitHub falls back.)*
+- [ ] **P9-35 · Keep hub tabs across reloads.** Open tabs vanish on a refresh. Store their
+  URLs and titles, not their contents, and reopen them lazily when first shown.
+- [ ] **P9-36 · Keyboard for favorites and tabs.** Arrow-key navigation in the Favorites
+  list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite
+  without dragging.
 
 ### Needs a person
 

@@ -8,9 +8,9 @@ description: >-
   `%PORT%`/`%NONCE%` placeholders the server fills per request. Use for "add a view / a
   page / a panel", "add a colour scheme or theme", "restyle the explorer", "the page is
   blank / stuck on scanning", "deep links or the back button are broken", "bookmarks and
-  recents", "the reader, outline or view-source toggle", "a button does nothing after a
-  rescan", "CSP blocked my script", and any edit to index.html, navigation.mjs or
-  pictures-client.mjs.
+  recents", "the activity bar, Settings, Favorites or hub tabs", "the reader, outline or
+  view-source toggle", "a button does nothing after a rescan", "CSP blocked my script", and
+  any edit to index.html, navigation.mjs, pictures-client.mjs or favorites.mjs.
 ---
 
 # Working in index.html
@@ -21,7 +21,8 @@ that needs a toolchain is the wrong edit.
 
 Only genuinely reusable, genuinely testable logic leaves the file, and only into a plain
 ES module the Node test suite can import: `navigation.mjs` (routes, bookmarks, recents,
-path resolution), `pictures-client.mjs`, `reports.mjs`. That is the bar — **"it would be
+path resolution), `pictures-client.mjs`, `favorites.mjs` (favorites tree edits and the
+bookmarks-file format), `reports.mjs`. That is the bar — **"it would be
 tidier in its own file" is not.**
 
 ---
@@ -110,6 +111,7 @@ Per-viewer preferences are localStorage, never the scan payload:
 | `hub.theme` `hub.rail` `hub.sbw` | scheme, collapsed sidebar, sidebar width |
 | `hub.collapsed` `hub.folderview` `hub.reader` | collapsed sections, grid/list, reader settings |
 | `hub.side` `hub.websrc` | active activity-bar view, chosen browser profile for Favorites |
+| `hub.zoom` `hub.links` `hub.favsource` | interface size (also read by the pre-paint script), hub tabs on/off, manual or synced favorites |
 | `hub.bookmarks` `hub.recent` | paths only — via `navigation.mjs`, which is where the list logic is tested |
 
 Every read and write is wrapped in `try/catch`. Private windows throw on access, and a

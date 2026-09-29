@@ -22,7 +22,7 @@ a hub running on 4273. Everything below is in that file unless noted.
 | `site/api/manifest.json` | `keyOf(pathname, params)` → file. The shim's whole index |
 | `site/files/<slug>` | Binary assets, named by `slug(id)` |
 | `site/index.html` | `Hub/index.html` after the `sub()` rewrites |
-| `site/navigation.mjs`, `site/pictures-client.mjs` | Copied byte-for-byte from `Hub/` |
+| `site/navigation.mjs`, `site/pictures-client.mjs`, `site/favorites.mjs` | Copied byte-for-byte from `Hub/`. Every module `index.html` imports must be on this list, or the demo page fails to load |
 | `site/demo.js`, `site/CNAME`, `site/.nojekyll` | The shim, the domain, the Jekyll opt-out |
 
 ## The crawl

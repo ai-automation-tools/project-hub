@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { browserDirs, listSources, parseChromium, readSource, iconLinks, sniffImage, createFavicons } from './webmarks.mjs';
+import { browserDirs, listSources, parseChromium, readSource, iconLinks, sniffImage, createFavicons, cleanTree, loadFavorites, saveFavorites, EMPTY_FAVORITES, allowsFraming, createFrameCheck } from './webmarks.mjs';
 
 const PNG = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
 const ICO = Buffer.from('0000010001001010', 'hex');
@@ -101,4 +101,65 @@ test('favicons try declared icons, fall back to /favicon.ico, and cache per orig
   assert.equal(await favicons.get('https://b.example/'), null);
   assert.equal(await favicons.get('https://b.example/x'), null, 'misses are cached too');
   assert.equal(calls.filter((u) => u.startsWith('https://b.example')).length, 2);
+});
+
+test('a stored favorites tree is rebuilt field by field', () => {
+  const dirty = [
+    { name: 'Bar', extra: 'dropped', children: [
+      { name: 'Ok', url: 'https://ok.example/', icon: 'dropped' },
+      { name: 'Script', url: 'javascript:alert(1)' },
+      { url: 'https://unnamed.example/' },
+      { name: 'Sub', children: [{ name: 42, url: 'http://n.example/' }] },
+    ] },
+    { name: 'A root link is not a root', url: 'https://x.example/' },
+  ];
+  assert.deepEqual(cleanTree(dirty), [{ name: 'Bar', children: [
+    { name: 'Ok', url: 'https://ok.example/' },
+    { name: 'https://unnamed.example/', url: 'https://unnamed.example/' },
+    { name: 'Sub', children: [{ name: '42', url: 'http://n.example/' }] },
+  ] }]);
+  assert.equal(cleanTree('nope'), null);
+  assert.equal(cleanTree([]), null);
+  let deep = { name: 'leaf', url: 'https://d.example/' };
+  for (let i = 0; i < 40; i++) deep = { name: 'f' + i, children: [deep] };
+  assert.equal(cleanTree([deep]), null, 'absurd nesting is refused');
+});
+
+test('favorites save atomically and a missing or corrupt file reads as the empty default', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'favorites-'));
+  try {
+    const file = path.join(dir, 'favorites.json');
+    assert.deepEqual(loadFavorites(file), EMPTY_FAVORITES());
+    const roots = [{ name: 'Bar', children: [{ name: 'A', url: 'https://a.example/' }] }];
+    saveFavorites(file, roots);
+    assert.deepEqual(loadFavorites(file), roots);
+    assert.ok(!fs.existsSync(file + '.tmp'));
+    fs.writeFileSync(file, '{ broken');
+    assert.deepEqual(loadFavorites(file), EMPTY_FAVORITES());
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('framing is allowed only when neither X-Frame-Options nor frame-ancestors forbids it', () => {
+  const h = (o) => new Headers(o);
+  assert.equal(allowsFraming(h({})), true);
+  assert.equal(allowsFraming(h({ 'x-frame-options': 'DENY' })), false);
+  assert.equal(allowsFraming(h({ 'x-frame-options': 'sameorigin' })), false);
+  assert.equal(allowsFraming(h({ 'content-security-policy': "default-src 'self'; frame-ancestors 'self'" })), false);
+  assert.equal(allowsFraming(h({ 'content-security-policy': "frame-ancestors 'none'" })), false);
+  assert.equal(allowsFraming(h({ 'content-security-policy': 'frame-ancestors *' })), true);
+  assert.equal(allowsFraming(h({ 'content-security-policy': "script-src 'self'" })), true);
+});
+
+test('the frame check caches per URL and treats an unreachable site as not frameable', async () => {
+  let calls = 0;
+  const check = createFrameCheck({ fetchImpl: async (url) => {
+    calls++;
+    if (url.includes('down')) throw new Error('ECONNREFUSED');
+    return new Response('x', { headers: url.includes('deny') ? { 'x-frame-options': 'DENY' } : {} });
+  } });
+  assert.equal(await check('https://ok.example/'), true);
+  assert.equal(await check('https://ok.example/'), true);
+  assert.equal(await check('https://deny.example/'), false);
+  assert.equal(await check('https://down.example/'), false);
+  assert.equal(calls, 3);
 });

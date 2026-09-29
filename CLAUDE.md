@@ -11,8 +11,8 @@ committed here, this file included, is published.
 |:---|:---|
 | `Hub/hub.mjs` | Scanner, static server, markdown renderer + sanitizer, watcher, config loader (~1,900 lines) |
 | `Hub/index.html` | The entire UI — no framework, no build. Server fills `%TITLE%` `%FAVICON%` `%PORT%` `%NONCE%` per request |
-| `Hub/{navigation,pictures,pictures-client,reports,open-native,webmarks}.mjs` | Route/bookmark logic (pure), lazy Pictures cache, signed report routes, native launch, browser favorites + favicons |
-| `Hub/*.test.mjs` | `node --test`, 71 tests, no framework |
+| `Hub/{navigation,pictures,pictures-client,reports,open-native,webmarks,favorites}.mjs` | Route/bookmark logic (pure), lazy Pictures cache, signed report routes, native launch, favorites storage + favicons + embed check (server), favorites tree + bookmarks-file format (client, pure) |
+| `Hub/*.test.mjs` | `node --test`, 81 tests, no framework |
 | `Hub/Start-Hub.ps1`, `Watch-Hubs.ps1`, `run-watchdog-hidden.vbs` | Launcher, health watchdog, hidden-window wrapper for its scheduled task |
 | `Project-Hub/` | Server config folder + launcher shim. Real `hub.config.json` is gitignored |
 | `Projects/<Name>/hub.config.json` | One per mounted workspace. Only `Projects/_example/` is tracked |
@@ -26,7 +26,7 @@ Deep reference: `Hub/README.md` (engine, endpoints, config), `Project-Hub/README
 ## Commands
 
 ```sh
-cd Hub && npm test                                   # 71 tests; must stay green
+cd Hub && npm test                                   # 81 tests; must stay green
 node Demo/build-demo.mjs                             # from repo root; also an integration test
 node Hub/hub.mjs --config Project-Hub/hub.config.json          # run (http://127.0.0.1:4273)
 node Hub/hub.mjs --config Project-Hub/hub.config.json --scan   # write scan.json only
@@ -48,6 +48,7 @@ with a >100-captured-responses check. `demo.yml` deploys the demo on push to `ma
 - **Inline scripts need the `%NONCE%`.** The CSP rejects anything else.
 - **`sanitizeHtml()` rebuilds tags from an allowlist** — extend the allowlist, never loosen it to pass-through.
 - **No stray control bytes.** A test scans every source file; two past production defects were invisible bytes from a patch script. Prefer the Edit tool over scripted rewrites; re-run `npm test` after any scripted edit.
+- **Client modules the page imports** must be in `build-demo.mjs`'s copy list and the scaffold's `$engineFiles`, or the demo and scaffolded hubs fail to load.
 - **Demo literals.** `build-demo.mjs` asserts exact string literals in `index.html` (placeholders, asset URLs). Moving them breaks the demo build — update both together.
 - **Public repo hygiene.** No personal names, emails, hostnames, or machine paths in tracked files — use `D:/Work`, `C:/Users/you`, `Example_Workspace`. Real configs, `scan.json`, logs, `Src/`, most of `Images/` are gitignored; keep it that way.
 - **Line endings** per `.gitattributes`: LF for js/mjs/json/md/html, CRLF for `.ps1`/`.vbs`. A `.ps1` with non-ASCII must be UTF-8 **with BOM**.

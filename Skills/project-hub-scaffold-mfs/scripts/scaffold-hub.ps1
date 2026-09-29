@@ -26,7 +26,7 @@ if (-not (Test-Path -LiteralPath $Dir -PathType Container)) { throw 'Workspace d
 $workspace = (Resolve-Path -LiteralPath $Dir).Path.Replace('\','/').TrimEnd('/')
 $source = (Resolve-Path -LiteralPath $HubDesignRoot).Path
 $engineFiles = @('hub.mjs','index.html','navigation.mjs','open-native.mjs','pictures.mjs',
-    'pictures-client.mjs','reports.mjs','webmarks.mjs','hub.test.mjs','pictures.test.mjs','reports.test.mjs','webmarks.test.mjs',
+    'pictures-client.mjs','reports.mjs','webmarks.mjs','favorites.mjs','hub.test.mjs','pictures.test.mjs','reports.test.mjs','webmarks.test.mjs','favorites.test.mjs',
     'package.json','Start-Hub.ps1','Watch-Hubs.ps1','run-watchdog-hidden.vbs')
 $required = @('Hub/hub.mjs', 'Project-Hub/Start-Hub.ps1')
 if ($Standalone) {

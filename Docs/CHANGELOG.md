@@ -16,6 +16,9 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-09-29
 
+- Add a Settings view (gear icon) with the color scheme, interface size, a hub-tabs switch and the favorites source. *(roadmap: P9-32)*
+- Make Favorites the hub's own editable list by default, with add, edit, delete, drag, undo, bookmarks-file import and export, and one-time import from a browser profile. Browser sync becomes a setting. *(roadmap: P9-28, P9-33)*
+- Open websites in tabs inside the hub when that setting is on, with an embed check that sends sites refusing to be framed to a browser tab. *(roadmap: P9-34)*
 - Replace the sidebar's collapsible Bookmarks and Recent lists with a VS Code-style activity bar: Explorer, Bookmarks and Recent become separate views. *(roadmap: P9-26)*
 - Add a Favorites view that reads Edge, Chrome and Brave favorites live from the browser profile, with server-resolved favicons. *(roadmap: P9-27)*
 - Add `CLAUDE.md` and a committed `.claude/` setup: the three maintainer skills, a `hub-reviewer` agent, a `/check` command and shared permissions.

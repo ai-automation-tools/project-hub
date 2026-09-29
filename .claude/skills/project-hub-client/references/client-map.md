@@ -10,8 +10,10 @@ way by those rather than by line number, which moves.
 | helpers | `$`, `el`, `activate`, `mark`, `tintOf`, `fmtSize`, `fmtAgo`, `toast` |
 | data | `reindex`, `load`/`doLoad`, `showFatal` |
 | bookmarks | `pins`, `savePins`, `togglePin`, `pinSection`, `renderPins` — list logic in `navigation.mjs` |
-| activity bar | `SIDE_VIEWS`, `sideView`, `setSideView` — `#app[data-side]` picks Explorer (`#tree`), Bookmarks / Recent (`#pins`) or Favorites (`#webmarks`) |
-| favorites | `web`, `loadWebmarks`, `renderWebmarks`, `webLink`, `favIcon` — reads `/api/webmarks`, icons from `/api/favicon` |
+| activity bar | `SIDE_VIEWS`, `sideView`, `setSideView` — `#app[data-side]` picks Explorer (`#tree`), Bookmarks / Recent (`#pins`), Favorites (`#webmarks`) or Settings (`#settings`) |
+| settings | `prefs`, `renderSettings`, the `#set-*` handlers, import/export via `favorites.mjs` |
+| favorites | `web` (sync), `fav` (manual), `loadWebmarks`, `ensureFavorites`, `saveFavoriteList`, `renderWebmarks`, `editable`, `favForm`, `favIcon` + `iconFallback`, `followLink` — tree logic in `favorites.mjs` |
+| hub tabs | `tabs`, `openSite`, `activateTab`, `closeTab`, `renderTabs` — `#tabs` strip, `#frames` host, `/api/frameable` first |
 | sidebar | `renderTree`, `focusNode`, context menu, `showStatusPanel` |
 | header | `renderCrumbs`, the search box, rail + width + theme controls, keyboard handlers |
 | views | `renderView` → `renderPage` → one `view*` per kind |
@@ -74,5 +76,6 @@ Only a plain ES module the Node suite imports directly:
   `resolveBookmarks`, `RECENT_MAX`).
 - `pictures-client.mjs` — `PictureNodes`, the async Pictures branch.
 - `reports.mjs` — server-side, but the other half of the framing contract above.
+- `favorites.mjs` — pure tree edits and the bookmarks HTML format, imported by the page and by `favorites.test.mjs`. It must stay in `build-demo.mjs`'s copy list. A name the page imports must not also be declared in the page (a test checks this; `folderList` is imported as `favoriteFolders`).
 
 If the extraction would not gain a test, it does not gain anything.

@@ -58,7 +58,7 @@ The September 8 work passed 52 tests plus 11 live HTTP checks and a browser veri
 
 **How to use them: `../Docs/BOOKMARKS.md` (see the source checkout Docs/).** What follows is how they work.
 
-The sidebar has four views, and `#activity`, a VS Code-style icon row above the header, picks one of them: **Explorer** (`#tree`), **Bookmarks** (pinned by hand), **Recent** (automatic, 20 items) and **Favorites** (`#webmarks`, the browser's own favorites; see [Browser favorites](#browser-favorites)). `setSideView()` sets `#app[data-side]`, CSS shows only the matching host, and `renderPins()` builds only the list that is visible. The view persists in `hub.side` and defaults to the Explorer. Clicking the active icon calls `setRail(true)`, and in the rail the icons stack vertically and reopen the sidebar on their view. The Bookmarks icon carries a count badge (`#bm-count`).
+The sidebar has five views, and `#activity`, a VS Code-style icon row above the header, picks one of them: **Explorer** (`#tree`), **Bookmarks** (pinned by hand), **Recent** (automatic, 20 items), **Favorites** (`#webmarks`; see [Favorites](#favorites)) and **Settings** (`#settings`; see [Settings](#settings)). `setSideView()` sets `#app[data-side]`, CSS shows only the matching host, and `renderPins()` builds only the list that is visible. The view persists in `hub.side` and defaults to the Explorer. Clicking the active icon calls `setRail(true)`, and in the rail the icons stack vertically and reopen the sidebar on their view. The Bookmarks icon carries a count badge (`#bm-count`).
 
 The list logic is pure and lives in `navigation.mjs` (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `pushRecent`, `resolveBookmarks`) so it is tested without a DOM; `index.html` owns the sidebar and the wiring. Three entry points — the document header's star button, the tree context menu, and `Ctrl+D` — all route through one `togglePin()`, so the button's `aria-pressed`, the menu label, and the sidebar cannot disagree. `Ctrl+D` prefers the tree's keyboard cursor over the open document.
 
@@ -78,15 +78,40 @@ The search box is also a proper combobox as of the same day: `role="combobox"` w
 
 Together the September 8–9 work passes **64 tests** plus the live HTTP and browser checks recorded in the P7 shipping record (see the source checkout Docs/).
 
-## Browser favorites
+## Settings
 
-The fourth activity-bar view (`web`) shows the browser's own favorites. Nothing is imported or copied. `/api/webmarks` reads the Chromium `Bookmarks` JSON of each Edge, Chrome and Brave profile it finds, every time the view opens, so an edit made in the browser shows up here on the next open. Profile names come from each browser's `Local State`. The client sends a source id, and the server only accepts one that is in the list of profiles it discovered, so a request can never name a file path. Only `http(s)` links are kept. That drops bookmarklets, which would otherwise run in the hub's origin, and `edge://`/`chrome://` pages, which a web page cannot open.
+The gear at the right end of the activity bar opens a Settings view (`#settings`, static markup in `index.html`). Every setting is a per-viewer preference kept in `localStorage`, like the theme:
 
-It is read-only on purpose. A running browser rewrites that file whenever it likes, so a write from here would be lost or would corrupt it. Add and organise favorites in the browser.
+| Setting | Key | Default |
+|:---|:---|:---|
+| Color scheme (moved here from the header) | `hub.theme` | `midnight` |
+| Interface size: 90, 100, 115 or 130%, which sets `--zoom` | `hub.zoom` | 115% |
+| Open websites in hub tabs | `hub.links` (`hub` / `browser`) | off: a browser tab |
+| Sync with browser favorites | `hub.favsource` (`sync` / `manual`) | off: manual |
 
-Rows are real `<a target="_blank" rel="noopener noreferrer">` links, so middle-click, Ctrl+click, dragging and the native link menu behave as they do in a browser. Top-level folders start open and the rest start closed. Search matches both names and URLs and shows at most 500 results. The chosen profile persists in `hub.websrc`.
+The pre-paint script in `<head>` applies the theme and the interface size before first paint, so neither flashes. The view also has favorites import and export, **Clear recent documents** and **Reset sidebar width**, which clears `hub.sbw`.
 
-**Favicons.** Chromium keeps its icons in a SQLite database, and a zero-dependency server cannot read one. `/api/favicon` finds icons the way a browser does in the first place. It reads the page's `<link rel=icon>` tags, ranked nearest to 32px, and falls back to `/favicon.ico`. It sniffs the image type from the bytes, because `.ico` files are served with every content type there is, and it caches one result per origin, misses included. The lookup is server-side, so the list of sites never goes to a third-party favicon service. Some sites block non-browser requests with bot protection. For those, the `<img>` retries `https://<origin>/favicon.ico` straight from the browser before it draws a letter tile. An SVG icon gets a script-free CSP of its own.
+## Favorites
+
+The fourth activity-bar view (`web`) has two sources, and the Settings switch picks one.
+
+**Manual, the default.** This is the hub's own list, which `/api/favorites` keeps in `favorites.json` beside the server config. The file is gitignored. It works the way a browser's favorites do. **+ link** and **+ folder** add to any folder. ✎ edits a name or URL, and × deletes. Drag a row onto a folder to file it there, or onto a link to put it before that link. A link dragged in from a page or the address bar becomes a new favorite. Every edit can be undone once with ↶. The tree edits are pure functions in `favorites.mjs` (`insertNode`, `removeNode`, `editNode`, `moveNode`), so they are tested without a DOM. The client re-renders at once and then queues a whole-list `PUT`, so saves land in order. On the server, `cleanTree()` rebuilds whatever arrives field by field, keeping names, `http(s)` URLs and folders only, with caps on size, depth and node count. `saveFavorites()` writes a temporary file and renames it over the real one. `PUT` requires `application/json` and `sameOrigin`, so another site cannot write the list.
+
+Imports go in the way a browser's import does (`mergeImport()`). Into an empty list, a toolbar folder fills the Favorites bar and the other roots merge by name. Into a list that already has favorites, they arrive as one **Imported from …** folder on the bar. **Import bookmarks file…** reads the Netscape-format HTML export every browser writes. `parseBookmarksHtml()` tokenises it, so the same code runs in the tests. **Import** copies an Edge, Chrome or Brave profile once. **Export bookmarks file** writes the same format back out (`toBookmarksHtml()`), so the list can be imported into any browser.
+
+**Browser sync.** `/api/webmarks` reads the Chromium `Bookmarks` JSON of each Edge, Chrome and Brave profile it finds, every time the view opens, so an edit made in the browser shows up here on the next open. Profile names come from each browser's `Local State`. The client sends a source id, and the server only accepts one that is in the list of profiles it discovered, so a request can never name a file path. This mode is read-only on purpose. A running browser rewrites that file whenever it likes, so a write from here would be lost or would corrupt it.
+
+In both modes only `http(s)` links are kept. That drops bookmarklets, which would otherwise run in the hub's origin, and `edge://`/`chrome://` pages, which a web page cannot open. Rows are real `<a target="_blank">` links, so middle-click, Ctrl+click, dragging and the native link menu behave as they do in a browser. A plain click follows the hub-tabs setting (`followLink()`). Top-level folders start open. Search matches both names and URLs and shows at most 500 results. A redraw after an edit keeps the scroll position.
+
+**Favicons.** Chromium keeps its icons in a SQLite database, and a zero-dependency server cannot read one. `/api/favicon` finds icons the way a browser does in the first place. It reads the page's `<link rel=icon>` tags, ranked nearest to 32px, and falls back to `/favicon.ico`. It sniffs the image type from the bytes, because `.ico` files are served with every content type there is, and it caches one result per origin, misses included. The lookup is server-side, so the list of sites never goes to a third-party favicon service. Some sites block non-browser requests with bot protection. For those, the `<img>` retries `https://<origin>/favicon.ico` straight from the browser before it draws a letter tile. The client remembers where each origin ended up (`iconFallback`), so a redraw never asks again for an icon that already failed. An SVG icon gets a script-free CSP of its own.
+
+## Hub tabs
+
+With **Open websites in hub tabs** on, a plain click on a favorite, a Live Sites card or a web link in a document opens the site in a tab inside the hub (`openSite()`). A tab strip (`#tabs`) appears under the header. **⌂ Hub** is the document view, and each site gets a tab with its favicon, a close button, and middle-click to close. The active site tab has ↻ reload, ☆ add to favorites and ↗ open in a browser tab. Frames live in `#frames` and stay alive while hidden, so switching tabs never reloads a page. Opening a document from the tree, or typing a search, brings the document view back.
+
+A site that forbids framing shows a blank "refused to connect" page inside an iframe, and the page has no way to detect that. So the server asks the site first. `/api/frameable` fetches the URL and reads `X-Frame-Options` and CSP `frame-ancestors` (`allowsFraming()`). The answer is cached per URL, and an unreachable site counts as not frameable. A site that refuses opens in a browser tab, with a toast saying why. In practice GitHub and Google refuse and Wikipedia allows. Sites that need a sign-in may also show as signed out inside a frame, because browsers block third-party cookies there.
+
+Every frame is `sandbox`ed with scripts, same-origin (its own origin, not the hub's), forms, popups, downloads and modals, and deliberately without `allow-top-navigation`, so a framed site cannot navigate the hub away. The page CSP gained `frame-src 'self' http: https:` for these frames.
 
 ## Folder list view
 

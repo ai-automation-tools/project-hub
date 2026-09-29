@@ -32,8 +32,8 @@ sidebar to its rail. Clicking an icon on the rail reopens it. A first visit open
 and after that the hub remembers the last view.
 
 This page covers the hub's own bookmarks, which pin files and folders. The fourth icon, the star,
-is a different thing: it shows your browser's favorites. See the
-[user manual](../Project-Hub/README.md#browser-favorites).
+is a different thing: it holds favorite websites, the hub's own list or your browser's. See the
+[user manual](../Project-Hub/README.md#favorites).
 
 ---
 

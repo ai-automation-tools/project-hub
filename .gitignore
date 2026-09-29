@@ -7,6 +7,8 @@ hub.config.json
 
 # Runtime indexes, logs, caches and test output contain local paths/content.
 scan.json
+favorites.json
+favorites.json.tmp
 *.log
 *.log.*
 *.pid

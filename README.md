@@ -42,7 +42,9 @@
 and AI agent tools in one browser interface. Browse files, search, bookmark pages,
 and preview Markdown, PDFs, HTML reports, and images. The view updates as files change.
 A VS Code-style activity bar switches the sidebar between the file explorer, your
-bookmarks, recent documents, and your Edge, Chrome or Brave favorites.
+bookmarks, recent documents, favorite websites and settings. Favorites are the hub's own
+list, imported from any browser or synced live with Edge, Chrome or Brave, and websites can
+open in tabs inside the hub.
 
 One local server handles all your workspaces. No build step or runtime dependencies.
 

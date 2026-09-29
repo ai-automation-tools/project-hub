@@ -6,7 +6,7 @@
 <title>%TITLE%</title>
 <link rel="icon" href="%FAVICON%">
 <!-- Applied before first paint so a non-default scheme doesn't flash midnight. -->
-<script nonce="%NONCE%">try{document.documentElement.dataset.theme=localStorage.getItem('hub.theme')||'midnight'}catch{}</script>
+<script nonce="%NONCE%">try{const d=document.documentElement,z=parseFloat(localStorage.getItem('hub.zoom'));d.dataset.theme=localStorage.getItem('hub.theme')||'midnight';if(z>=0.8&&z<=1.5)d.style.setProperty('--zoom',z)}catch{}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -455,7 +455,58 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 #app:not([data-side="explorer"]) #tree,#app:not([data-side="explorer"]) #collapse{display:none}
 #app:not([data-side="bookmarks"]):not([data-side="recent"]) #pins,#app:not([data-side="web"]) #webmarks{display:none}
 #pins,#webmarks{flex:1;overflow-y:auto;padding:6px 0 16px}
-#app.rail #webmarks{display:none}
+#app.rail #webmarks,#app.rail #settings{display:none}
+#app:not([data-side="settings"]) #settings{display:none}
+.act.gear{margin-left:auto}
+#app.rail .act.gear{margin-left:0}
+/* settings */
+#settings{flex:1;overflow-y:auto;padding:4px 0 16px}
+.set{padding:8px 12px 12px;border-bottom:1px solid var(--line-soft)}
+.set h3{margin:0 0 8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer);font-weight:500}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px;font-size:12px;color:var(--fg);cursor:pointer}
+.setrow select,.setpair select{font-family:var(--mono);font-size:11px;color:var(--fg);background:var(--bg);border:1px solid var(--line);padding:3px 5px;min-width:0}
+.sethelp{margin:4px 0 8px;font-size:11px;line-height:1.45;color:var(--dim)}
+.setbtns{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.setbtns .btn{text-align:left}
+.setpair{display:flex;gap:6px}
+.setpair select{flex:1}
+.switch{appearance:none;-webkit-appearance:none;position:relative;width:30px;height:16px;flex:0 0 30px;margin:0;border-radius:8px;
+  background:var(--line);border:1px solid var(--line);cursor:pointer;transition:background .12s}
+.switch::before{content:"";position:absolute;top:1px;left:1px;width:12px;height:12px;border-radius:50%;background:var(--dim);transition:transform .12s,background .12s}
+.switch:checked{background:var(--green-line);border-color:var(--green)}
+.switch:checked::before{transform:translateX(14px);background:var(--green)}
+.switch:focus-visible{outline:1px solid var(--green);outline-offset:2px}
+/* manual favorites: toolbar, add/edit form, row tools, drop targets */
+.webtools{display:flex;gap:5px}
+.webtools input{flex:1}
+.webtools .btn{padding:3px 7px}
+.webform{display:flex;flex-direction:column;gap:5px;padding:6px 8px;margin:2px 8px 6px;border:1px solid var(--line)}
+.webform input,.webform select{font-family:var(--mono);font-size:11px;color:var(--fg);background:var(--bg);border:1px solid var(--line);padding:4px 6px;min-width:0}
+.webform .row2{display:flex;gap:5px;justify-content:flex-end}
+.webrow .x,.webrow .ed{font-family:var(--mono);font-size:11px;color:var(--dimmer);padding:0 3px;visibility:hidden}
+.webrow:hover .x,.webrow:hover .ed,.webrow:focus-within .x,.webrow:focus-within .ed{visibility:visible}
+.webrow .x:hover{color:var(--red)}
+.webrow .ed:hover{color:var(--green)}
+.webrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.webrow.drop{box-shadow:inset 0 2px 0 var(--green)}
+.webrow.dropin{background:var(--sel)}
+.webrow.dragging{opacity:.4}
+/* hub tabs */
+#tabs{display:flex;align-items:stretch;gap:1px;height:32px;flex:0 0 32px;border-bottom:1px solid var(--line);background:var(--panel);overflow-x:auto}
+#tabs[hidden]{display:none}
+.tab{display:flex;align-items:center;gap:6px;max-width:220px;padding:0 8px 0 10px;font-family:var(--mono);font-size:11px;color:var(--dim);
+  cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--fg);background:var(--row-hi)}
+.tab.on{color:var(--fg-max);border-bottom-color:var(--green);background:var(--bg)}
+.tab .nm{overflow:hidden;text-overflow:ellipsis}
+.tab .x{color:var(--dimmer);padding:0 2px}
+.tab .x:hover{color:var(--red)}
+.tabacts{margin-left:auto;display:flex;align-items:center;gap:4px;padding:0 8px}
+.tabacts .btn{padding:2px 7px}
+#frames{flex:1;position:relative;background:#fff}
+#frames[hidden]{display:none}
+#frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none}
+#frames iframe.on{display:block}
 /* browser favorites — rows read like a browser's bookmark sidebar: favicon, then title */
 .webbar{display:flex;flex-direction:column;gap:5px;padding:2px 10px 8px}
 .webbar select,.webbar input{font-family:var(--mono);font-size:11px;color:var(--fg);background:var(--bg);
@@ -509,6 +560,9 @@ details[open]>summary .fchev{transform:rotate(90deg)}
       <button class="act" role="tab" data-view="web" title="Browser favorites (Edge, Chrome, Brave)" aria-label="Browser favorites">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>
       </button>
+      <button class="act gear" role="tab" data-view="settings" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
     </div>
     <div class="ex-head">
       <div class="glyph">/</div>
@@ -518,6 +572,52 @@ details[open]>summary .fchev{transform:rotate(90deg)}
     </div>
     <div id="pins"></div>
     <div id="webmarks"></div>
+    <div id="settings">
+      <section class="set">
+        <h3>Appearance</h3>
+        <label class="setrow"><span>Color scheme</span>
+          <select id="theme">
+            <option value="midnight">midnight</option>
+            <option value="oxide">oxide</option>
+            <option value="cobalt">cobalt</option>
+            <option value="paper">paper</option>
+            <option value="plum">plum</option>
+            <option value="nord">nord</option>
+            <option value="sepia">sepia</option>
+            <option value="mono">mono</option>
+          </select></label>
+        <label class="setrow"><span>Interface size</span>
+          <select id="set-zoom">
+            <option value="0.9">90%</option>
+            <option value="1">100%</option>
+            <option value="1.15">115% (default)</option>
+            <option value="1.3">130%</option>
+          </select></label>
+      </section>
+      <section class="set">
+        <h3>Websites</h3>
+        <label class="setrow"><span>Open websites in hub tabs</span><input type="checkbox" class="switch" id="set-links" role="switch"></label>
+        <p class="sethelp">Off: links open in a new browser tab. On: they open in tabs inside the hub. Sites that refuse to be embedded still open in a browser tab, and Ctrl+click or a middle click always does.</p>
+      </section>
+      <section class="set">
+        <h3>Favorites</h3>
+        <label class="setrow"><span>Sync with browser favorites</span><input type="checkbox" class="switch" id="set-favsync" role="switch"></label>
+        <p class="sethelp" id="set-favhelp"></p>
+        <div class="setbtns" id="set-favtools">
+          <button class="btn" id="fav-import-file">Import bookmarks file…</button>
+          <input type="file" id="fav-file" accept=".html,.htm,text/html" hidden>
+          <div class="setpair"><select id="fav-import-src" aria-label="Browser profile to import"></select><button class="btn" id="fav-import-browser">Import</button></div>
+          <button class="btn" id="fav-export">Export bookmarks file</button>
+        </div>
+      </section>
+      <section class="set">
+        <h3>Sidebar</h3>
+        <div class="setbtns">
+          <button class="btn" id="set-clear-recent">Clear recent documents</button>
+          <button class="btn" id="set-reset-width">Reset sidebar width</button>
+        </div>
+      </section>
+    </div>
     <div id="tree"></div>
     <div class="ex-foot">
       <span id="foot-file">index.html</span>
@@ -541,20 +641,12 @@ details[open]>summary .fchev{transform:rotate(90deg)}
           aria-label="Search the workspace. Prefix with a kind to narrow, for example skill: or repo:">
         <span class="kbd">Ctrl+K</span>
       </div>
-      <select class="btn" id="theme" title="Color scheme">
-        <option value="midnight">◐ midnight</option>
-        <option value="oxide">◐ oxide</option>
-        <option value="cobalt">◐ cobalt</option>
-        <option value="paper">◐ paper</option>
-        <option value="plum">◐ plum</option>
-        <option value="nord">◐ nord</option>
-        <option value="sepia">◐ sepia</option>
-        <option value="mono">◐ mono</option>
-      </select>
       <button class="btn" id="rescan">↻ rescan</button>
     </header>
     <div id="connection" role="status" hidden style="padding:8px 16px;border-bottom:1px solid var(--orange)"><span></span> <button class="btn" id="retry">Retry</button></div>
+    <div id="tabs" role="tablist" aria-label="Open pages" hidden></div>
     <div id="view"></div>
+    <div id="frames" hidden></div>
   </main>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -563,6 +655,8 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 import { routeHash, parseRoute, searchHash, parseSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
   pushRecent, resolveBookmarks, absolutePath } from '/navigation.mjs';
+import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
+  parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
 import { PictureNodes } from '/pictures-client.mjs';
 const pictureNodes = new PictureNodes();
 const pictureRequests = new Map();
@@ -824,7 +918,7 @@ function showFatal(err) {
 // Storage is localStorage, paths only. The list logic lives in navigation.mjs so it can
 // be tested without a DOM; everything here is the sidebar and the wiring.
 const pins = { bookmarks: [], recent: [] };
-const SIDE_VIEWS = { explorer: 'Explorer', bookmarks: 'Bookmarks', recent: 'Recent', web: 'Favorites' };
+const SIDE_VIEWS = { explorer: 'Explorer', bookmarks: 'Bookmarks', recent: 'Recent', web: 'Favorites', settings: 'Settings' };
 let sideView = 'explorer';
 try {
   pins.bookmarks = parseList(localStorage.getItem(BOOKMARKS_KEY));
@@ -1031,41 +1125,191 @@ function setSideView(view) {
   }
   try { localStorage.setItem('hub.side', sideView); } catch {}
   renderPins();
-  if (sideView === 'web') loadWebmarks();   // re-read each time, so browser edits show up
+  if (sideView === 'web') loadWebmarks();   // re-read each time, so edits elsewhere show up
+  if (sideView === 'settings') renderSettings();
 }
 
-// ── browser favorites ──────────────────────────────────────────────────────
-// Read live from the browser's own profile by the server (/api/webmarks), so there is
-// nothing to import twice or keep in sync. Links are real <a target=_blank> elements:
-// middle-click, Ctrl+click, drag and the native "copy link" menu all behave as in a browser.
-const web = { data: null, error: '', q: '', toggled: new Set() };
-async function loadWebmarks() {
-  let source = '';
-  try { source = localStorage.getItem('hub.websrc') || ''; } catch {}
+// ── settings ───────────────────────────────────────────────────────────────
+// Per-viewer preferences, kept in localStorage like the theme. Websites open in a browser
+// tab by default, and favorites start as the hub's own list; syncing with a browser
+// profile is something a person turns on.
+const prefs = { hubTabs: false, favSync: false };
+try {
+  prefs.hubTabs = localStorage.getItem('hub.links') === 'hub';
+  prefs.favSync = localStorage.getItem('hub.favsource') === 'sync';
+} catch {}
+
+function renderSettings() {
+  $('#set-links').checked = prefs.hubTabs;
+  $('#set-favsync').checked = prefs.favSync;
+  const zoom = getComputedStyle(document.documentElement).getPropertyValue('--zoom').trim() || '1.15';
+  $('#set-zoom').value = [...$('#set-zoom').options].some((o) => o.value === zoom) ? zoom : '1.15';
+  $('#set-favhelp').textContent = prefs.favSync
+    ? 'Favorites are read live from an Edge, Chrome or Brave profile on this computer, and are read-only here. Edit them in the browser.'
+    : 'Favorites are the hub’s own list, saved by the hub server. Add, edit and drag them in the Favorites view, or import them below.';
+  $('#set-favtools').hidden = prefs.favSync;
+  if (!prefs.favSync) loadImportSources();
+}
+
+$('#set-links').onchange = (e) => {
+  prefs.hubTabs = e.target.checked;
+  try { localStorage.setItem('hub.links', prefs.hubTabs ? 'hub' : 'browser'); } catch {}
+};
+$('#set-favsync').onchange = (e) => {
+  prefs.favSync = e.target.checked;
+  try { localStorage.setItem('hub.favsource', prefs.favSync ? 'sync' : 'manual'); } catch {}
+  web.q = ''; web.toggled.clear();
+  renderSettings();
+};
+$('#set-zoom').onchange = (e) => {
+  document.documentElement.style.setProperty('--zoom', e.target.value);
+  try { localStorage.setItem('hub.zoom', e.target.value); } catch {}
+};
+$('#set-clear-recent').onclick = () => { pins.recent = []; savePins(); renderPins(); toast('recent documents cleared'); };
+$('#set-reset-width').onclick = () => {
+  document.documentElement.style.removeProperty('--sbw');
+  try { localStorage.removeItem('hub.sbw'); } catch {}
+  toast('sidebar width reset');
+};
+
+async function loadImportSources() {
+  const pick = $('#fav-import-src');
   try {
-    const r = await fetch('/api/webmarks?source=' + encodeURIComponent(source));
+    const r = await fetch('/api/webmarks');
     if (!r.ok) throw new Error(String(r.status));
-    web.data = await r.json(); web.error = '';
+    const { sources } = await r.json();
+    pick.textContent = '';
+    for (const s of sources) { const o = el('option', '', s.label); o.value = s.id; pick.append(o); }
+    if (!sources.length) pick.append(el('option', '', 'no browser profile found'));
+    pick.disabled = $('#fav-import-browser').disabled = !sources.length;
   } catch {
-    web.data = null; web.error = 'Browser favorites are read from this machine by the local hub server.';
+    pick.textContent = ''; pick.append(el('option', '', 'needs the local hub server'));
+    pick.disabled = $('#fav-import-browser').disabled = true;
+  }
+}
+
+async function importFavorites(imported, label) {
+  if (!countLinks(imported)) { toast('nothing to import — no web links found'); return; }
+  const roots = await ensureFavorites();
+  if (!roots) return;
+  saveFavoriteList(mergeImport(roots, imported, label));
+  toast(`imported ${countLinks(imported)} favorites`);
+}
+$('#fav-import-file').onclick = () => $('#fav-file').click();
+$('#fav-file').onchange = async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (file) importFavorites(parseBookmarksHtml(await file.text()), file.name);
+};
+$('#fav-import-browser').onclick = async () => {
+  const pick = $('#fav-import-src');
+  try {
+    const r = await fetch('/api/webmarks?source=' + encodeURIComponent(pick.value));
+    if (!r.ok) throw new Error(String(r.status));
+    importFavorites((await r.json()).roots, pick.selectedOptions[0]?.textContent || 'browser');
+  } catch { toast('could not read that browser profile'); }
+};
+$('#fav-export').onclick = async () => {
+  const roots = await ensureFavorites();
+  if (!roots) return;
+  const a = el('a');
+  a.href = URL.createObjectURL(new Blob([toBookmarksHtml(roots)], { type: 'text/html' }));
+  a.download = 'favorites.html';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+// ── favorites ──────────────────────────────────────────────────────────────
+// Two sources behind one view. Manual (the default) is the hub's own list, kept by the
+// server in favorites.json beside its config and edited here the way a browser's
+// favorites are. Sync reads an Edge/Chrome/Brave profile live (/api/webmarks) and is
+// read-only. Links are real <a> elements either way: middle-click, Ctrl+click, drag and
+// the native "copy link" menu all behave as they do in a browser.
+const web = { data: null, error: '', q: '', toggled: new Set() };
+const fav = { roots: null, error: '', undo: null, form: null, saving: Promise.resolve() };
+
+async function loadWebmarks() {
+  if (prefs.favSync) {
+    let source = '';
+    try { source = localStorage.getItem('hub.websrc') || ''; } catch {}
+    try {
+      const r = await fetch('/api/webmarks?source=' + encodeURIComponent(source));
+      if (!r.ok) throw new Error(String(r.status));
+      web.data = await r.json(); web.error = '';
+    } catch {
+      web.data = null; web.error = 'Browser favorites are read from this computer by the local hub server.';
+    }
+  } else {
+    await ensureFavorites(true);
   }
   renderWebmarks();
 }
 
+/** The manual list, fetched once per view open (or on demand); null when the server is unreachable. */
+async function ensureFavorites(fresh = false) {
+  if (fav.roots && !fresh) return fav.roots;
+  try {
+    const r = await fetch('/api/favorites');
+    if (!r.ok) throw new Error(String(r.status));
+    fav.roots = (await r.json()).roots; fav.error = '';
+  } catch {
+    fav.roots = null; fav.error = 'Favorites are saved by the local hub server.';
+    toast('favorites need the local hub server');
+  }
+  return fav.roots;
+}
+
+/** Show the new list at once, then save it. Every edit can be undone once; saves are queued so they land in order. */
+function saveFavoriteList(next, { undoing = false } = {}) {
+  fav.undo = undoing ? null : fav.roots;
+  fav.roots = next;
+  if (sideView === 'web') renderWebmarks();
+  const body = JSON.stringify({ roots: next });
+  fav.saving = fav.saving
+    .then(() => fetch('/api/favorites', { method: 'PUT', headers: { 'content-type': 'application/json' }, body }))
+    .then((r) => { if (!r.ok) throw new Error(String(r.status)); })
+    .catch(() => toast('could not save favorites'));
+}
+
+async function addFavorite(url, name) {
+  if (prefs.favSync) { toast('favorites are synced from your browser — add it there'); return; }
+  const roots = await ensureFavorites();
+  if (!roots) return;
+  saveFavoriteList(insertNode(roots, [0], { name: name || url, url }));
+  toast('added to the Favorites bar');
+}
+
+// Where each origin's icon ended up: 'direct' (the site's own /favicon.ico) or 'tile'. The
+// list redraws after every edit, and without this each redraw asked again for every icon
+// that had already failed.
+const iconFallback = new Map();
 function favIcon(n) {
-  const img = el('img', 'fav');
-  img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
-  img.src = '/api/favicon?url=' + encodeURIComponent(n.url);
   let url = null;
   try { url = new URL(n.url); } catch {}
+  const tile = () => el('span', 'favtile', (url?.hostname.replace(/^www\./, '') || n.name || '?')[0]);
+  const known = url && iconFallback.get(url.origin);
+  if (known === 'tile') return tile();
+  const img = el('img', 'fav');
+  img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
   // Sites behind bot protection refuse the server's lookup but serve a browser, so ask the
   // site directly next (https only -- img-src allows nothing else), then draw a letter tile.
-  let direct = url?.protocol === 'https:';
+  let direct = known !== 'direct' && url?.protocol === 'https:';
+  img.src = known === 'direct' ? url.origin + '/favicon.ico' : '/api/favicon?url=' + encodeURIComponent(n.url);
   img.addEventListener('error', () => {
-    if (direct) { direct = false; img.src = url.origin + '/favicon.ico'; return; }
-    img.replaceWith(el('span', 'favtile', (url?.hostname.replace(/^www\./, '') || n.name || '?')[0]));
+    if (direct) { direct = false; iconFallback.set(url.origin, 'direct'); img.src = url.origin + '/favicon.ico'; return; }
+    if (url) iconFallback.set(url.origin, 'tile');
+    img.replaceWith(tile());
   });
   return img;
+}
+
+/** A plain click follows the "hub tabs" setting; modified clicks keep the browser's meaning. */
+function followLink(a, url, name) {
+  a.addEventListener('click', (e) => {
+    if (!prefs.hubTabs || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    openSite(url, name);
+  });
 }
 
 function webLink(n, depth, ctx) {
@@ -1074,49 +1318,174 @@ function webLink(n, depth, ctx) {
   a.style.paddingLeft = (12 + depth * 14) + 'px';
   a.append(favIcon(n), el('span', 'nm', n.name));
   if (ctx) a.append(el('span', 'ctx', ctx));
+  followLink(a, n.url, n.name);
   return a;
+}
+
+const FAV_DRAG = 'application/x-hub-favorite';
+const posOf = (s) => { try { const p = JSON.parse(s); return Array.isArray(p) ? p : null; } catch { return null; } };
+const droppedUrl = (dt) => (dt.getData('text/uri-list') || '').split(/\r?\n/).find((l) => l && !l.startsWith('#')) || '';
+
+/** Row tools for the manual list: edit, delete, and dragging to reorder or file into a folder. */
+function editable(row, n, pos) {
+  const ed = el('span', 'ed', '✎'); ed.title = 'Edit'; ed.setAttribute('aria-label', 'Edit ' + n.name);
+  const x = el('span', 'x', '×'); x.title = 'Delete'; x.setAttribute('aria-label', 'Delete ' + n.name);
+  activate(ed, (e) => { e?.preventDefault?.(); e?.stopPropagation?.(); fav.form = { mode: 'edit', pos }; renderWebmarks(); });
+  activate(x, (e) => {
+    e?.preventDefault?.(); e?.stopPropagation?.();
+    saveFavoriteList(removeNode(fav.roots, pos));
+    toast(n.children ? `folder deleted (${countLinks(n.children)} favorites) — undo is in the toolbar` : 'favorite deleted');
+  });
+  row.append(ed, x);
+
+  if (pos.length > 1) {
+    row.draggable = true;
+    row.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData(FAV_DRAG, JSON.stringify(pos));
+      if (n.url) e.dataTransfer.setData('text/uri-list', n.url);
+      e.dataTransfer.effectAllowed = 'copyMove';
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend', () => row.classList.remove('dragging'));
+  }
+  // A folder takes a drop inside it; a link takes one before it.
+  const cls = n.children ? 'dropin' : 'drop';
+  row.addEventListener('dragover', (e) => {
+    const types = [...e.dataTransfer.types];
+    if (!types.includes(FAV_DRAG) && !types.includes('text/uri-list')) return;
+    e.preventDefault(); row.classList.add(cls);
+  });
+  row.addEventListener('dragleave', () => row.classList.remove(cls));
+  row.addEventListener('drop', (e) => {
+    e.preventDefault(); e.stopPropagation(); row.classList.remove(cls);
+    const parent = n.children ? pos : pos.slice(0, -1), index = n.children ? undefined : pos[pos.length - 1];
+    const from = posOf(e.dataTransfer.getData(FAV_DRAG));
+    if (from) return saveFavoriteList(moveNode(fav.roots, from, parent, index));
+    // A link dragged in from a page or the address bar becomes a new favorite.
+    const url = droppedUrl(e.dataTransfer);
+    if (/^https?:\/\//i.test(url)) saveFavoriteList(insertNode(fav.roots, parent, { name: url, url }, index));
+  });
+}
+
+/** The add/edit form, shown above the list. */
+function favForm() {
+  const f = fav.form, editing = f.mode === 'edit' ? nodeAt(fav.roots, f.pos) : null;
+  const folder = f.mode === 'folder' || !!editing?.children;
+  const box = el('form', 'webform');
+  box.setAttribute('aria-label', editing ? 'Edit favorite' : folder ? 'New folder' : 'Add favorite');
+  const name = el('input'); name.placeholder = folder ? 'Folder name' : 'Name'; name.value = editing?.name || '';
+  const url = el('input'); url.placeholder = 'https://…'; url.type = 'url'; url.value = editing?.url || '';
+  const where = el('select'); where.setAttribute('aria-label', 'Folder');
+  for (const [p, label] of favoriteFolders(fav.roots)) { const o = el('option', '', label); o.value = JSON.stringify(p); where.append(o); }
+  const save = el('button', 'btn', editing ? 'Save' : 'Add'); save.type = 'submit';
+  const cancel = el('button', 'btn', 'Cancel'); cancel.type = 'button';
+  cancel.onclick = () => { fav.form = null; renderWebmarks(); };
+  box.append(name);
+  if (!folder) box.append(url);
+  if (!editing) box.append(where);
+  const row = el('div', 'row2'); row.append(cancel, save); box.append(row);
+  box.onsubmit = (e) => {
+    e.preventDefault();
+    const nm = name.value.trim(), link = url.value.trim();
+    if (!folder && !/^https?:\/\//i.test(link)) { toast('enter a web address starting with http:// or https://'); url.focus(); return; }
+    if (folder && !nm) { toast('give the folder a name'); name.focus(); return; }
+    fav.form = null;
+    if (editing) return saveFavoriteList(editNode(fav.roots, f.pos, { name: nm, url: folder ? undefined : link }));
+    const node = folder ? { name: nm, children: [] } : { name: nm || link, url: link };
+    saveFavoriteList(insertNode(fav.roots, posOf(where.value) || [0], node));
+  };
+  box.onkeydown = (e) => { if (e.key === 'Escape') cancel.onclick(); };
+  queueMicrotask(() => (folder || editing ? name : url).focus());
+  return box;
 }
 
 function renderWebmarks() {
   const host = $('#webmarks');
+  const scrolled = host.scrollTop;   // an edit redraws the list; the reader should stay where they were
+  queueMicrotask(() => { host.scrollTop = scrolled; });
   host.textContent = '';
-  if (web.error) return host.append(el('div', 'pinempty', web.error));
-  if (!web.data) return host.append(el('div', 'pinempty', 'loading…'));
-  const { sources, source, roots } = web.data;
-  if (!sources.length) return host.append(el('div', 'pinempty', 'No Edge, Chrome or Brave profile with favorites was found on this machine.'));
+  const sync = prefs.favSync;
+  const error = sync ? web.error : fav.error;
+  if (error) return host.append(el('div', 'pinempty', error));
+  if (sync ? !web.data : !fav.roots) return host.append(el('div', 'pinempty', 'loading…'));
+  if (sync && !web.data.sources.length) return host.append(el('div', 'pinempty', 'No Edge, Chrome or Brave profile with favorites was found on this computer.'));
+  const roots = sync ? web.data.roots : fav.roots;
 
   const bar = el('div', 'webbar');
-  const pick = el('select');
-  pick.setAttribute('aria-label', 'Browser profile');
-  for (const s of sources) { const o = el('option', '', s.label); o.value = s.id; o.selected = s.id === source; pick.append(o); }
-  pick.onchange = () => { try { localStorage.setItem('hub.websrc', pick.value); } catch {} web.toggled.clear(); loadWebmarks(); };
+  if (sync) {
+    const pick = el('select');
+    pick.setAttribute('aria-label', 'Browser profile');
+    for (const s of web.data.sources) { const o = el('option', '', s.label); o.value = s.id; o.selected = s.id === web.data.source; pick.append(o); }
+    pick.onchange = () => { try { localStorage.setItem('hub.websrc', pick.value); } catch {} web.toggled.clear(); loadWebmarks(); };
+    bar.append(pick);
+  }
+  const tools = el('div', 'webtools');
   const q = el('input');
   q.type = 'search'; q.placeholder = 'Search favorites'; q.value = web.q;
   q.setAttribute('aria-label', 'Search favorites');
   q.oninput = () => { web.q = q.value; draw(); };
-  bar.append(pick, q);
+  tools.append(q);
+  if (!sync) {
+    const add = el('button', 'btn', '+ link'); add.title = 'Add favorite'; add.setAttribute('aria-label', 'Add favorite');
+    add.onclick = () => { fav.form = { mode: 'link' }; renderWebmarks(); };
+    const folder = el('button', 'btn', '+ folder'); folder.title = 'New folder'; folder.setAttribute('aria-label', 'New folder');
+    folder.onclick = () => { fav.form = { mode: 'folder' }; renderWebmarks(); };
+    tools.append(add, folder);
+    if (fav.undo) {
+      const undo = el('button', 'btn', '↶'); undo.title = 'Undo'; undo.setAttribute('aria-label', 'Undo');
+      undo.onclick = () => saveFavoriteList(fav.undo, { undoing: true });
+      tools.append(undo);
+    }
+  }
+  bar.append(tools);
+  host.append(bar);
+  if (!sync && fav.form) host.append(favForm());
   const list = el('div');
-  host.append(bar, list);
+  host.append(list);
 
   // Top-level roots start open, like a browser's favorites panel; everything below starts closed.
   const isOpen = (key, depth) => (depth === 0) !== web.toggled.has(key);
-  const walk = (nodes, depth, prefix) => {
-    for (const n of nodes) {
-      if (n.url) { list.append(webLink(n, depth)); continue; }
+  const walk = (nodes, depth, prefix, at) => {
+    nodes.forEach((n, i) => {
+      const pos = [...at, i];
+      if (n.url) {
+        const a = webLink(n, depth);
+        if (!sync) editable(a, n, pos);
+        list.append(a);
+        return;
+      }
       const key = prefix + '/' + n.name, open = isOpen(key, depth);
       const row = el('div', 'webrow');
       row.style.paddingLeft = (8 + depth * 14) + 'px';
       row.setAttribute('aria-expanded', String(open));
       row.append(el('span', 'chev', open ? '▾' : '▸'), el('span', 'nm', n.name), el('span', 'bdg', String(n.children.length)));
       activate(row, () => { web.toggled.has(key) ? web.toggled.delete(key) : web.toggled.add(key); draw(); });
+      if (!sync && depth > 0) editable(row, n, pos);
+      else if (!sync) editableRoot(row, pos);
       list.append(row);
-      if (open) walk(n.children, depth + 1, key);
-    }
+      if (open) walk(n.children, depth + 1, key, pos);
+    });
+  };
+  // Roots can't be edited, deleted or dragged, but they still take drops.
+  const editableRoot = (row, pos) => {
+    row.addEventListener('dragover', (e) => { if ([...e.dataTransfer.types].some((t) => t === FAV_DRAG || t === 'text/uri-list')) { e.preventDefault(); row.classList.add('dropin'); } });
+    row.addEventListener('dragleave', () => row.classList.remove('dropin'));
+    row.addEventListener('drop', (e) => {
+      e.preventDefault(); row.classList.remove('dropin');
+      const from = posOf(e.dataTransfer.getData(FAV_DRAG));
+      if (from) return saveFavoriteList(moveNode(fav.roots, from, pos));
+      const url = droppedUrl(e.dataTransfer);
+      if (/^https?:\/\//i.test(url)) saveFavoriteList(insertNode(fav.roots, pos, { name: url, url }));
+    });
   };
   const draw = () => {
     list.textContent = '';
     const needle = web.q.trim().toLowerCase();
-    if (!needle) return walk(roots, 0, '');
+    if (!needle) {
+      walk(roots, 0, '', []);
+      if (!sync && !countLinks(roots)) list.append(el('div', 'pinempty', 'No favorites yet. Use + link, drop a link here, or import from Settings.'));
+      return;
+    }
     const hits = [];
     const find = (nodes, folder) => {
       for (const n of nodes) {
@@ -1139,6 +1508,94 @@ for (const b of document.querySelectorAll('#activity .act')) {
     if (rail) setRail(false);
   };
 }
+
+// ── hub tabs ───────────────────────────────────────────────────────────────
+// With "open websites in hub tabs" on, a site opens in a tab beside the document view.
+// Frames stay alive while hidden, so switching tabs never reloads a page. Each frame is
+// sandboxed without allow-top-navigation, so a framed site cannot navigate the hub away.
+// The server asks the site whether it may be framed first; one that refuses opens in a
+// browser tab, because a refused frame is a blank page the hub cannot detect.
+const tabs = { list: [], active: null, seq: 0, frameable: new Map() };
+const openInBrowser = (url) => window.open(url, '_blank', 'noopener,noreferrer');
+
+async function openSite(url, title) {
+  if (!prefs.hubTabs) return openInBrowser(url);
+  const open = tabs.list.find((t) => t.url === url);
+  if (open) return activateTab(open.id);
+  let ok = tabs.frameable.get(url);
+  if (ok === undefined) {
+    try {
+      const r = await fetch('/api/frameable?url=' + encodeURIComponent(url));
+      ok = r.ok && (await r.json()).frameable === true;
+    } catch { ok = false; }
+    tabs.frameable.set(url, ok);
+  }
+  if (!ok) { openInBrowser(url); toast('this site doesn’t allow embedding — opened in a browser tab'); return; }
+  const frame = el('iframe');
+  frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals');
+  frame.referrerPolicy = 'no-referrer';
+  frame.allow = 'clipboard-write; fullscreen';
+  frame.title = title || url;
+  frame.src = url;
+  let host = url;
+  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+  const tab = { id: ++tabs.seq, url, title: title || host, frame };
+  tabs.list.push(tab);
+  $('#frames').append(frame);
+  activateTab(tab.id);
+}
+
+/** null is the document view. */
+function activateTab(id) {
+  tabs.active = tabs.list.some((t) => t.id === id) ? id : null;
+  $('#view').hidden = tabs.active !== null;
+  $('#frames').hidden = tabs.active === null;
+  for (const t of tabs.list) t.frame.classList.toggle('on', t.id === tabs.active);
+  renderTabs();
+}
+
+function closeTab(id) {
+  const i = tabs.list.findIndex((t) => t.id === id);
+  if (i < 0) return;
+  const [tab] = tabs.list.splice(i, 1);
+  tab.frame.remove();
+  if (tabs.active === id) activateTab(tabs.list[Math.min(i, tabs.list.length - 1)]?.id ?? null);
+  else renderTabs();
+}
+
+function renderTabs() {
+  const host = $('#tabs');
+  host.hidden = !tabs.list.length;
+  host.textContent = '';
+  if (!tabs.list.length) return;
+  const hub = el('div', 'tab' + (tabs.active === null ? ' on' : ''));
+  hub.append(el('span', 'nm', '⌂ Hub'));
+  activate(hub, () => activateTab(null), 'tab');
+  hub.setAttribute('aria-selected', String(tabs.active === null));
+  host.append(hub);
+  for (const t of tabs.list) {
+    const tab = el('div', 'tab' + (t.id === tabs.active ? ' on' : ''));
+    tab.title = t.title + '\n' + t.url;
+    const x = el('span', 'x', '×'); x.setAttribute('aria-label', 'Close ' + t.title);
+    activate(x, (e) => { e?.stopPropagation?.(); closeTab(t.id); });
+    tab.append(favIcon({ url: t.url, name: t.title }), el('span', 'nm', t.title), x);
+    activate(tab, () => activateTab(t.id), 'tab');
+    tab.setAttribute('aria-selected', String(t.id === tabs.active));
+    tab.addEventListener('auxclick', (e) => { if (e.button === 1) { e.preventDefault(); closeTab(t.id); } });
+    host.append(tab);
+  }
+  const active = tabs.list.find((t) => t.id === tabs.active);
+  if (active) {
+    const acts = el('div', 'tabacts');
+    const reload = el('button', 'btn', '↻'); reload.title = 'Reload'; reload.onclick = () => { active.frame.src = active.url; };
+    const star = el('button', 'btn', '☆'); star.title = 'Add to favorites'; star.onclick = () => addFavorite(active.url, active.title);
+    const out = el('button', 'btn', '↗'); out.title = 'Open in a browser tab'; out.onclick = () => openInBrowser(active.url);
+    acts.append(reload, star, out);
+    host.append(acts);
+  }
+}
+// Anything that shows a document or search results brings the document view back.
+$('#q').addEventListener('input', () => { if (tabs.active !== null) activateTab(null); });
 
 function bookmarkBtn(id) {
   const on = isBookmarked(pins.bookmarks, id);
@@ -1511,6 +1968,7 @@ async function go(id, heading = '') {
     if (request !== navigationRequest) return;
   }
   if (!S.byId.has(id)) return;
+  if (tabs.active !== null) activateTab(null);
   S.sel = id;
   S.heading = heading;
   restoreReading = null;
@@ -1970,7 +2428,7 @@ function viewOverview(page, root) {
       const detail = [s.url.replace(/^https?:\/\//, ''), s.stack].filter(Boolean).join(' · ');
       c.append(hd, el('p', '', detail));
       c.title = `open ${s.url}`;
-      activate(c, () => window.open(s.url, '_blank', 'noopener,noreferrer'));
+      activate(c, () => openSite(s.url, s.app));
       cards.append(c);
     }
     page.append(foldable('Live Sites',
@@ -2063,7 +2521,7 @@ function viewPortfolio(page, n) {
       const detail = [s.url.replace(/^https?:\/\//, ''), s.stack].filter(Boolean).join(' · ');
       c.append(hd, el('p', '', detail));
       c.title = `open ${s.url}`;
-      activate(c, () => window.open(s.url, '_blank', 'noopener,noreferrer'));
+      activate(c, () => openSite(s.url, s.app));
       siteCards.append(c);
     }
     page.append(foldable('Live Sites',
@@ -2911,7 +3369,11 @@ async function loadDoc(id, host, opts = {}) {
     // Relative links jump inside the hub when the target is indexed.
     for (const a of host.querySelectorAll('a[href]')) {
       const href = a.getAttribute('href') || '';
-      if (/^(https?:|mailto:)/i.test(href)) { a.target = '_blank'; a.rel = 'noreferrer'; continue; }
+      if (/^(https?:|mailto:)/i.test(href)) {
+        a.target = '_blank'; a.rel = 'noreferrer';
+        if (/^https?:/i.test(href)) followLink(a, a.href, a.textContent.trim());
+        continue;
+      }
       const target = documentTarget(id, href);
       a.onclick = (e) => {
         e.preventDefault();

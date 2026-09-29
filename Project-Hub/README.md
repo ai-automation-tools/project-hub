@@ -502,9 +502,9 @@ the keyboard — they own the arrows first — and `Alt`+arrow is still Back/For
 
 ## Bookmarks and recents
 
-The icon row at the top of the sidebar switches it between four views, the way VS Code's
-activity bar does: **Explorer** (the tree), **Bookmarks**, **Recent** and **Favorites** (your
-browser's own; see [Browser favorites](#browser-favorites)). The Bookmarks icon
+The icon row at the top of the sidebar switches it between five views, the way VS Code's
+activity bar does: **Explorer** (the tree), **Bookmarks**, **Recent**, **Favorites** (see
+[Favorites](#favorites)) and **Settings** (see [Settings](#settings)). The Bookmarks icon
 carries a count badge. Clicking the icon that is already active folds the sidebar to its rail,
 and clicking any icon on the rail opens it again on that view. The last view is remembered.
 
@@ -537,9 +537,40 @@ Both lists live in `localStorage` in this browser, hold **paths and labels only*
 survive restarting the browser and the hub. They do not sync between browsers or machines —
 copy a Hub link for that. Full how-to: [`../Docs/BOOKMARKS.md`](../Docs/BOOKMARKS.md).
 
-## Browser favorites
+## Settings
 
-The star icon, the fourth in the activity bar, shows the favorites from your Edge, Chrome or Brave profile, with their favicons. Pick the profile from the dropdown at the top. The hub reads the browser's own favorites every time you open the view, so there is nothing to import and nothing to keep in sync. Change your favorites in the browser, and they change here too. Clicking one opens it in a new tab. Middle-click and Ctrl+click work as they do in a browser. The search box matches titles and URLs. Firefox isn't supported, and the hosted demo doesn't have this view because it has no server to read a profile.
+The gear at the right end of the activity bar opens Settings:
+
+| Setting | What it does |
+| :--- | :--- |
+| **Color scheme** | One of eight themes. It moved here from the header. |
+| **Interface size** | Scales the whole interface: 90, 100, 115 (the default) or 130%. |
+| **Open websites in hub tabs** | Off (the default): links to websites open in a new browser tab. On: they open in tabs inside the hub. See [Hub tabs](#hub-tabs). |
+| **Sync with browser favorites** | Off (the default): Favorites is the hub's own list. On: it shows your Edge, Chrome or Brave favorites, read-only. |
+
+Settings also has **Import bookmarks file…**, **Import** from a browser profile, **Export bookmarks file**, **Clear recent documents** and **Reset sidebar width**. All of these are remembered per browser.
+
+## Favorites
+
+The star icon opens Favorites. Out of the box it is the hub's own list, and it works like the favorites in Edge or Chrome:
+
+- **+ link** adds a favorite, and **+ folder** adds a folder. Either one can go into any folder.
+- Hover over a row for ✎ to rename it or change its address, or × to delete it.
+- Drag a row onto a folder to move it there, or onto another favorite to put it just above. Drag a link in from a web page or the address bar to save it.
+- ↶ undoes the last change.
+- The search box matches names and addresses.
+
+To bring favorites in, open Settings. **Import bookmarks file…** takes the HTML file that Edge, Chrome, Firefox or Safari exports. **Import** copies a browser profile on this computer once. **Export bookmarks file** saves your list in the same format, so any browser can import it. Into an empty list, an import keeps its own layout. Into a list that already has favorites, it arrives as one "Imported from …" folder on the Favorites bar. The list is saved by the hub server in `favorites.json` next to its config, so every browser you open the hub in sees the same favorites.
+
+Turn on **Sync with browser favorites** and the view shows a browser's own favorites instead. Pick the profile from the dropdown. The hub reads them every time you open the view, so changes made in the browser appear here. In this mode the list is read-only, so edit it in the browser.
+
+Clicking a favorite opens it in a new browser tab, or in a hub tab if that setting is on. Middle-click and Ctrl+click always open a browser tab. The hosted demo has no server, so Favorites there shows a note.
+
+## Hub tabs
+
+Turn on **Open websites in hub tabs** in Settings and websites open inside the hub. That covers favorites, Live Sites cards and web links in documents. A tab strip appears under the header. **⌂ Hub** goes back to your documents. Each site tab has × to close it, and a middle click closes it too. The active site has ↻ to reload, ☆ to add it to your favorites, and ↗ to open it in a real browser tab. Switching tabs doesn't reload a page, and opening a document from the sidebar takes you back to the Hub tab.
+
+Many sites refuse to be shown inside another page, GitHub and Google among them. The hub checks first, and opens those in a browser tab instead with a short note. Sites you sign in to may show you as signed out inside a hub tab, because browsers block their cookies there. Use ↗ for those.
 
 ## What the scan is doing
 

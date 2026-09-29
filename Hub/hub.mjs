@@ -22,7 +22,7 @@ import zlib from 'node:zlib';
 import { createReportHandler } from './reports.mjs';
 import { launchNative } from './open-native.mjs';
 import { PictureLibrary, ignorePictureEvent } from './pictures.mjs';
-import { browserDirs, listSources, readSource, createFavicons } from './webmarks.mjs';
+import { browserDirs, listSources, readSource, createFavicons, createFrameCheck, cleanTree, loadFavorites, saveFavorites } from './webmarks.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -1521,6 +1521,9 @@ const csp = (nonce) => [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https:",
+  // Hub tabs frame websites. Each frame is sandboxed without allow-top-navigation, so a
+  // framed site can never navigate the hub itself away.
+  "frame-src 'self' http: https:",
   "connect-src 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
@@ -1609,6 +1612,9 @@ const sameOrigin = (req) => {
 const handleReport = createReportHandler({ resolveId, toId: rel });
 const BROWSER_DIRS = browserDirs({ home: os.homedir(), localAppData: process.env.LOCALAPPDATA });
 const favicons = createFavicons();
+const frameable = createFrameCheck();
+const FAVORITES_FILE = path.join(HUB_DIR, 'favorites.json');
+const FAVORITES_MAX = 5 * 1024 * 1024;
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
 
@@ -1711,6 +1717,45 @@ const server = http.createServer(async (req, res) => {
     const src = sources.find((s) => s.id === url.searchParams.get('source')) || sources[0];
     const body = { sources: sources.map(({ id, label }) => ({ id, label })), source: src?.id || '', roots: src ? readSource(src) : [] };
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify(body));
+    return;
+  }
+
+  // The hub's own favorites. PUT replaces the whole list: it is small, and a whole-list
+  // write can never interleave into a tree neither edit meant. A cross-site page cannot
+  // send a JSON content type without a preflight this server never answers, and
+  // sameOrigin refuses it anyway.
+  if (url.pathname === '/api/favorites') {
+    if (!sameOrigin(req)) { res.writeHead(403).end('same-origin only'); return; }
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify({ roots: loadFavorites(FAVORITES_FILE) }));
+      return;
+    }
+    if (req.method !== 'PUT') { res.writeHead(405, { allow: 'GET, PUT' }).end('method not allowed'); return; }
+    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) { res.writeHead(415).end('application/json required'); return; }
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of req) {
+      size += chunk.length;
+      if (size > FAVORITES_MAX) { res.writeHead(413).end('favorites too large'); req.destroy(); return; }
+      chunks.push(chunk);
+    }
+    let roots = null;
+    try { roots = cleanTree(JSON.parse(Buffer.concat(chunks).toString('utf8')).roots); } catch {}
+    if (!roots) { res.writeHead(400).end('not a favorites tree'); return; }
+    try { saveFavorites(FAVORITES_FILE, roots); } catch { res.writeHead(500).end('could not save favorites'); return; }
+    res.writeHead(204).end();
+    return;
+  }
+
+  // Whether a site lets a hub tab frame it. Asked by the server because the browser gives
+  // a page no way to tell a refused frame from a slow one.
+  if (url.pathname === '/api/frameable') {
+    if (!sameOrigin(req)) { res.writeHead(403).end('same-origin only'); return; }
+    let page = null;
+    try { page = new URL(url.searchParams.get('url') || ''); } catch {}
+    if (!page || !/^https?:$/.test(page.protocol)) { res.writeHead(400).end('http(s) url required'); return; }
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' })
+      .end(JSON.stringify({ frameable: await frameable(page.href) }));
     return;
   }
 

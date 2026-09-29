@@ -560,7 +560,7 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   const html = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
   assert.ok(html.includes('<div id="pins">'), 'the sidebar has no pins host');
   // Each list is its own activity-bar view; a first visit still lands on the Explorer.
-  for (const view of ['explorer', 'bookmarks', 'recent', 'web']) {
+  for (const view of ['explorer', 'bookmarks', 'recent', 'web', 'settings']) {
     assert.ok(html.includes(`data-view="${view}"`), `the activity bar has no ${view} button`);
   }
   assert.ok(html.includes("let sideView = 'explorer';"), 'the sidebar must default to the Explorer view');
@@ -570,7 +570,7 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'"].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.favsource'", "'hub.zoom'"].includes(key),
       `unexpected localStorage key ${key}`);
   }
 });
@@ -728,4 +728,17 @@ test('copy paths use the configured base, home and cross-drive ids', () => {
   assert.equal(absolutePath('F:/Reports/a.md', 'E:/Work'), 'F:/Reports/a.md');
   assert.equal(absolutePath('../Docs/a.md', '/work/projects'), '/work/Docs/a.md');
   assert.equal(absolutePath('@projects', 'E:/Work'), '');
+});
+
+// A module script that declares a name it also imports fails to load at all, and the page
+// sits on its loading state with one console line to say why. node --check cannot see it
+// without the imports, so compare the two lists directly.
+test('index.html declares nothing it also imports', () => {
+  const html = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  const script = /<script type="module"[^>]*>([\s\S]*?)<\/script>/.exec(html)[1];
+  const imported = [...script.matchAll(/^import \{([^}]*)\} from/gm)]
+    .flatMap((m) => m[1].split(',').map((s) => s.trim().split(/\s+as\s+/).pop()).filter(Boolean));
+  const declared = new Set([...script.matchAll(/^(?:async\s+)?(?:function\s+(\w+)|(?:const|let|class)\s+(\w+))/gm)].map((m) => m[1] || m[2]));
+  const clashes = imported.filter((name) => declared.has(name));
+  assert.deepEqual(clashes, [], `declared and imported: ${clashes.join(', ')}`);
 });

@@ -58,6 +58,74 @@ export function readSource(source) {
   return parseChromium(readJson(source.file));
 }
 
+// ── manual favorites ────────────────────────────────────────────────────────
+// The hub's own list, kept as one JSON file beside the server config. Everything the
+// client sends is rebuilt field by field, so the file only ever holds names, web URLs and
+// folders, however the request was shaped.
+
+export const EMPTY_FAVORITES = () => [{ name: 'Favorites bar', children: [] }, { name: 'Other favorites', children: [] }];
+const MAX_NODES = 50000, MAX_DEPTH = 32;
+
+/** A tree fit to store, or null when the input is not one. */
+export function cleanTree(input) {
+  let count = 0;
+  const clean = (n, depth) => {
+    if (++count > MAX_NODES || depth > MAX_DEPTH || !n || typeof n !== 'object') throw new Error('bad tree');
+    const name = String(n.name ?? '').slice(0, 500);
+    if (Array.isArray(n.children)) return { name: name || '(untitled)', children: n.children.map((c) => clean(c, depth + 1)).filter(Boolean) };
+    return typeof n.url === 'string' && /^https?:\/\//i.test(n.url) && n.url.length <= 8192 ? { name: name || n.url, url: n.url } : null;
+  };
+  try {
+    if (!Array.isArray(input)) return null;
+    const roots = input.map((r) => clean(r, 0)).filter((r) => r && r.children);
+    return roots.length ? roots : null;
+  } catch { return null; }
+}
+
+export function loadFavorites(file) {
+  return cleanTree(readJson(file)) || EMPTY_FAVORITES();
+}
+
+/** Write to a temporary file then rename, so a crash mid-write never leaves half a list. */
+export function saveFavorites(file, roots) {
+  const tmp = file + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(roots, null, 1));
+  fs.renameSync(tmp, file);
+}
+
+// ── embedding ───────────────────────────────────────────────────────────────
+// A site that forbids framing shows the browser's own "refused to connect" page inside an
+// iframe, and the page cannot detect that. So ask the site first: its X-Frame-Options and
+// CSP frame-ancestors headers say whether a hub tab can show it.
+
+/** Whether response headers allow a page on another origin to frame this one. */
+export function allowsFraming(headers) {
+  const xfo = (headers.get('x-frame-options') || '').trim().toLowerCase();
+  if (xfo === 'deny' || xfo === 'sameorigin' || xfo.startsWith('allow-from')) return false;
+  const ancestors = /(?:^|;)\s*frame-ancestors\s+([^;]*)/i.exec(headers.get('content-security-policy') || '')?.[1];
+  return ancestors == null || /(^|\s)\*(\s|$)/.test(ancestors.trim());
+}
+
+/** One answer per URL, cached for the process. An unreachable site answers false: a browser tab always works. */
+export function createFrameCheck({ fetchImpl = fetch, timeoutMs = 5000 } = {}) {
+  const cache = new Map();
+  const check = async (url) => {
+    try {
+      const r = await fetchImpl(url, {
+        redirect: 'follow',
+        signal: AbortSignal.timeout(timeoutMs),
+        headers: { 'user-agent': 'Mozilla/5.0 (Project Hub embed check)', accept: 'text/html,*/*' },
+      });
+      r.body?.cancel?.().catch(() => {});
+      return allowsFraming(r.headers);
+    } catch { return false; }
+  };
+  return (url) => {
+    if (!cache.has(url)) cache.set(url, check(url));
+    return cache.get(url);
+  };
+}
+
 // ── favicons ────────────────────────────────────────────────────────────────
 // Chromium keeps icons in a SQLite file this zero-dependency server cannot read, so they
 // are resolved the way a browser finds them in the first place: the page's <link rel=icon>

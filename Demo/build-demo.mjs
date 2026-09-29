@@ -285,7 +285,7 @@ try {
   write(path.join(SITE, 'api', 'manifest.json'), JSON.stringify(manifest));
 
   // ── 5. the interface, unmodified except where it must reach the server ───
-  for (const f of ['navigation.mjs', 'pictures-client.mjs']) {
+  for (const f of ['navigation.mjs', 'pictures-client.mjs', 'favorites.mjs']) {
     fs.copyFileSync(path.join(REPO, 'Hub', f), path.join(SITE, f));
   }
   fs.copyFileSync(path.join(HERE, 'static', 'demo.js'), path.join(SITE, 'demo.js'));

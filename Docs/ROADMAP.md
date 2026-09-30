@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-blocked_on_a_viewport-e0a458?style=for-the-badge" alt="P7-14 blocked on reaching a narrow viewport">
-  <img src="https://img.shields.io/badge/tests-82_passing-8B5CF6?style=for-the-badge" alt="82 tests passing">
+  <img src="https://img.shields.io/badge/tests-83_passing-8B5CF6?style=for-the-badge" alt="83 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
@@ -2074,7 +2074,12 @@ top to bottom.
   and the phases recorded above, one line per meaningful change. Link it from
   `Docs/README.md`. From here on, every checked item below gets a changelog line in the
   same commit.
-- [ ] **P9-02 · Search: root and type filters** (the first third of P7-07's remainder).
+- [x] **P9-02 · Search: root and type filters** (the first third of P7-07's remainder).
+  *(done 2026-09-29: chips for each top-level root and for DOC / HTML / PDF / IMAGE under the
+  result count, carried as `root=` / `type=` in the search route. `filterSearchPool()` in
+  `navigation.mjs` is the tested core; Pictures is asked only when no other root is chosen.
+  Browser-checked on the demo build: a pasted filtered URL restores both chips, Enter on a lit
+  chip clears it and keeps focus, and Back from an opened result restores the type chip.)*
   Filter chips for each shared root and for document kind (md / html / pdf / image), kept
   in the search route so Back restores them.
 - [ ] **P9-03 · Search: typo tolerance** (P7-07, and #13's fuzzy search). A bounded edit

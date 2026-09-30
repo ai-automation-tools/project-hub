@@ -13,11 +13,15 @@ export function parseRoute(hash) {
 // A search was the one view with no address of its own: opening a result cleared the query,
 // so Back landed on the previous document instead of the results you came from. Giving the
 // search a route lets the browser's own history restore it, with no separate state to keep.
-export function searchHash(query, scoped = false, limit = 200) {
+// P9-02: the root and type chips live in the route too, so Back restores a narrowed search
+// exactly as it was left rather than widening it again.
+export function searchHash(query, scoped = false, limit = 200, { root = '', type = '' } = {}) {
   if (!query) return '';
   const parts = ['q=' + encodeURIComponent(query)];
   if (scoped) parts.push('scoped=1');
   if (limit && limit !== 200) parts.push('limit=' + limit);
+  if (root) parts.push('root=' + encodeURIComponent(root));
+  if (type) parts.push('type=' + type);
   return '#?' + parts.join('&');
 }
 
@@ -33,8 +37,26 @@ export function parseSearch(hash) {
       query: q,
       scoped: params.get('scoped') === '1',
       limit: Number.isInteger(limit) && limit >= 200 && limit <= 20000 ? limit : 200,
+      // A root id is only ever compared against tree ids, so an unknown one just matches
+      // nothing; a type outside the chip set is dropped rather than becoming a kind filter.
+      root: params.get('root') || '',
+      type: SEARCH_TYPES.includes(params.get('type')) ? params.get('type') : '',
     };
   } catch { return null; }
+}
+
+// The document kinds that get a type chip. Everything else is still reachable with a
+// `skill:`-style prefix; these four are the ones P7-07 asked to narrow to in one click.
+export const SEARCH_TYPES = ['md', 'html', 'pdf', 'image'];
+
+/**
+ * Narrow the search pool by the chips. `rootOf(id)` returns the id of the top-level tree
+ * node a hit sits under (Projects, Documents, Skills, …). The prefix kind and the type chip
+ * both apply, so `skill:` with the PDF chip on is honestly empty rather than one silently
+ * overriding the other.
+ */
+export function filterSearchPool(pool, { kind = null, root = '', type = '' } = {}, rootOf = () => '') {
+  return pool.filter((h) => (!kind || h.kind === kind) && (!type || h.kind === type) && (!root || rootOf(h.id) === root));
 }
 
 export function documentTarget(fromId, href) {

@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-09-29
 
+- Narrow a search by root and by type: chips for each top-level root and for DOC / HTML / PDF / IMAGE sit under the result count, and ride in the search URL so Back restores them. *(roadmap: P9-02)*
 - Bring the docs in line with the new sidebar: the scaffold's layout reference, the privacy notes (browser profiles, favicon and embed requests, `favorites.json`), and what the demo does with Settings, Favorites and hub tabs.
 
 - Pin both new settings to opt-in with a test: links open in a browser tab and Favorites is the hub's own list until a viewer switches them.

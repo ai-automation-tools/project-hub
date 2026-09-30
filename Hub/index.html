@@ -654,7 +654,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module" nonce="%NONCE%">
-import { routeHash, parseRoute, searchHash, parseSearch, documentTarget, markdownLink, includeInSearch,
+import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
   pushRecent, resolveBookmarks, absolutePath } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
@@ -692,6 +692,7 @@ const S = { data:null, byId:new Map(), parent:new Map(), index:[], sel:null, ope
   repoSort:{ key:'name', dir:1 }, repoFilter:null,   // overview table, see viewOverview
   folderSort:{ key:'name', dir:1 },   // folder list view, see viewFolder
   searchScoped:false,   // "only <project>" toggle, see viewSearch
+  searchRoot:'', searchType:'',   // P9-02 root and type chips, see viewSearch
   docOff:new Set(),   // docFirst nodes the reader switched off this session, see viewDocFirst
   focus:null,   // id of the row holding the tree's keyboard cursor
   hit:-1 };     // index of the highlighted search result
@@ -855,6 +856,7 @@ async function doLoad({ quiet, fresh, force } = {}) {
     const search = parseSearch(location.hash);
     if (search) {
       S.query = search.query; S.searchScoped = search.scoped; S.hitLimit = search.limit; S.hit = -1;
+      S.searchRoot = search.root; S.searchType = search.type;
       $('#q').value = search.query;
       renderView();
     } else {
@@ -2062,7 +2064,7 @@ async function go(id, heading = '') {
  */
 function syncSearchRoute(replace) {
   const hash = S.query
-    ? searchHash(S.query, S.searchScoped, S.hitLimit)
+    ? searchHash(S.query, S.searchScoped, S.hitLimit, { root: S.searchRoot, type: S.searchType })
     : routeHash(S.sel || defaultRootId(), S.heading);
   if (location.hash === hash) return;
   try { history[replace ? 'replaceState' : 'pushState'](null, '', hash); }
@@ -2096,6 +2098,8 @@ let queryTimer;
 $('#q').addEventListener('input', (e) => {
   const wasSearching = !!S.query;
   S.query = e.target.value.trim(); S.hit = -1; S.hitLimit = 200;
+  // Refining a query keeps its chips; a fresh search starts wide, like the page does.
+  if (!wasSearching) { S.searchRoot = ''; S.searchType = ''; }
   syncSearchRoute(wasSearching);
   clearTimeout(queryTimer); queryTimer = setTimeout(renderView, 150);
 });
@@ -2211,6 +2215,7 @@ window.addEventListener('hashchange', () => {
   const search = parseSearch(location.hash);
   if (search) {
     S.query = search.query; S.searchScoped = search.scoped; S.hitLimit = search.limit; S.hit = -1;
+    S.searchRoot = search.root; S.searchType = search.type;
     $('#q').value = search.query;
     renderView();
     return;
@@ -3507,7 +3512,8 @@ function viewSearch(page) {
   const q = kind ? scoped[2].trim() : typed;
 
   const ctxProject = searchContextProject();
-  let pool = kind ? S.index.filter(h => h.kind === kind) : S.index;
+  const root = S.byId.has(S.searchRoot) ? S.searchRoot : '', type = S.searchType;
+  let pool = filterSearchPool(S.index, { kind, root, type }, rootIdOf);
   if (ctxProject && S.searchScoped) pool = pool.filter(h => topAncestorOf(h.id) === ctxProject);
   const ranked = (q ? pool.map(h => ({ h, score: score(h, q) })).filter(x => x.score > 0)
     : pool.map(h => ({ h, score: KIND_WEIGHT[h.kind] || 1 })))
@@ -3519,15 +3525,31 @@ function viewSearch(page) {
   const label = el('span', 'mono');
   label.textContent = `Showing ${hits.length} of ${ranked.length} match${ranked.length === 1 ? '' : 'es'}`
     + (kind ? ` in ${KIND_LABEL[kind] || kind}` : '')
+    + (type && type !== kind ? ` in ${KIND_LABEL[type]}` : '')
+    + (root ? ` under ${S.byId.get(root).name}` : '')
     + (q ? ` for “${q}”` : '')
     + (hits.length ? ' — ↑↓ to move, Enter to open' : '');
   head.append(label);
   if (ctxProject) {
-    const toggle = el('span', 'fchip' + (S.searchScoped ? ' on' : ''), `only ${ctxProject.name}`);
-    activate(toggle, () => { S.searchScoped = !S.searchScoped; syncSearchRoute(true); renderView(); });
+    const toggle = searchChip(`only ${ctxProject.name}`, S.searchScoped, 'scoped', () => { S.searchScoped = !S.searchScoped; });
     head.append(toggle);
   }
   page.append(head);
+
+  // P9-02: one chip per top-level root and per document type. Each row is single-choice;
+  // clicking the lit chip clears it, so there is no separate "all" to find.
+  const filters = el('div', 'filters');
+  filters.style.cssText = 'margin:8px 0 4px;gap:14px';
+  const roots = el('div', 'filters'); roots.setAttribute('role', 'group'); roots.setAttribute('aria-label', 'Search in root');
+  for (const n of S.data.tree) {
+    roots.append(searchChip(n.name, root === n.id, 'root:' + n.id, () => { S.searchRoot = root === n.id ? '' : n.id; }));
+  }
+  const types = el('div', 'filters'); types.setAttribute('role', 'group'); types.setAttribute('aria-label', 'Search by type');
+  for (const t of SEARCH_TYPES) {
+    types.append(searchChip(KIND_LABEL[t], type === t, 'type:' + t, () => { S.searchType = type === t ? '' : t; }));
+  }
+  filters.append(roots, types);
+  page.append(filters);
 
   const list = el('div');
   list.id = 'search-results';
@@ -3543,7 +3565,8 @@ function viewSearch(page) {
     list.append(row);
   }
   if (!hits.length) {
-    list.append(el('div', 'empty', kind ? `no ${KIND_LABEL[kind] || kind} matched` : 'nothing matched'));
+    list.append(el('div', 'empty', (kind ? `no ${KIND_LABEL[kind] || kind} matched` : 'nothing matched')
+      + (root || type ? ' — try clearing a filter' : '')));
   }
   page.append(list);
   if (hits.length < ranked.length) {
@@ -3551,11 +3574,38 @@ function viewSearch(page) {
     more.onclick = () => { const scroll = $('#view').scrollTop; S.hitLimit = (S.hitLimit || 200) + 200; syncSearchRoute(true); renderView(); $('#view').scrollTop = scroll; };
     page.append(more);
   }
-  if ((!ctxProject || !S.searchScoped) && (!kind || ['image', 'pdf', 'html', 'md', 'config', 'folder'].includes(kind))) {
+  // Pictures is searched server-side, so the chips are applied by deciding whether to ask
+  // at all (another root is chosen, or prefix and chip disagree) and by what kind to ask for.
+  const picKind = kind || type;
+  if ((!ctxProject || !S.searchScoped) && (!root || root === pictureNodes.rootId) && (!kind || !type || kind === type)
+    && (!picKind || ['image', 'pdf', 'html', 'md', 'config', 'folder'].includes(picKind))) {
     const pictures = el('section'); page.append(pictures);
-    searchPictures(pictures, q, kind);
+    searchPictures(pictures, q, picKind);
   }
 
+}
+
+/** The top-level tree node an id sits under -- the unit the root chips filter by. */
+function rootIdOf(id) {
+  let p = id;
+  while (S.parent.has(p)) p = S.parent.get(p);
+  return p;
+}
+
+/**
+ * A toggle chip for the search header. It re-renders the whole view, so focus is put back
+ * on the chip that was pressed -- otherwise a keyboard user lands at the top of the page
+ * after every click. `aria-pressed` is what tells a screen reader the chip is a toggle.
+ */
+function searchChip(label, on, key, flip) {
+  const chip = el('span', 'fchip' + (on ? ' on' : ''), label);
+  chip.dataset.chip = key;
+  chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+  activate(chip, () => {
+    flip(); S.hit = -1; syncSearchRoute(true); renderView();
+    [...$('#view').querySelectorAll('[data-chip]')].find(c => c.dataset.chip === key)?.focus();
+  });
+  return chip;
 }
 
 async function searchPictures(host, q, kind, previous = [], previousVersion = null) {

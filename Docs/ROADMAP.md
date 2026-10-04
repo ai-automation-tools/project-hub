@@ -14,6 +14,8 @@
   <img src="https://img.shields.io/badge/P7--01–16-all_shipped-2ea44f?style=for-the-badge" alt="P7-01 to P7-16 all shipped">
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
+  <img src="https://img.shields.io/badge/P7--14-shipped_2026--10--03-2ea44f?style=for-the-badge" alt="P7-14 narrow-pane layout shipped 2026-10-03">
+  <img src="https://img.shields.io/badge/tests-82_passing-8B5CF6?style=for-the-badge" alt="82 tests passing">
   <img src="https://img.shields.io/badge/P7--14-blocked_on_a_viewport-e0a458?style=for-the-badge" alt="P7-14 blocked on reaching a narrow viewport">
   <img src="https://img.shields.io/badge/tests-83_passing-8B5CF6?style=for-the-badge" alt="83 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
@@ -1088,7 +1090,7 @@ unstarted by choice.
 | P7-11 | **Shipped 2026-09-08; browser-verified** | A search has its own route, so Back returns to the results. Result-list scroll and per-document reading positions were deliberately left out. See [P7-11 fixed](#p7-11-fixed--a-search-is-now-a-route). |
 | P7-12 | **Shipped 2026-09-09; browser-verified** | Heading outline, rendered/source toggle behind `?raw=1`, copy buttons on code blocks, reading width and text size, and a print stylesheet. See [P7-12 shipped](#p7-12-shipped--five-small-things-that-make-a-file-a-document). |
 | P7-13 | **Shipped 2026-09-09; browser-verified** | Lazy thumbnails on image cards, and a viewer with fit/100%/zoom, natural dimensions, prev-next and arrow keys. Uncovered and fixed the P7-06 SVG regression. See [P7-13 shipped](#p7-13-shipped--thumbnails-a-real-viewer-and-the-svg-bug-it-uncovered). |
-| P7-14 | **Not started — blocked on verification** | Narrow embedded panes. `resize_window` reports success but `innerWidth` never left 1549, so **no genuine 640–1024px viewport has ever been reached** and no claim is made about the layout there. Planning this needs a real narrow viewport first, not more source reading. |
+| P7-14 | **Shipped 2026-10-03** — see P9-24 | Narrow embedded panes. `resize_window` reports success but `innerWidth` never left 1549, so **no genuine 640–1024px viewport has ever been reached** and no claim is made about the layout there. Planning this needs a real narrow viewport first, not more source reading. |
 | P7-15 | **Shipped 2026-09-09; browser-verified; partly open** | The search box is a real combobox with `aria-expanded`, `aria-controls` and `aria-activedescendant` across both listboxes. `Ctrl+K` and announced toasts shipped earlier. **Still open:** keyboard focus entry/return for context menus, and keyboard resizing for the mouse-only sidebar divider. See [P7-15 fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). |
 | P7-16 | **Shipped 2026-09-09; browser-verified** | The scan status line opens a detail panel: last scan, duration, timing split, roots, and the **paths** behind the read-error count. The understated "only docs and config" wording is replaced and linked to the explanation. See [P7-16 shipped](#p7-16-shipped--the-number-and-then-the-paths-behind-it). |
 | P7-17–21 | **Optional; not started** | Related report files, repo-changes drilldown, document link checking, saved views, and copy-context-for-an-agent. Deliberately unbuilt — pick from them based on actual use. |
@@ -2192,8 +2194,10 @@ top to bottom.
 
 ### Needs a person
 
-- [ ] 🔒 Needs Mike · **P9-24 · Narrow-pane layout (P7-14).** Blocked until someone drags a
-  real 640–1024px window. Tooling can't reach that width.
+- [x] **P9-24 · Narrow-pane layout (P7-14).** *(done 2026-10-03: Playwright's `browser_resize` reached a
+  real 800px and 700px viewport. Below 1024px the sidebar starts on the rail without overwriting the
+  stored choice, the search field shrinks, breadcrumb ancestors ellipsize, and the document toolbar
+  wraps. Measured: no horizontal overflow in `header`, `#view`, `#crumbs` or the panel header at 700px.)*
 - [ ] 🔒 Needs Mike · **P9-25 · Connection-recovery check.** It means stopping the live hub
   on 4273, which an unattended run must never do.
 

@@ -14,6 +14,11 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#p9) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-03
+
+- Fit windows under 1024px: the sidebar starts on the rail, the search field shrinks, breadcrumbs ellipsize and the document toolbar wraps. *(roadmap: P9-24)*
+- Raise dim text to WCAG AA in every theme, cut the type scale to five sizes, let a leftover stat tile fill its row, and default documents to the 82ch reading width.
+
 ## 2026-09-29
 
 - Narrow a search by root and by type: chips for each top-level root and for DOC / HTML / PDF / IMAGE sit under the result count, and ride in the search URL so Back restores them. *(roadmap: P9-02)*

@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/reviewed-2026--09--09-2ea44f?style=for-the-badge" alt="Reviewed 2026-09-09">
+  <img src="https://img.shields.io/badge/reviewed-2026--10--03-2ea44f?style=for-the-badge" alt="Reviewed 2026-10-03">
   <img src="https://img.shields.io/badge/phases_0--4-shipped-2ea44f?style=for-the-badge" alt="Phases 0 to 4 shipped">
   <img src="https://img.shields.io/badge/P5-9_of_10_fixed-2ea44f?style=for-the-badge" alt="P5: 9 of 10 items fixed 2026-09-03">
   <img src="https://img.shields.io/badge/P6-merged_to_1_process-2ea44f?style=for-the-badge" alt="P6: merged to one process 2026-09-07">
@@ -15,8 +15,6 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-shipped_2026--10--03-2ea44f?style=for-the-badge" alt="P7-14 narrow-pane layout shipped 2026-10-03">
-  <img src="https://img.shields.io/badge/tests-82_passing-8B5CF6?style=for-the-badge" alt="82 tests passing">
-  <img src="https://img.shields.io/badge/P7--14-blocked_on_a_viewport-e0a458?style=for-the-badge" alt="P7-14 blocked on reaching a narrow viewport">
   <img src="https://img.shields.io/badge/tests-83_passing-8B5CF6?style=for-the-badge" alt="83 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
@@ -26,8 +24,7 @@
 > [!NOTE]
 > **All five phases shipped 2026-08-31.** Every P0 defect is closed, the three hubs are one
 > codebase plus a config file each, the UI is keyboard-navigable with real URLs, and the
-> hubs report their own health. What is left is deliberately unbuilt — see
-> [Still open](#still-open). Detail per phase: [0](#phase-0--what-shipped),
+> hubs report their own health. Detail per phase: [0](#phase-0--what-shipped),
 > [1](#phase-1--what-shipped), [2](#phase-2--what-shipped), [3](#phase-3--what-shipped),
 > [4](#phase-4--what-shipped). A second, independent audit on 2026-09-03 found four more
 > defects — all fixed same day — plus six enhancement ideas, five of which are also now
@@ -37,7 +34,10 @@
 > improvements, as one checklist that a weekly roadmap routine works through one item at a
 > time (since 2026-09-22).
 >
-> **Current next steps:** every numbered item in [P7](#p7-review) has shipped except **P7-14**, which is *blocked rather than deferred* — no genuine 640–1024px viewport has ever been reached with the available tooling, so nothing about the layout at that width is measured and building to a guess would just ship a second wrong layout. After that: the remaining third of **P7-07** (root/type filters, typo tolerance, opt-in content search), the remaining third of **P7-15** (keyboard access to context menus and the sidebar divider), and the optional **P7-17–21**. One thing was found rather than planned — the `EISDIR`/`ENOENT` read errors under `~/.gemini/skills/` that P7-16's status panel made visible, still unexamined. Connection recovery and any clipboard write remain unverified; see [Verification still needed](#verification-still-needed). Three requested additions shipped the same day — the `Links` root, README-first landing views for every folder that has one, and four more color schemes; see [P8](#p8--2026-09-09-the-links-root-readme-landing-views-and-four-more-color-schemes).
+> **Current next steps:** the unchecked items in [P9](#p9), in order. As of 2026-10-03 every
+> numbered P7 item has shipped except the optional P7-17–21 and the last two thirds of P7-07
+> (typo tolerance and content search) and of P7-15 (keyboard context menus and divider), all
+> queued in P9. Everything above P9 is the record of why things were built the way they were.
 
 ## What was audited
 
@@ -540,6 +540,9 @@ starting, so one previous copy is kept and each run begins clean.
 | 24 | Routine pass/fail, not just run count | `runs` and `lastRun` come from log filenames; reading the last line would show whether it *worked* |
 | 25 | A layout that survives a phone | The stated goal elsewhere in the portfolio is phone-drivable ops; the hub is fixed at 1200px with a 200px rail |
 
+Where these went: #21 → P9-16, #22 shipped in P6, #23 → P9-10, #24 → P9-12, #25 → the 640–1024px
+half shipped as P9-24, and the phone half is P9-41.
+
 ---
 
 ## Suggested sequence
@@ -556,20 +559,13 @@ Everything sequenced above is done.
 
 ## Still open
 
-The current implementation priorities are in [P7 — September 8 review](#p7-review). Its overlap table carries earlier search, performance, navigation, and responsive-layout work forward without duplicating the backlog. The table below records earlier decisions; the new performance measurements warrant revisiting the prior deferrals.
-
-Deliberate rather than forgotten:
-
-| # | What | Why it was left |
-|:--:|:---|:---|
-| 13 | Fuzzy search — `score()` needs a substring hit, so a typo finds nothing | Kind scoping plus prefix matching covers most of it on an index this size |
-| 17 | Moving the scan off the event loop | Measured: the stall is ~2 s and it is git, not the walk. A worker moves it without shortening it |
-| 21–25 | The P4 ideas | Speculative until one of them is actually wanted |
-| ~~26~~ | ~~Directory-level watcher events cause near-continuous rescans~~ | ✅ **fixed 2026-08-31** — see below |
-| ~~31~~ | ~~HTML artifact preview — sandboxed iframe viewer + an Artifacts shelf~~ | ✅ **fixed 2026-09-03** — see [P5](#31-dual-mode-html-viewer--artifacts-shelf) |
-| ~~34~~ | ~~Surface `Repos/Private/Draft/` initiatives as a `kind: 'draft'` card cluster~~ | ✅ **fixed 2026-09-03** — see [P5](#34-draft-initiatives-card-cluster) |
-| ~~35~~ | ~~GitHub-style alert callouts + light code syntax highlighting~~ | ✅ **fixed 2026-09-03** — see below |
-| 36 | Git-mtime cache invalidation to skip unneeded `git status`/`git log` spawns | Extends #17/#18, which were already measured and left alone for the same reason |
+Every item that was left open here now lives in [P9](#p9): fuzzy search (#13) is P9-03, the
+git-mtime cache (#36) is P9-08, and the P4 ideas are P9-10, P9-12 and P9-16 (#22 shipped as
+[P6](#p6--2026-09-07-one-process-not-three), and #25's narrow-window half as P9-24). One
+decision stays here because it isn't queued anywhere: **#17, moving the scan off the event
+loop, was measured and declined** — the ~2 s stall is git, not the walk, and a worker would
+move it without shortening it. The fixed items (#26, #31, #34, #35) are written up where they
+landed.
 
 ### 26. The watcher is woken by directory events it cannot interpret
 
@@ -632,7 +628,7 @@ the AI Lab hub at `127.0.0.1:4273`. Full writeup:
 
 **All four defects fixed and verified 2026-09-03** (by Claude, against the reported
 locations — not independently re-derived by a third audit). Of the six ideas, five are
-also fixed (#31, #32, #33, #34, #35); #36 is still open — see [Still open](#still-open).
+also fixed (#31, #32, #33, #34, #35); #36 is queued as P9-08.
 
 ### New defects — fixed
 
@@ -1067,33 +1063,32 @@ already existed, it just never had a chance to run on a plain report folder befo
 
 ## P7 — 2026-09-08 Codex review: document browsing and scale
 
-**Status: P7-01 through P7-16 have all shipped.** The report/reliability and Pictures passes landed 2026-09-08 along with the browser verification pass (see [Browser verification pass](#browser-verification-pass--2026-09-08)); the daily-usability half — P7-09, P7-10, P7-12, P7-13, P7-15 and P7-16 — landed 2026-09-09, and P7-13 uncovered and fixed a P7-06 regression on the way. **What is left:** P7-14, blocked on reaching a real narrow viewport; the remaining thirds of P7-07 and P7-15; and the optional P7-17–21. This section incorporates all 21 recommendations from the September 8 suggestions document. P7-01–21 are scoped identifiers so the original audit's #1–37 retain their meanings. The implementation sequence below is the current recommendation; earlier phase sequences remain the historical record.
+**Status: P7-01 through P7-16 have all shipped.** The report/reliability and Pictures passes landed 2026-09-08 along with the browser verification pass (see [Browser verification pass](#browser-verification-pass--2026-09-08)); the daily-usability half — P7-09, P7-10, P7-12, P7-13, P7-15 and P7-16 — landed 2026-09-09, and P7-13 uncovered and fixed a P7-06 regression on the way. P7-14 shipped 2026-10-03 as P9-24. **What is left** is queued in [P9](#p9): the rest of P7-07 and P7-15, and the optional P7-17–21. This section incorporates all 21 recommendations from the September 8 suggestions document. P7-01–21 are scoped identifiers so the original audit's #1–37 retain their meanings. The implementation sequence below is the current recommendation; earlier phase sequences remain the historical record.
 
 ### Current implementation status — September 9
 
-Every one of P7-01 through P7-16 has shipped. P7-14 is the only one of them carrying an open
-caveat, and it is a verification gap rather than missing work. P7-17–21 remain optional and
-unstarted by choice.
+Every one of P7-01 through P7-16 has shipped; P7-14 last, on 2026-10-03. P7-17–21 remain
+optional and are queued in P9.
 
 | Item | Status | Delivered / remaining |
 |:---|:---|:---|
 | P7-01 | **Shipped; browser-verified** | Project scans and initial payloads omit the Pictures subtree. Folder browsing, deep-link hydration, and paginated metadata search use a separate asynchronous cache and watcher events. Profiling remains available; Git latency and other roots are future performance targets. A very large individual folder was suspected of stalling the tab; that finding was measured again and **withdrawn** — see P7-22. |
 | P7-02 | **Shipped; browser-verified** | Dedicated PDF/HTML kinds enter filename search. PDF iframe with Open/Download fallback; correct MIME, byte ranges, and rejection by the text endpoint. Browser pass: `pdf:` returns 540 matches, `html:` returns 787, and a PDF renders its pages in the pane. |
 | P7-03 | **Shipped; browser-verified** | Same-size edits change the signature, including bucket entry docs. Failed refreshes preserve the current view with Retry. Startup failures can recover through SSE/retry, and queued refreshes retain force/fresh options. Browser pass: a 31-byte → 31-byte edit repainted the open document with no manual reload. |
-| P7-04 | **Shipped; browser-verified; one follow-up open** | Cross-document headings and copyable Hub URLs, including old-hash compatibility and safe Markdown link formatting. A choice of document-relative Markdown destination remains open. |
+| P7-04 | **Shipped; browser-verified; one follow-up open** | Cross-document headings and copyable Hub URLs, including old-hash compatibility and safe Markdown link formatting. A choice of document-relative Markdown destination remains open (P9-44). |
 | P7-05 | **Shipped; browser-verified** | Signed directory routes resolve nested images, CSS, JS, modules, and JSON relative to the report. Junction escapes, forged directory tokens, and unsupported assets are rejected. Browser pass: a report with sibling `icons/` and `logos/` folders rendered all twelve companion images. |
 | P7-06 | **Shipped; browser-verified — then corrected on September 9** | Response-level CSP sandbox for HTML and SVG, including direct navigation; no `allow-same-origin`, CORS limited to the signed report directory. Browser pass: direct navigation lands in an opaque origin. **The SVG half was too broad**: a `sandbox` CSP also stops `<img>` decoding an SVG, which silently blanked every SVG preview and embedded diagram for a day. Now negotiated on `Sec-Fetch-Dest` — see [the SVG sandbox](#the-svg-sandbox--a-p7-06-defect-this-surfaced). |
-| P7-07 | **Partly shipped** | Accurate total counts, Load 200 More, paths on every result, and `pdf:`, `html:`, `image:` prefixes. **Still open:** global root/type filter controls, typo tolerance, and opt-in document-content search. The largest remaining item in P7-01–16. |
+| P7-07 | **Two thirds open** | Accurate total counts, Load 200 More, paths on every result, `pdf:`, `html:`, `image:` prefixes, and root/type filter chips (P9-02, 2026-09-29). **Still open:** typo tolerance (P9-03) and opt-in document-content search (P9-04). |
 | P7-08 | **Shipped; UI browser-verified, positive launch still unchecked** | Invalid/missing paths return errors; launch failures return 502. Paths are passed as environment data to fixed PowerShell commands. The synthetic Projects node has no filesystem actions; the reveal action is named Reveal in Explorer. **Still unverified:** no action was clicked through to a running application. |
 | P7-09 | **Shipped 2026-09-09; browser-verified** | Folder list view beside cards: name, type, modified, size, sortable, folders first only for name and type. Timestamps come from `/api/stat` per folder rather than the scan payload. See [P7-09 shipped](#p7-09-shipped--a-list-that-does-not-cost-a-payload). |
 | P7-10 | **Shipped 2026-09-09; browser-verified** | Bookmarks and Recent above the tree, three ways to pin, drag-reorder, in-place rename, unresolved entries with a relink offer, plus a context menu on pinned rows. `localStorage`, paths only. See [P7-10 shipped](#p7-10-shipped--two-lists-above-the-tree) and [`BOOKMARKS.md`](./BOOKMARKS.md). |
 | P7-11 | **Shipped 2026-09-08; browser-verified** | A search has its own route, so Back returns to the results. Result-list scroll and per-document reading positions were deliberately left out. See [P7-11 fixed](#p7-11-fixed--a-search-is-now-a-route). |
 | P7-12 | **Shipped 2026-09-09; browser-verified** | Heading outline, rendered/source toggle behind `?raw=1`, copy buttons on code blocks, reading width and text size, and a print stylesheet. See [P7-12 shipped](#p7-12-shipped--five-small-things-that-make-a-file-a-document). |
 | P7-13 | **Shipped 2026-09-09; browser-verified** | Lazy thumbnails on image cards, and a viewer with fit/100%/zoom, natural dimensions, prev-next and arrow keys. Uncovered and fixed the P7-06 SVG regression. See [P7-13 shipped](#p7-13-shipped--thumbnails-a-real-viewer-and-the-svg-bug-it-uncovered). |
-| P7-14 | **Shipped 2026-10-03** — see P9-24 | Narrow embedded panes. `resize_window` reports success but `innerWidth` never left 1549, so **no genuine 640–1024px viewport has ever been reached** and no claim is made about the layout there. Planning this needs a real narrow viewport first, not more source reading. |
-| P7-15 | **Shipped 2026-09-09; browser-verified; partly open** | The search box is a real combobox with `aria-expanded`, `aria-controls` and `aria-activedescendant` across both listboxes. `Ctrl+K` and announced toasts shipped earlier. **Still open:** keyboard focus entry/return for context menus, and keyboard resizing for the mouse-only sidebar divider. See [P7-15 fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). |
+| P7-14 | **Shipped 2026-10-03; browser-verified** | Narrow embedded panes. Long blocked because the Chrome extension's `resize_window` never moved `innerWidth` off 1549; Playwright's `browser_resize` reached real 800px and 700px viewports. See P9-24. |
+| P7-15 | **Shipped 2026-09-09; browser-verified; partly open** | The search box is a real combobox with `aria-expanded`, `aria-controls` and `aria-activedescendant` across both listboxes. `Ctrl+K` and announced toasts shipped earlier. **Still open:** keyboard focus entry/return for context menus (P9-05), and keyboard resizing for the mouse-only sidebar divider (P9-06). See [P7-15 fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). |
 | P7-16 | **Shipped 2026-09-09; browser-verified** | The scan status line opens a detail panel: last scan, duration, timing split, roots, and the **paths** behind the read-error count. The understated "only docs and config" wording is replaced and linked to the explanation. See [P7-16 shipped](#p7-16-shipped--the-number-and-then-the-paths-behind-it). |
-| P7-17–21 | **Optional; not started** | Related report files, repo-changes drilldown, document link checking, saved views, and copy-context-for-an-agent. Deliberately unbuilt — pick from them based on actual use. |
+| P7-17–21 | **Optional; queued** | Related report files, repo-changes drilldown, document link checking, saved views, and copy-context-for-an-agent — P9-13, P9-10, P9-11, P9-15 and P9-14. |
 | P7-22 | **Withdrawn** | The large-folder tab stall was a measurement artifact of a hidden tab, not a defect. Kept as a record so the same wrong conclusion is not reached twice. |
 
 ### Browser verification pass — 2026-09-08
@@ -1880,13 +1875,9 @@ immediately afterwards showed the images loaded. No user documents were modified
 
 ### Optional enhancements worth keeping on the backlog
 
-| # | Priority / effort | Enhancement | Why it fits |
-|---|---|---|---|
-| P7-17 | Optional / M | **Related report files** | Group a report's Markdown, HTML, PDF, and charts into one report entry with format buttons. Start with filename/directory relationships; use an optional small manifest only when inference becomes ambiguous. |
-| P7-18 | Optional / M | **Repo changes detail** | Let “uncommitted” drill into changed filenames and an on-demand read-only diff. Already suggested in roadmap #23; a natural completion of the current Git overview. |
-| P7-19 | Optional / M | **Document link checks** | Add an on-demand check for broken relative links, missing images, and missing heading targets. Link each finding back to its source document. Keep this separate from every routine filesystem scan. |
-| P7-20 | Optional / M | **Saved views** | Save combinations such as Finance HTML reports or IAM docs. Reuse search/filter state and offer a Hub link to the view. This becomes more useful after search types and navigation restoration are fixed. |
-| P7-21 | Optional / S–M | **Copy context for an agent** | Let you select a few files and copy a compact list of titles, relative paths, and Hub links. Make content inclusion explicit and bounded. This connects the human browsing layer to CLI work without adding an embedded chatbot. |
+P7-17 to P7-21 moved to [P9](#p9) with the same scope: related report files (P9-13), repo
+changes detail (P9-10), document link checks (P9-11), saved views (P9-15) and copy context for
+an agent (P9-14).
 
 ### Suggested implementation sequence
 
@@ -1902,22 +1893,8 @@ sixteen numbered items shipped across two days, in roughly the order recommended
 | 5 | Daily usability: the rest of P7-09–16 | P7-10, P7-12, P7-13, P7-15 and P7-16 all shipped 2026-09-09. P7-13 uncovered and fixed a P7-06 regression on the way. |
 | 6 | Optional workflow features: P7-17–21 | Not started, by choice. |
 
-**What is actually left, in the order it is worth doing:**
-
-1. **P7-14, narrow panes — blocked, not deferred.** Every attempt to reach a 640–1024px viewport
-   with this tooling failed: `resize_window` reports success and `innerWidth` stays at 1549. Nothing
-   about the layout at that width has been measured, and building to a guess is how you ship a
-   second layout that is also wrong. It needs a real narrow window, which is a person dragging one.
-2. **The rest of P7-07** — global root/type filters, typo tolerance, opt-in document-content search.
-   The largest genuinely-unbuilt piece of P7-01–16, and the one most likely to be missed in use.
-3. **The rest of P7-15** — keyboard entry and return for context menus, and keyboard resizing of the
-   sidebar divider. Small, and the only remaining places the UI is mouse-only.
-4. **P7-17–21**, chosen from based on actual use rather than in order.
-
-Also open, found rather than planned: the `EISDIR`/`ENOENT` read errors under `~/.gemini/skills/`
-that [P7-16's status panel](#p7-16-shipped--the-number-and-then-the-paths-behind-it) made visible.
-Surfacing them was the item; deciding whether the scanner should stop trying to read those paths is
-not, and has not been done.
+What was left after this sequence — the rest of P7-07 and P7-15, P7-14, the optional P7-17–21,
+and the `~/.gemini/skills` read errors — moved to [P9](#p9). P7-14 shipped there as P9-24.
 
 Keep the existing no-build architecture unless a particular change earns extra tooling. A framework rewrite, editable filesystem operations, and a general AI assistant are not prerequisites for these improvements.
 
@@ -1945,19 +1922,20 @@ measured in Chrome against the live hub on port 4273, not read out of the source
 | Scan status panel, read-error paths, indexing wording | [P7-16](#p7-16-shipped--the-number-and-then-the-paths-behind-it) |
 | Lazy thumbnails, viewer controls, arrow-key yielding | [P7-13](#p7-13-shipped--thumbnails-a-real-viewer-and-the-svg-bug-it-uncovered) |
 | SVG to `<img>` vs. every other fetch destination | A P7-06 regression, found and fixed |
+| Narrow widths: 700px and 800px, no horizontal overflow | P9-24, 2026-10-03, with Playwright |
 
 **Still open, and why.**
 
 | What | Why it is still open |
 |:---|:---|
-| **Narrow desktop widths (640–1024px)** | `resize_window` reports success while `innerWidth` stays at 1549. No genuine narrow viewport has ever been reached, so **no claim is made** about the layout there. This is what blocks P7-14. |
-| **Connection interruption and recovery** | Testing it means stopping the live hub the user is running. Deliberately not done. The same-length-edit half of P7-03 is verified; the failure-recovery half is not. |
-| **Focus and scroll survival across a refresh** | Never exercised. |
-| **Malformed/missing heading destinations; copy-link output containing spaces** | Never exercised. |
+| **Connection interruption and recovery** | Never stop the live hub on 4273 to test it; P9-25 uses a second hub on a spare port instead. The same-length-edit half of P7-03 is verified; the failure-recovery half is not. |
+| **Focus and scroll survival across a refresh** | Never exercised. Queued as P9-43. |
+| **Malformed/missing heading destinations; copy-link output containing spaces** | Never exercised. Queued as P9-09. |
 | **The positive native-launch path** | Rejections are covered by HTTP checks and the menu wiring is confirmed, but no action was clicked through to a running application. |
-| **Any clipboard write, anywhere in the app** | Not verifiable with this tooling. The MCP tab is never focused, so `writeText` throws `NotAllowedError` for **every** copy button, the pre-existing ones included; a `readText` probe hangs the evaluator. What is verified is that each button is wired to the right source text. |
+| **Any clipboard write, anywhere in the app** | Not verifiable with the Chrome extension; Playwright can grant clipboard permission, so it is queued as P9-43. The MCP tab is never focused, so `writeText` throws `NotAllowedError` for **every** copy button, the pre-existing ones included; a `readText` probe hangs the evaluator. What is verified is that each button is wired to the right source text. |
 
-No contrast measurements or accessibility-audit-tool results are claimed anywhere in this document.
+Text-token contrast was computed for all eight themes on 2026-10-03 (`--dim` ≈ 5.8:1, `--dimmer` ≥ 4.6:1
+against every surface). No accessibility-audit-tool results are claimed anywhere in this document.
 Screenshots taken during these passes confirmed the behaviours listed above and nothing broader; two
 blank captures during the P7-13 pass were the hidden-tab paint artifact from P7-22, not rendering
 failures.
@@ -2107,6 +2085,14 @@ top to bottom.
   missing heading destinations, and for copy-link output on paths containing spaces.
   These are two of the gaps listed under
   [Verification still needed](#verification-still-needed) that don't need a browser.
+- [x] **P9-24 · Narrow-pane layout (P7-14).** *(done 2026-10-03: Playwright's `browser_resize` reached a
+  real 800px and 700px viewport. Below 1024px the sidebar starts on the rail without overwriting the
+  stored choice, the search field shrinks, breadcrumb ancestors ellipsize, and the document toolbar
+  wraps. Measured: no horizontal overflow in `header`, `#view`, `#crumbs` or the panel header at 700px.)*
+- [ ] **P9-25 · Connection-recovery check.** Start a second hub on a spare port with the
+  demo config, open it in Playwright, stop and restart that process, and confirm the
+  connection banner appears, Retry works, and the page recovers without a manual reload.
+  Never stop the live hub on 4273.
 
 ### Optional features (P7-17–21 and P4)
 
@@ -2144,13 +2130,43 @@ top to bottom.
   becomes a complaint.
 - [ ] **P9-21 · Split `hub.mjs`.** Move markdown rendering and sanitizing into
   `Hub/markdown.mjs`, and the scanner into `Hub/scan.mjs`. Exports stay the same and every
-  existing test passes unchanged. No behaviour change. At 1,874 lines, the file is the
+  existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the
   largest single thing a weekly run has to read.
 - [ ] **P9-22 · Syntax check in CI.** `node --check` over every `Hub/*.mjs`, plus a
   check that the inline script in `index.html` parses. No new dependencies.
 - [ ] **P9-23 · Keep the demo showing what shipped.** Add fixture content to
   `Demo/Workspace/` that shows off P9 features already shipped (filters, progress bars,
   tags) wherever the fixture can't show them yet.
+
+### UI review (added 2026-10-03)
+
+From a browser review at 1440, 800 and 700px. Contrast, the type scale, the stat strip, the
+reading width and the narrow layout shipped the same day; these are what's left.
+
+- [ ] **P9-37 · Repos before Live Sites on a project page.** Eleven Live Sites cards fill the
+  first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list
+  with one row per site (name, domain, status dot).
+- [ ] **P9-38 · Make "N need attention" actionable.** On the Projects landing cards it's plain
+  grey text. Color it orange and link it to the uncommitted repos. Fill a missing card
+  description from the project README's first line so the cards are even.
+- [ ] **P9-39 · A quieter document header.** The filename shows three times (breadcrumb,
+  heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's
+  filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the
+  green `open` button opens. That also brings the header back to one row in a narrow window.
+- [ ] **P9-40 · Rescan feedback and the sidebar footer.** `rescan` gives no sign of the 3–4 s
+  it takes: show a spinner or elapsed time. The footer's `index.html` label is a leftover —
+  show the last scan's duration, or remove it.
+- [ ] **P9-41 · Phone widths (below 640px).** P9-24 covered 640–1024px. Measure 390px in
+  Playwright, then decide whether the rail should become an overlay drawer and the header
+  drop to two rows.
+- [ ] **P9-42 · Show which stat tiles are clickable.** Tiles with a jump target only reveal it
+  on hover. Give them a resting affordance (a faint arrow or underline) so they read as links.
+- [ ] **P9-43 · Playwright verification pass.** Close the browser gaps the Chrome extension
+  couldn't reach: every clipboard write (grant `clipboard-read`/`clipboard-write`), and focus
+  and scroll survival across a refresh. Record results under
+  [Verification still needed](#verification-still-needed).
+- [ ] **P9-44 · Document-relative Markdown links** (P7-04's open follow-up). Offer copy-link as
+  a path relative to the current document, alongside the hub link.
 
 ### Sidebar views (added 2026-09-29)
 
@@ -2191,15 +2207,6 @@ top to bottom.
 - [ ] **P9-36 · Keyboard for favorites and tabs.** Arrow-key navigation in the Favorites
   list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite
   without dragging.
-
-### Needs a person
-
-- [x] **P9-24 · Narrow-pane layout (P7-14).** *(done 2026-10-03: Playwright's `browser_resize` reached a
-  real 800px and 700px viewport. Below 1024px the sidebar starts on the rail without overwriting the
-  stored choice, the search field shrinks, breadcrumb ancestors ellipsize, and the document toolbar
-  wraps. Measured: no horizontal overflow in `header`, `#view`, `#crumbs` or the panel header at 700px.)*
-- [ ] 🔒 Needs Mike · **P9-25 · Connection-recovery check.** It means stopping the live hub
-  on 4273, which an unattended run must never do.
 
 ---
 

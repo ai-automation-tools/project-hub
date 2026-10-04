@@ -13,8 +13,10 @@ understanding what you're looking at when you do touch the shared source.
 - **Sans:** `IBM Plex Sans` (400/500/600), `ui-sans-serif, system-ui, sans-serif`
   fallback. Used for body text (`.md p`, card descriptions) only.
 - Loaded via Google Fonts `preconnect` + a single combined stylesheet request.
-- Base body font size `13px`. Section captions (`.cap`) are `9.5px`, uppercase,
+- Base body font size `13px`. Section captions (`.cap`) are `10.5px`, uppercase,
   `letter-spacing: .13em` — the smallest, most label-like text on the page.
+- The type scale is five steps: `10.5` / `11.5` / `13` / `15` / `19px`, plus `21px` for stat
+  values. Nothing renders below `10.5px`. Pick from the scale rather than adding a size.
 
 ## The zoom knob
 
@@ -41,7 +43,8 @@ add an `<option>` to `#theme`.
 | `--card` | `#0e1114` | `#17130e` | `#0c131d` | `#ffffff` | `#150f1c` | `#2a303a` | `#fbf5e9` | `#141414` |
 | `--fg` | `#dbe1e8` | `#e8ded0` | `#d4e0ef` | `#2b2f33` | `#e2d9ee` | `#d8dee9` | `#3b3227` | `#dcdcdc` |
 | `--fg-max` | `#f0f4f8` | `#fbf4ea` | `#f1f6fc` | `#0f1215` | `#f6f2fb` | `#eceff4` | `#1a1510` | `#f7f7f7` |
-| `--dim` | `#79838f` | `#8e806d` | `#70859e` | `#6d757d` | `#8375a0` | `#8993a4` | `#7c705d` | `#7d7d7d` |
+| `--dim` | `#8a939e` | `#9f9280` | `#8295ad` | `#565c63` | `#998cb2` | `#afb7c5` | `#5e5344` | `#959595` |
+| `--dimmer` | `#7a828c` | `#8c8071` | `#738498` | `#656b72` | `#877b9d` | `#9ca3b0` | `#6c6252` | `#848484` |
 | `--green` (accent) | `#5fe3a1` | `#e8b04b` | `#4fd6e8` | `#0f7a4e` | `#c48cf0` | `#8fbcbb` | `#5c6b2f` | `#e0e0e0` |
 | `--line` (borders) | `#22272e` | `#332a20` | `#1e2c40` | `#d4d2cb` | `#2e2340` | `#3c4350` | `#d2c4a8` | `#2b2b2b` |
 | `--orange` | `#e0a458` | `#e07b4a` | `#f0b45c` | `#a2670c` | `#f0a06c` | `#d08770` | `#a05a12` | `#b8b8b8` |
@@ -51,11 +54,16 @@ add an `<option>` to `#theme`.
 | `--magenta` | `#d16ba5` | `#d98ba0` | `#e07ac4` | `#a3358a` | `#f07ad0` | `#c98cb8` | `#93356f` | `#aeaeae` |
 
 Each theme also defines `--card-hi`, `--row-hi`, `--sel`, `--sunken`, `--line-soft`,
-`--line-faint`, `--fg-hi`, `--fg-mid`, `--dimmer`, `--dimmest`, `--green-hi`,
+`--line-faint`, `--fg-hi`, `--fg-mid`, `--dimmest`, `--green-hi`,
 `--green-line`, `--accent-bg`, `--accent-line`, `--blue-bg`, `--blue-line` — read the
 live `<style>` block in `index.html` for exact values if you need a token not tabled
 here; every one of them follows the same "accent tinted, background near-black/near-white"
 formula per theme.
+
+**Text contrast.** `--dim` sits near 5.8:1 and `--dimmer` at 4.6:1 or better against `--bg`,
+`--panel`, `--card` and `--card-hi` in every theme, so both pass WCAG AA for text.
+`--dimmest` does not, and is for borders, scrollbars and disabled controls only. A new
+theme has to clear the same bar.
 
 `--green` is the accent used for links, the selected tree row's left border, focus rings,
 badges, and the terminal-green identity of the default theme — despite the variable name,
@@ -93,7 +101,11 @@ plain white-on-grey for mono).
 - The header's control order, left to right: **Back/Forward** → breadcrumbs → (grow) →
   search → rescan button. The theme picker moved into the Settings view on 2026-09-29.
 - `#view` is the only scrolling container for content; `.page` inside it caps at
-  `max-width: 1200px`, centered, with `22px 24px 48px` padding.
+  `max-width: 1320px`, centered, with `22px 24px 48px` padding.
+- Below `1024px` (`matchMedia`, so root zoom doesn't move it) the sidebar starts on the rail
+  without overwriting the stored `hub.rail` choice, the search field shrinks to a `150px`
+  floor, breadcrumb ancestors ellipsize ahead of the current page, the document toolbar
+  wraps, and `.page` padding drops to `16px 14px 40px`.
 
 ## Navigation & history
 
@@ -175,7 +187,8 @@ children.
 
 ## Cards, tables, and the stat strip
 
-- **Stat strip** (`.stats`) — a responsive grid of tiles (runtimes / repos / skills /
+- **Stat strip** (`.stats`) — a wrapping flex row of tiles (`flex:1 1 140px`, so a
+  leftover tile fills its row) (runtimes / repos / skills /
   commands / sub-agents / MCP servers / uncommitted). Each tile with a `link` is
   clickable and scrolls to + flashes the matching section heading (`jumpTo()`), so the
   strip doubles as a table of contents.

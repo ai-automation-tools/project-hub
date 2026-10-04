@@ -472,7 +472,7 @@ with the other document actions:
 | :--- | :--- |
 | `☰ outline` | A collapsible list of the document's headings. Click one to jump; the address bar follows, so the link you copy points at that section. |
 | `rendered` / `source` | Read the rendered document, or the raw markdown behind it. |
-| `↔ full` | Cycles the reading width — full, 82 characters, 64 characters. Long lines are hard to read; this is the fix. |
+| `↔ normal` | Cycles the reading width — 82 characters (the default), full, 64 characters. Tables and code blocks always use the full width. |
 | `A 100%` | Cycles the text size — 100%, 112%, 125%, 90%. |
 | `print` | Prints the document alone: no sidebar, no header, no buttons, black on white. |
 
@@ -507,6 +507,10 @@ activity bar does: **Explorer** (the tree), **Bookmarks**, **Recent**, **Favorit
 [Favorites](#favorites)) and **Settings** (see [Settings](#settings)). The Bookmarks icon
 carries a count badge. Clicking the icon that is already active folds the sidebar to its rail,
 and clicking any icon on the rail opens it again on that view. The last view is remembered.
+
+In a window narrower than 1024px, such as a VS Code side pane, the sidebar starts on the rail
+so the document gets the room. Any icon opens it. Widening the window again brings back
+whatever you last chose.
 
 | | |
 | :--- | :--- |

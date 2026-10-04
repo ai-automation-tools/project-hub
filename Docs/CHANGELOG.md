@@ -18,6 +18,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 - Fit windows under 1024px: the sidebar starts on the rail, the search field shrinks, breadcrumbs ellipsize and the document toolbar wraps. *(roadmap: P9-24)*
 - Raise dim text to WCAG AA in every theme, cut the type scale to five sizes, let a leftover stat tile fill its row, and default documents to the 82ch reading width.
+- Tidy the roadmap: point every older "still open" list at P9 instead of repeating it, drop the stale P7-14 blocker text and the duplicate badges a merge left behind, make the connection-recovery check (P9-25) automatable, and queue the rest of the UI review as P9-37–44. Bring the user manual, engine README and scaffold references in line with the new type scale, contrast tokens, reading width and narrow layout.
 
 ## 2026-09-29
 

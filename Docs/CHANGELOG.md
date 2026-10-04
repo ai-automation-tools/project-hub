@@ -14,6 +14,11 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#p9) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-03
+
+- Fit windows under 1024px: the sidebar starts on the rail, the search field shrinks, breadcrumbs ellipsize and the document toolbar wraps. *(roadmap: P9-24)*
+- Raise dim text to WCAG AA in every theme, cut the type scale to five sizes, let a leftover stat tile fill its row, and default documents to the 82ch reading width.
+
 ## 2026-09-29
 
 - Bring the docs in line with the new sidebar: the scaffold's layout reference, the privacy notes (browser profiles, favicon and embed requests, `favorites.json`), and what the demo does with Settings, Favorites and hub tabs.

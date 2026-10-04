@@ -196,9 +196,12 @@ aside{position:relative;width:var(--sbw,284px);flex:0 0 auto;border-right:1px so
 main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 header{height:42px;flex:0 0 42px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;align-items:center;gap:14px;padding:0 16px}
 #crumbs{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;color:var(--dim);min-width:0;overflow:hidden}
-#crumbs span[data-go]{cursor:pointer;white-space:nowrap}
+/* Ancestors give up width first; the current page keeps its name until it can't. */
+#crumbs span[data-go]{cursor:pointer;white-space:nowrap;min-width:3ch;overflow:hidden;text-overflow:ellipsis}
+#crumbs span[data-go]:last-child{flex-shrink:0;max-width:100%}
 #crumbs span[data-go]:hover{color:var(--green)}
-.search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);padding:4px 8px;width:310px;max-width:40vw}
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);padding:4px 8px;flex:0 1 310px;min-width:150px}
+.search input{min-width:0}
 .search input{flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-family:var(--mono);font-size:11.5px}
 .kbd{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);border:1px solid var(--line);padding:1px 4px}
 .btn{font-family:var(--mono);font-size:11.5px;color:var(--dim);border:1px solid var(--line);padding:4px 9px;cursor:pointer;background:none}
@@ -292,8 +295,9 @@ h2.sec.flash{animation:secflash 1.4s ease-out}
 /* detail layout */
 .split{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
 @media (max-width:1100px){.split{grid-template-columns:1fr}}
+@media (max-width:1024px){.page{padding:16px 14px 40px}header{gap:10px;padding:0 10px}.search .kbd{display:none}#rescan{white-space:nowrap}}
 .panel{border:1px solid var(--line);background:var(--card)}
-.panel>.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line-soft);background:var(--panel);font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+.panel>.ph{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line-soft);background:var(--panel);font-family:var(--mono);font-size:11.5px;color:var(--dim)}
 .panel>.ph em{font-style:normal;font-size:10.5px;color:var(--dimmer)}
 .box{border:1px solid var(--line);background:var(--card);padding:12px}
 .box .cap{margin-bottom:9px}
@@ -372,7 +376,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .outline a.h3{padding-left:14px;color:var(--dimmer)}
 .outline a.h4{padding-left:28px;color:var(--dimmer);font-size:10.5px}
 .outline .empty{padding:0}
-.readerbtns{display:flex;align-items:center;gap:4px}
+.readerbtns{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .md h1,.md h2,.md h3,.md h4{color:var(--fg-max);letter-spacing:-.01em;margin:20px 0 8px;line-height:1.3}
 .md h1{font-size:19px}.md h2{font-size:15px}.md h3{font-size:13px}.md h4{font-size:13px;color:var(--fg-hi)}
 .md h1:first-child,.md h2:first-child{margin-top:0}
@@ -2120,10 +2124,17 @@ $('#q').addEventListener('keydown', (e) => {
 
 // ── sidebar rail + color scheme ────────────────────────────────────────────
 // Both are pure presentation, so they live in localStorage rather than the scan.
-const setRail = (on) => {
+// A narrow window starts on the rail without overwriting the stored choice, so widening
+// the window again brings back whatever the viewer last picked.
+const narrow = matchMedia('(max-width:1024px)');
+let railPref = false;
+const setRail = (on, persist = true) => {
   $('#app').classList.toggle('rail', on);
+  if (!persist) return;
+  railPref = on;
   try { localStorage.setItem('hub.rail', on ? '1' : '0'); } catch {}
 };
+narrow.addEventListener('change', () => setRail(narrow.matches || railPref, false));
 const toggleRail = () => setRail(!$('#app').classList.contains('rail'));
 activate($('#sidetoggle'), toggleRail);
 
@@ -2201,7 +2212,8 @@ $('#theme').onchange = (e) => setTheme(e.target.value);
 
 let stored = {};
 try { stored = { rail: localStorage.getItem('hub.rail'), theme: localStorage.getItem('hub.theme'), side: localStorage.getItem('hub.side') }; } catch {}
-setRail(stored.rail === '1');
+railPref = stored.rail === '1';
+setRail(narrow.matches || railPref, false);
 setSideView(stored.side);
 setTheme(stored.theme || THEMES[0]);
 

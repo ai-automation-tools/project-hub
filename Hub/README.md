@@ -131,14 +131,17 @@ Measured on September 8: the ordinary payload fell from 118,220 to 40,191 nodes 
 
 PDF and HTML files have their own searchable types. Use `pdf:`, `html:`, or `image:` to narrow filenames; search shows the actual match total, a path for every result, and Load 200 More. Fuzzy matching and document-content search remain backlog items.
 
+Under the result count, two rows of filter chips narrow a search without navigating first: one chip per top-level root (Projects, Documents, Skills, Pictures, Automations, the user-CLI root — whichever this hub has), and one per document type (DOC, HTML, PDF, IMAGE). Each row is single-choice and clicking the lit chip clears it. A chip and a typed prefix both apply, so `skill:` with PDF on is empty rather than one overriding the other. Pictures results are only fetched when no other root is chosen, and ask the server for the chosen type. The chips are toggle buttons (`aria-pressed`) in labelled groups, reachable with Tab and switched with Enter or Space; focus stays on the chip after the results redraw. A fresh search starts with no chips; refining the query keeps them.
+
 PDFs use the browser's native iframe viewer, with Open and Download when the browser cannot render them. HTML previews resolve companion files through a signed directory route; nested `charts/`, scripts, styles, fonts, and JSON work within that directory. Parent-directory escapes and root-relative assets are not supported. HTML/SVG responses enforce a sandbox even when opened directly; signed preview URLs expire on server restart, so bookmark the stable Hub link instead.
 
 Document links retain heading fragments, and Copy Hub Link preserves the selected heading. Old `#Projects/...` links still work; section destinations use `#<encoded-file-id>?heading=<encoded-heading>`.
 
 A search has its own route too, so Back returns to the results you came from rather than the
 document you were on before them. Searching sets `#?q=<encoded-query>`, adding `scoped=1` when the
-project-scope chip is on and `limit=<n>` once Load 200 More has been used; both are omitted at their
-defaults to keep the URL short. Entering a search pushes one history entry and refining the query
+project-scope chip is on, `limit=<n>` once Load 200 More has been used, and `root=<encoded-root-id>`
+/ `type=md|html|pdf|image` for the filter chips; all are omitted at their defaults to keep the URL
+short, and a `type` outside those four is ignored. Entering a search pushes one history entry and refining the query
 replaces it, so typing does not add an entry per keystroke. A `limit` outside 200-20000 is clamped
 rather than honoured. Because the query lives in the URL, a set of results is now a link you can
 share or bookmark.

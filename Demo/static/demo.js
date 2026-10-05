@@ -133,6 +133,22 @@
     document.body.prepend(bar);
   }
 
+  /**
+   * The proposed design's cards carry a cursor-tracked ring and wash (see redesign.css,
+   * `.card::before` / `::after`). This feeds them the pointer position as a percentage
+   * of the card, which is zoom-proof -- the interface is scaled by `html{zoom}`, and a
+   * pixel offset would land in the wrong place. Harmless under the other schemes, whose
+   * cards simply never read the variables.
+   */
+  document.addEventListener('pointermove', function (e) {
+    var card = e.target && e.target.closest ? e.target.closest('.card') : null;
+    if (!card) return;
+    var r = card.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+  }, { passive: true });
+
   // A one-line banner, dismissed for the session once. Inline styles on purpose: the
   // interface's own stylesheet is copied verbatim and nothing is added to it.
   document.addEventListener('DOMContentLoaded', function () {
@@ -141,18 +157,21 @@
     try { if (sessionStorage.getItem('demo.banner') === 'off') return; } catch (_) { /* private mode */ }
     var bar = document.createElement('div');
     bar.setAttribute('role', 'note');
+    // Colours come from the page's own scheme variables, so the banner follows whichever
+    // scheme is on -- including the proposed one, which is what it points at.
     bar.style.cssText = 'position:fixed;z-index:9999;left:50%;bottom:16px;transform:translateX(-50%);'
       + 'max-width:min(760px,calc(100vw - 32px));display:flex;gap:14px;align-items:center;'
-      + 'padding:9px 14px;border:1px solid #2f6b52;border-radius:8px;background:#0e1114;'
-      + 'color:#a7b0ba;font:13px/1.5 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.5)';
+      + 'padding:9px 14px;border:1px solid var(--green-line);border-radius:10px;background:var(--card);'
+      + 'color:var(--fg-mid);font:13px/1.5 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.5)';
     var text = document.createElement('span');
-    text.innerHTML = 'Read-only demo over a fictional workspace. '
+    text.innerHTML = 'Read-only demo over a fictional workspace, shown in the <b style="font-weight:600;color:var(--fg-max)">proposed design</b> '
+      + '(Settings &rsaquo; Color scheme compares it with the current one). '
       + '<a href="https://github.com/ai-automation-tools/project-hub" '
-      + 'style="color:#5fe3a1">Run it on your own files &rarr;</a>';
+      + 'style="color:var(--green)">Run it on your own files &rarr;</a>';
     var close = document.createElement('button');
     close.textContent = 'dismiss';
-    close.style.cssText = 'margin-left:auto;border:1px solid #22272e;border-radius:6px;background:#12161a;'
-      + 'color:#79838f;font:inherit;padding:3px 10px;cursor:pointer';
+    close.style.cssText = 'margin-left:auto;border:1px solid var(--line);border-radius:6px;background:var(--card-hi);'
+      + 'color:var(--dim);font:inherit;padding:3px 10px;cursor:pointer;flex:none';
     close.onclick = function () {
       bar.remove();
       try { sessionStorage.setItem('demo.banner', 'off'); } catch (_) { /* private mode */ }

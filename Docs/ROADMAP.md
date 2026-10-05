@@ -2173,6 +2173,11 @@ reading width and the narrow layout shipped the same day; these are what's left.
   [Verification still needed](#verification-still-needed).
 - [ ] **P9-44 · Document-relative Markdown links** (P7-04's open follow-up). Offer copy-link as
   a path relative to the current document, alongside the hub link.
+- [ ] **P9-45 · Decide on the `obsidian` redesign.** The demo opens on a proposed restyle in the
+  landing page's idiom (`Demo/static/redesign.css`, written up in [REDESIGN.md](REDESIGN.md)),
+  switchable back to `midnight` in Settings. Adopt it into `Hub/index.html` by the steps in
+  that document, keep it as a demo-only scheme, or drop it; split `--green` into accent and
+  `--ok` state colours if it lands.
 
 ### Sidebar views (added 2026-09-29)
 

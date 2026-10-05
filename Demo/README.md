@@ -31,6 +31,7 @@ fails loudly.
 | Favorites | Absent. Both sources are served by the local server, so the view says the server is needed |
 | Hub tabs | The switch works, but with no server to ask whether a site can be embedded, every site opens in a browser tab |
 | The `/` mark | Links home, to the site root. Inert in a local hub — a deep-linked visitor here needs a way back to the top |
+| The design | **Proposed, not shipped.** The demo opens on a ninth colour scheme, `obsidian`, carried by `static/redesign.css` and absent from the hub itself. Settings › Color scheme switches back to `midnight` to see the current design; see [`Docs/REDESIGN.md`](../Docs/REDESIGN.md) |
 
 ## The fixture
 
@@ -39,6 +40,7 @@ fails loudly.
 | `Workspace/` | The scanned base — three project workspaces plus two shared roots |
 | `Home/` | A fictional user home, so the **User CLIs** branch shows demo skills rather than the build machine's |
 | `static/demo.js` | The shim that answers `/api/*` from the captured files |
+| `static/redesign.css` | The proposed design, as one extra colour scheme the build links after the interface's own stylesheet |
 | `static/CNAME` | The custom domain, copied into the published site |
 | `build-demo.mjs` | The whole build |
 
@@ -80,6 +82,16 @@ The build rewrites a handful of exact string literals in `index.html` (the two t
 placeholders and the asset URLs). Each replacement asserts how many times it expects to
 match, so a change to the interface that moves them fails the build rather than shipping a
 demo that half works.
+
+## The proposed design
+
+The demo is also where a restyle is tried before it touches the hub. `static/redesign.css`
+holds one, `obsidian`, scoped entirely to `html[data-theme="obsidian"]`: the build links it
+after the interface's stylesheet, adds the scheme to the page's list and makes it the default,
+and switches a returning visitor onto it once (the page stores its scheme on every load, so
+they would otherwise keep seeing `midnight`). Pick `midnight` in Settings to compare. What it
+changes, and how to port it into `Hub/index.html` if it is adopted, is in
+[`Docs/REDESIGN.md`](../Docs/REDESIGN.md).
 
 ---
 

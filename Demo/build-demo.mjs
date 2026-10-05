@@ -285,10 +285,12 @@ try {
   write(path.join(SITE, 'api', 'manifest.json'), JSON.stringify(manifest));
 
   // ── 5. the interface, unmodified except where it must reach the server ───
+  // (plus the proposed design below, which is the one addition the demo makes on purpose)
   for (const f of ['navigation.mjs', 'pictures-client.mjs', 'favorites.mjs']) {
     fs.copyFileSync(path.join(REPO, 'Hub', f), path.join(SITE, f));
   }
   fs.copyFileSync(path.join(HERE, 'static', 'demo.js'), path.join(SITE, 'demo.js'));
+  fs.copyFileSync(path.join(HERE, 'static', 'redesign.css'), path.join(SITE, 'redesign.css'));
   if (fs.existsSync(path.join(HERE, 'static', 'CNAME'))) {
     fs.copyFileSync(path.join(HERE, 'static', 'CNAME'), path.join(SITE, 'CNAME'));
   }
@@ -313,8 +315,8 @@ try {
   sub('%TITLE%', 'Project Hub — live demo', 1);
   sub('%FAVICON%', 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-    + '<rect width="32" height="32" rx="7" fill="#0a0c0e" stroke="#2f6b52" stroke-width="2"/>'
-    + '<text x="16" y="23" font-family="monospace" font-size="20" fill="#5fe3a1" text-anchor="middle">/</text></svg>'), 1);
+    + '<rect width="32" height="32" rx="7" fill="#38bdf8"/>'
+    + '<text x="16" y="23" font-family="monospace" font-size="20" font-weight="700" fill="#09090b" text-anchor="middle">/</text></svg>'), 1);
   sub('%PORT%', '4273', 1);
   sub(' nonce="%NONCE%"', '', 2);
 
@@ -327,6 +329,26 @@ try {
   sub("'/api/preview?path=' + encodeURIComponent(", 'DEMO_ASSET(', 1);
 
   sub('<script type="module">', '<script src="/demo.js"></script>\n<script type="module">', 1);
+
+  // ── the proposed design (demo-only, see Docs/REDESIGN.md) ────────────────
+  // A ninth colour scheme, `obsidian`, carried by static/redesign.css and linked after
+  // the interface's own stylesheet so its rules win at equal specificity. Everything in
+  // it is scoped to html[data-theme="obsidian"], so the other eight schemes still show
+  // the current design and the two can be compared from Settings. The hub itself is
+  // untouched: the scheme is added to the page here, by the same literal rewrites as
+  // the rest of the build, until it is adopted or dropped.
+  sub('</head>',
+    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
+    + '<link rel="stylesheet" href="/redesign.css">\n</head>', 1);
+  sub("const THEMES = ['midnight',", "const THEMES = ['obsidian', 'midnight',", 1);
+  sub("localStorage.getItem('hub.theme')||'midnight'", "localStorage.getItem('hub.theme')||'obsidian'", 1);
+  sub('<option value="midnight">midnight</option>',
+    '<option value="obsidian">obsidian (proposed)</option>\n            <option value="midnight">midnight</option>', 1);
+  // The page writes the chosen scheme to localStorage on every load, so a returning
+  // visitor already holds `midnight` and would never see the proposal. Switch them once;
+  // after that their own choice stands, including choosing midnight back.
+  sub('</title>', '</title>\n<script>try{if(localStorage.getItem(\'demo.design\')!==\'obsidian\'){'
+    + 'localStorage.setItem(\'demo.design\',\'obsidian\');localStorage.setItem(\'hub.theme\',\'obsidian\')}}catch{}</script>', 1);
 
   // Consent gate, injected here rather than in Hub/index.html because it belongs to the
   // hosted demo and not to the hub: a local hub serves one person their own filesystem,

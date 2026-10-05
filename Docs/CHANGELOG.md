@@ -16,7 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-10-05
 
-- Propose a redesign on the hosted demo: a ninth colour scheme, `obsidian`, in the landing page's idiom (near-black ground, zinc surfaces, sky accent, Inter and JetBrains Mono, rounded cards with a cursor-tracked glow). Demo-only, scoped to the scheme, switchable back to `midnight` in Settings for comparison. Written up in [`REDESIGN.md`](REDESIGN.md); the hub itself is unchanged. *(roadmap: P9-45)*
+- Redesign the explorer in the landing page's idiom: a new default scheme, `obsidian` (near-black ground with a faint dot grid and one sky glow, zinc surfaces, a sky accent), Inter for headings and controls with JetBrains Mono for paths and tables, 6/8/12px radii, stat tiles as separate cards, a rounded repo table, pill filter chips, and cards that lift with a cursor-tracked ring on hover. The eight existing schemes keep their colours and take the new shapes. A clean repo and a live site now use a separate `--ok` green rather than the accent. Everyone is moved onto `obsidian` once (`hub.design`); any scheme picked after that stands. Written up in [`REDESIGN.md`](REDESIGN.md). *(roadmap: P9-45)*
 
 ## 2026-10-04
 

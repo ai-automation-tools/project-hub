@@ -1120,7 +1120,8 @@ async function gitState(repo) {
   return s;
 }
 
-const DOT = { clean: 'var(--green)', dirty: 'var(--orange)', behind: 'var(--blue)', ahead: 'var(--blue)', conflict: 'var(--red)' };
+// --ok is the state green; --green is the page's accent. Same colour in every scheme but obsidian.
+const DOT = { clean: 'var(--ok)', dirty: 'var(--orange)', behind: 'var(--blue)', ahead: 'var(--blue)', conflict: 'var(--red)' };
 
 /**
  * Which repos reach the overview table, per project, unioned into one list. Example_Workspace

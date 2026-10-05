@@ -2173,11 +2173,12 @@ reading width and the narrow layout shipped the same day; these are what's left.
   [Verification still needed](#verification-still-needed).
 - [ ] **P9-44 · Document-relative Markdown links** (P7-04's open follow-up). Offer copy-link as
   a path relative to the current document, alongside the hub link.
-- [ ] **P9-45 · Decide on the `obsidian` redesign.** The demo opens on a proposed restyle in the
-  landing page's idiom (`Demo/static/redesign.css`, written up in [REDESIGN.md](REDESIGN.md)),
-  switchable back to `midnight` in Settings. Adopt it into `Hub/index.html` by the steps in
-  that document, keep it as a demo-only scheme, or drop it; split `--green` into accent and
-  `--ok` state colours if it lands.
+- [x] **P9-45 · The `obsidian` redesign.** Proposed on the demo and adopted the same day:
+  a new default scheme in the landing page's idiom, Inter + JetBrains Mono, rounded surfaces,
+  spotlight cards, and `--ok` split from the accent for clean / live state. The other eight
+  schemes keep their colours. Record in [REDESIGN.md](REDESIGN.md). Still open from it: the
+  public screenshots under `Images/Public/` show the old design, and the scaffold skill's
+  design-system reference (canonical in `agent-skills`) still lists IBM Plex and eight schemes.
 
 ### Sidebar views (added 2026-09-29)
 

@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#p9) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-05
+
+- Redesign the explorer in the landing page's idiom: a new default scheme, `obsidian` (near-black ground with a faint dot grid and one sky glow, zinc surfaces, a sky accent), Inter for headings and controls with JetBrains Mono for paths and tables, 6/8/12px radii, stat tiles as separate cards, a rounded repo table, pill filter chips, and cards that lift with a cursor-tracked ring on hover. The eight existing schemes keep their colours and take the new shapes. A clean repo and a live site now use a separate `--ok` green rather than the accent. Everyone is moved onto `obsidian` once (`hub.design`); any scheme picked after that stands. Written up in [`REDESIGN.md`](REDESIGN.md). *(roadmap: P9-45)*
+
 ## 2026-10-04
 
 - Find a document despite a typo: when nothing matches a search, results within one or two edits of the name, its stem or one of its words are shown instead, labelled "close to … (no exact match)". Real matches rank exactly as before. *(roadmap: P9-03)*

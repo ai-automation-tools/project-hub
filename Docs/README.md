@@ -17,6 +17,7 @@
 | [**📋 Roadmap**](ROADMAP.md) | Shipped changes and remaining work |
 | [**📝 Changelog**](CHANGELOG.md) | What changed, newest first |
 | [**🎨 Design research**](ChatGPT-HTML-Design.md) | Markdown and HTML in an agent workspace |
+| [**🖤 Redesign**](REDESIGN.md) | The `obsidian` restyle: what changed, how the schemes share it |
 | [**🔒 Public release**](PUBLIC-RELEASE.md) | Privacy cleanup and the remaining history review |
 
 ---

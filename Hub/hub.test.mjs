@@ -570,7 +570,7 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.favsource'", "'hub.zoom'"].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.favsource'", "'hub.zoom'"].includes(key),
       `unexpected localStorage key ${key}`);
   }
 });

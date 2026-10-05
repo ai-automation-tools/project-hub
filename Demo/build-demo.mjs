@@ -313,8 +313,8 @@ try {
   sub('%TITLE%', 'Project Hub — live demo', 1);
   sub('%FAVICON%', 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-    + '<rect width="32" height="32" rx="7" fill="#0a0c0e" stroke="#2f6b52" stroke-width="2"/>'
-    + '<text x="16" y="23" font-family="monospace" font-size="20" fill="#5fe3a1" text-anchor="middle">/</text></svg>'), 1);
+    + '<rect width="32" height="32" rx="7" fill="#38bdf8"/>'
+    + '<text x="16" y="23" font-family="monospace" font-size="20" font-weight="700" fill="#09090b" text-anchor="middle">/</text></svg>'), 1);
   sub('%PORT%', '4273', 1);
   sub(' nonce="%NONCE%"', '', 2);
 
@@ -327,6 +327,7 @@ try {
   sub("'/api/preview?path=' + encodeURIComponent(", 'DEMO_ASSET(', 1);
 
   sub('<script type="module">', '<script src="/demo.js"></script>\n<script type="module">', 1);
+
 
   // Consent gate, injected here rather than in Hub/index.html because it belongs to the
   // hosted demo and not to the hub: a local hub serves one person their own filesystem,

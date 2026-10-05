@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/reviewed-2026--10--03-2ea44f?style=for-the-badge" alt="Reviewed 2026-10-03">
+  <img src="https://img.shields.io/badge/reviewed-2026--10--05-2ea44f?style=for-the-badge" alt="Reviewed 2026-10-05">
   <img src="https://img.shields.io/badge/phases_0--4-shipped-2ea44f?style=for-the-badge" alt="Phases 0 to 4 shipped">
   <img src="https://img.shields.io/badge/P5-9_of_10_fixed-2ea44f?style=for-the-badge" alt="P5: 9 of 10 items fixed 2026-09-03">
   <img src="https://img.shields.io/badge/P6-merged_to_1_process-2ea44f?style=for-the-badge" alt="P6: merged to one process 2026-09-07">
@@ -34,10 +34,11 @@
 > improvements, as one checklist that a weekly roadmap routine works through one item at a
 > time (since 2026-09-22).
 >
-> **Current next steps:** the unchecked items in [P9](#p9), in order. As of 2026-10-03 every
+> **Current next steps:** the unchecked items in [P9](#p9), in order. As of 2026-10-05 every
 > numbered P7 item has shipped except the optional P7-17–21, the last third of P7-07
 > (content search; typo tolerance shipped 2026-10-04 as P9-03) and the last two thirds of P7-15 (keyboard context menus and divider), all
-> queued in P9. Everything above P9 is the record of why things were built the way they were.
+> queued in P9. The `obsidian` redesign shipped 2026-10-05 as P9-45; its follow-ups are P9-46–48.
+> Everything above P9 is the record of why things were built the way they were.
 
 ## What was audited
 
@@ -1477,7 +1478,7 @@ Evidence: `Hub/index.html:715`, `Hub/index.html:945`, `/api/open` in `Hub/hub.mj
 | P7-11 | **Fixed 2026-09-08** | ~~**Restore reading and search context**~~ | Back now recovers the query, the scope filter, and how many results were loaded, because the search has its own route — see [P7-11 fixed](#p7-11-fixed--a-search-is-now-a-route). Result-list scroll and per-document reading positions were deliberately left out. |
 | P7-12 | **Shipped 2026-09-09** | ~~**Reader tools**~~ | All five built — see [P7-12 shipped](#p7-12-shipped--five-small-things-that-make-a-file-a-document). Outline, rendered/source, copy-code, width/size, and a print stylesheet. |
 | P7-13 | **Shipped 2026-09-09** | ~~**Image browsing controls**~~ | Built — see [P7-13 shipped](#p7-13-shipped--thumbnails-a-real-viewer-and-the-svg-bug-it-uncovered). Lazy thumbnails, fit/100%/zoom, dimensions, prev-next and arrow keys — plus the [SVG sandbox fix](#the-svg-sandbox--a-p7-06-defect-this-surfaced) it turned up. |
-| P7-14 | **Blocked on verification** | **Adapt to narrow VS Code panes** | The header has a 290px search field, fixed-height layout, and root zoom of 1.15; only the detail split has a width breakpoint. Prioritize 640–1024px embedded panes: collapse secondary actions, make search flexible, and offer compact density. **No genuine narrow viewport has ever been reached** — `resize_window` reports success while `innerWidth` stays at 1549 — so nothing here is measured, and building to a guess is how you ship a second layout that is also wrong. Needs a real narrow window first. |
+| P7-14 | **Shipped 2026-10-03** | ~~**Adapt to narrow VS Code panes**~~ | Built as P9-24 once Playwright's `browser_resize` reached a real 800px and 700px viewport (the Chrome extension's `resize_window` never moved `innerWidth` off 1549). Below 1024px the sidebar starts on the rail, the search field shrinks, breadcrumbs ellipsize and the toolbar wraps. Phone widths are P9-41. |
 | P7-15 | Following / S | **Finish keyboard and status accessibility** — *combobox ARIA fixed 2026-09-09* | Keep the existing tree work. ~~Search arrows update a visual class; connect the active option with appropriate ARIA state.~~ Done, see [P7-15's combobox fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). ~~Announced toast/status messages~~ and ~~`Ctrl+K` on Windows~~ also shipped. **Remaining:** keyboard focus entry/return for context menus, and keyboard resizing for the mouse-only divider. |
 | P7-16 | **Shipped 2026-09-09** | ~~**Explain freshness and indexing**~~ | Built — see [P7-16 shipped](#p7-16-shipped--the-number-and-then-the-paths-behind-it). The status line opens a detail panel, read errors now carry their paths, and the understated indexing text is replaced and linked to the explanation. |
 
@@ -1931,7 +1932,7 @@ measured in Chrome against the live hub on port 4273, not read out of the source
 | **Connection interruption and recovery** | Never stop the live hub on 4273 to test it; P9-25 uses a second hub on a spare port instead. The same-length-edit half of P7-03 is verified; the failure-recovery half is not. |
 | **Focus and scroll survival across a refresh** | Never exercised. Queued as P9-43. |
 | **Malformed/missing heading destinations; copy-link output containing spaces** | Never exercised. Queued as P9-09. |
-| **The positive native-launch path** | Rejections are covered by HTTP checks and the menu wiring is confirmed, but no action was clicked through to a running application. |
+| **The positive native-launch path** | Rejections are covered by HTTP checks and the menu wiring is confirmed, but no action was clicked through to a running application. Queued as P9-49 (🔒 Needs Mike). |
 | **Any clipboard write, anywhere in the app** | Not verifiable with the Chrome extension; Playwright can grant clipboard permission, so it is queued as P9-43. The MCP tab is never focused, so `writeText` throws `NotAllowedError` for **every** copy button, the pre-existing ones included; a `readText` probe hangs the evaluator. What is verified is that each button is wired to the right source text. |
 
 Text-token contrast was computed for all eight themes on 2026-10-03 (`--dim` ≈ 5.8:1, `--dimmer` ≥ 4.6:1
@@ -2083,10 +2084,12 @@ top to bottom.
   surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a
   directory named like a file, and make the scanner skip it quietly or report it once.
   Add a test using a fixture that reproduces it.
-- [ ] **P9-08 · Skip git spawns for unchanged repos** (#36). Cache each repo's
-  `.git/index` and `.git/refs/heads` mtimes, and reuse the last `git status` /
-  `git log` result when neither has moved. Measure scan time before and after on the
-  demo fixture and record both numbers here.
+- [ ] **P9-08 · Skip git spawns for unchanged repos** (#36). `gitStateCached()` in
+  `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are
+  instant; this replaces the TTL with invalidation on each repo's `.git/index` and
+  `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result
+  when neither has moved. Measure scan time before and after on the demo fixture and record
+  both numbers here.
 - [ ] **P9-09 · Close the testable verification gaps.** Unit tests for malformed or
   missing heading destinations, and for copy-link output on paths containing spaces.
   These are two of the gaps listed under
@@ -2099,6 +2102,10 @@ top to bottom.
   demo config, open it in Playwright, stop and restart that process, and confirm the
   connection banner appears, Retry works, and the page recovers without a manual reload.
   Never stop the live hub on 4273.
+- [ ] **P9-49 · The positive native-launch path.** 🔒 Needs Mike. Rejections are covered by
+  HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been
+  clicked through to a running application. One click per action on this machine, then
+  note the result under [Verification still needed](#verification-still-needed).
 
 ### Optional features (P7-17–21 and P4)
 
@@ -2141,8 +2148,10 @@ top to bottom.
 - [ ] **P9-22 · Syntax check in CI.** `node --check` over every `Hub/*.mjs`, plus a
   check that the inline script in `index.html` parses. No new dependencies.
 - [ ] **P9-23 · Keep the demo showing what shipped.** Add fixture content to
-  `Demo/Workspace/` that shows off P9 features already shipped (filters, progress bars,
-  tags) wherever the fixture can't show them yet.
+  `Demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't
+  show them yet: enough documents of each kind that the root and type chips (P9-02) narrow
+  something, and a few near-miss names so the typo fallback (P9-03) has something to find.
+  Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land.
 
 ### UI review (added 2026-10-03)
 
@@ -2162,7 +2171,8 @@ reading width and the narrow layout shipped the same day; these are what's left.
 - [ ] **P9-40 · Rescan feedback and the sidebar footer.** `rescan` gives no sign of the 3–4 s
   it takes: show a spinner or elapsed time. The footer's `index.html` label is a leftover —
   show the last scan's duration, or remove it.
-- [ ] **P9-41 · Phone widths (below 640px).** P9-24 covered 640–1024px. Measure 390px in
+- [ ] **P9-41 · Phone widths (below 640px).** P9-24 was measured at 800px and 700px, with
+  one breakpoint at 1024px and nothing narrower. Measure 390px in
   Playwright, then decide whether the rail should become an overlay drawer and the header
   drop to two rows.
 - [ ] **P9-42 · Show which stat tiles are clickable.** Tiles with a jump target only reveal it
@@ -2176,9 +2186,26 @@ reading width and the narrow layout shipped the same day; these are what's left.
 - [x] **P9-45 · The `obsidian` redesign.** Proposed on the demo and adopted the same day:
   a new default scheme in the landing page's idiom, Inter + JetBrains Mono, rounded surfaces,
   spotlight cards, and `--ok` split from the accent for clean / live state. The other eight
-  schemes keep their colours. Record in [REDESIGN.md](REDESIGN.md). Still open from it: the
-  public screenshots under `Images/Public/` show the old design, and the scaffold skill's
-  design-system reference (canonical in `agent-skills`) still lists IBM Plex and eight schemes.
+  schemes keep their colours. Record in [REDESIGN.md](REDESIGN.md). What it left open is
+  queued below as P9-46 (docs and screenshots), P9-47 (the `100vh` / zoom gap) and P9-48
+  (a skill's `SKILL.md` in the demo).
+- [ ] **P9-46 · Bring the scaffold reference and the public screenshots up to `obsidian`.**
+  The scaffold skill's `references/design-system.md` still lists IBM Plex, eight schemes,
+  `midnight` as the default, a 42px header and square corners. It is canonical in
+  `agent-skills` (`Skills/Core/Web/project-hub-scaffold/`): update it there from
+  [REDESIGN.md](REDESIGN.md), then copy the travel copy here byte-identical. Then recapture
+  `Images/Public/project-overview.png` and `document-reader.png` from the demo build, per
+  `Images/Public/README.md`, and update its table.
+- [ ] **P9-47 · `#app` height under CSS zoom.** `#app{height:calc(100vh / var(--zoom))}`
+  was written when `100vh` ignored `zoom`; in a current Chromium (headless 140 in the
+  redesign's comparison shots) the page ends about 15% short of the window at the default
+  115%, so the division now happens twice. Confirm in the browsers actually in use, switch
+  to `100vh` if it holds, and update the comment in `index.html` and the design-system
+  reference, which explains the old pattern.
+- [ ] **P9-48 · A skill's own `SKILL.md` in the demo.** The demo build never captures it
+  (the entity node carries no child for the file), so the reader shows "could not read this
+  file" on every skill in the hosted demo. Give the node a child, or have `build-demo.mjs`
+  capture it; add a test either way.
 
 ### Sidebar views (added 2026-09-29)
 

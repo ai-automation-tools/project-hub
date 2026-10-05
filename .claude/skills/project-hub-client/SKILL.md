@@ -2,7 +2,7 @@
 name: project-hub-client
 description: >-
   Work on Project Hub's interface — the single-file client in `Hub/index.html`: the
-  `renderPage()` kind→view dispatch, the eight `data-theme` blocks and the CSS-variable
+  `renderPage()` kind→view dispatch, the nine `data-theme` blocks and the CSS-variable
   contract every surface colour comes from, the `S` state object and `reindex()`, hash
   routes via `navigation.mjs`, the localStorage keys, and the `%TITLE%`/`%FAVICON%`/
   `%PORT%`/`%NONCE%` placeholders the server fills per request. Use for "add a view / a
@@ -15,7 +15,7 @@ description: >-
 
 # Working in index.html
 
-**The interface is one 3,000-line file on purpose and it stays that way.** No build step, no
+**The interface is one 3,700-line file on purpose and it stays that way.** No build step, no
 bundler, no framework — the hub's whole promise is `node hub.mjs` and a browser. An edit
 that needs a toolchain is the wrong edit.
 
@@ -61,23 +61,34 @@ from `/api/file`, which is the only sanitised path.
 
 ## 2. Colours are variables, never literals
 
-Eight schemes — `midnight oxide cobalt paper plum nord sepia mono` — each one block of CSS
-variables under `html[data-theme="…"]`. The comment at the top of the sheet is the contract:
+Nine schemes — `obsidian` (the default since 2026-10-05) `midnight oxide cobalt paper plum
+nord sepia mono` — each one block of CSS variables under `html[data-theme="…"]`. The
+comment at the top of the sheet is the contract:
 
 > Every surface, text and accent color in the sheet comes from one of these blocks. Adding a
 > scheme = copy a block, change the values, add an `<option>` to `#theme`. Nothing else.
 
-So a hard-coded `#5fe3a1` anywhere in a rule is a bug in seven themes. Server-side `TINT`
+So a hard-coded `#38bdf8` anywhere in a rule is a bug in eight themes. Server-side `TINT`
 values are `var(--green)`-style strings for exactly this reason: the scan ships variable
 names, not colours, and the theme resolves them.
+
+The schemes set colours only. Radii (`--r-sm/md/lg`), the hover curve (`--ease`) and the
+derived surface tokens (`--surface`, `--surface-2`, `--line-a`, `--line-b`, `--ink`, `--ok`,
+`--glow`, `--grid`) live on `:root`, derived from each scheme's own palette, so a new scheme
+gets the shapes for free and overrides a derived token only when it wants to (`obsidian`
+makes its surfaces translucent and gives `--ok` its own emerald). **`--green` is the accent;
+`--ok` is state** (a clean repo, a live site, the connected dot). Don't colour a state with
+the accent.
 
 Two light themes exist (`paper`, `sepia`). **Check both** — a contrast that works on
 near-black frequently vanishes on warm white.
 
 > [!TIP]
 > The pre-paint `<script nonce="%NONCE%">` in `<head>` reads `hub.theme` before first paint
-> so a non-default scheme does not flash midnight. Anything that must beat first paint goes
-> there and nowhere else.
+> so a non-default scheme does not flash the default. It also moves a viewer onto `obsidian`
+> once (`hub.design`), because the page stores the scheme on every load and a stored
+> `midnight` was never a choice. Anything that must beat first paint goes there and nowhere
+> else.
 
 ## 3. State, reindex, and why your button stopped working
 
@@ -101,14 +112,14 @@ Consequences, all of which show up as "it worked until the page refreshed itself
 Hash routes come from `navigation.mjs` — `routeHash(id, heading)` / `parseRoute`,
 `searchHash` / `parseSearch`. **`go()` writes the hash itself**, so the `hashchange`
 listener guards by comparing to `S.sel` rather than tracking a flag. A search URL restores
-the query, scope and limit, not just a document — that is why `syncSearchRoute(replace)`
+the query, scope, limit and the root/type chips, not just a document — that is why `syncSearchRoute(replace)`
 exists and why `restoredInitialRoute` fires once.
 
 Per-viewer preferences are localStorage, never the scan payload:
 
 | Key | Holds |
 |:---|:---|
-| `hub.theme` `hub.rail` `hub.sbw` | scheme, collapsed sidebar, sidebar width |
+| `hub.theme` `hub.design` `hub.rail` `hub.sbw` | scheme, the one-time move onto `obsidian`, collapsed sidebar, sidebar width |
 | `hub.collapsed` `hub.folderview` `hub.reader` | collapsed sections, grid/list, reader settings |
 | `hub.side` `hub.websrc` | active activity-bar view, chosen browser profile for Favorites |
 | `hub.zoom` `hub.links` `hub.favsource` | interface size (also read by the pre-paint script), hub tabs on/off, manual or synced favorites |

@@ -1,12 +1,12 @@
 # index.html — the map
 
-Roughly 3,000 lines, in this order. Section banners are `// ── name ───` comments; find your
+Roughly 3,700 lines, in this order. Section banners are `// ── name ───` comments; find your
 way by those rather than by line number, which moves.
 
 | Region | Holds |
 |:---|:---|
-| `<head>` | Placeholders, the pre-paint theme script, IBM Plex from Google Fonts |
-| `<style>` | Eight `data-theme` variable blocks, then explorer, then main. Nothing else defines a colour |
+| `<head>` | Placeholders, the pre-paint theme script (with the one-time `hub.design` move), Inter + JetBrains Mono from Google Fonts |
+| `<style>` | `:root` radii, easing and derived tokens, nine `data-theme` variable blocks, then explorer, then main. Nothing else defines a colour |
 | helpers | `$`, `el`, `activate`, `mark`, `tintOf`, `fmtSize`, `fmtAgo`, `toast` |
 | data | `reindex`, `load`/`doLoad`, `showFatal` |
 | bookmarks | `pins`, `savePins`, `togglePin`, `pinSection`, `renderPins` — list logic in `navigation.mjs` |
@@ -71,7 +71,7 @@ Follow that shape for anything new.
 
 Only a plain ES module the Node suite imports directly:
 
-- `navigation.mjs` — `routeHash`/`parseRoute`, `searchHash`/`parseSearch`, `documentTarget`,
+- `navigation.mjs` — `routeHash`/`parseRoute`, `searchHash`/`parseSearch`, `filterSearchPool` (the root and type chips), `documentTarget`,
   `markdownLink`, `includeInSearch`, `absolutePath`, and the bookmark/recent list logic
   (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `pushRecent`,
   `resolveBookmarks`, `RECENT_MAX`).

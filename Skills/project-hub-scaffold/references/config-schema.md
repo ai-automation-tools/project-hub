@@ -86,7 +86,7 @@ not an authenticated public hosting service.
 ## Running and verification
 
 Requires Node 18.17+ and Git; Windows launchers require PowerShell 7. No npm install
-is needed. `npm test` in `Hub/` runs all three test files. `npm start` uses the sibling
+is needed. `npm test` in `Hub/` runs all five test files. `npm start` uses the sibling
 server config. `npm run scan` writes an ignored filesystem index into that config
 folder. Windows launch: `Project-Hub/Start-Hub.ps1`; use `-Restart -NoBrowser` for
 an intentional restart. Optional `Watch-Hubs.ps1` checks health; `-Restart` enables

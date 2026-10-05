@@ -7,16 +7,30 @@ understanding what you're looking at when you do touch the shared source.
 
 ## Typography
 
-- **Mono:** `IBM Plex Mono` (weights 400/500/600), `ui-monospace, Consolas, monospace`
-  fallback. Used for nearly everything: tree rows, badges, breadcrumbs, code, tags,
-  section captions.
-- **Sans:** `IBM Plex Sans` (400/500/600), `ui-sans-serif, system-ui, sans-serif`
-  fallback. Used for body text (`.md p`, card descriptions) only.
+- **Sans:** `Inter` (weights 400/500/600/700), `ui-sans-serif, system-ui, -apple-system,
+  'Segoe UI', sans-serif` fallback. Used for page headings (`h1.t`, 26px/650), buttons,
+  card titles, repo names in the table, search-hit names, the Settings rows, prose
+  (`.md`, 13.5px/1.7) and the reader's headings.
+- **Mono:** `JetBrains Mono` (400/500/600), `ui-monospace, 'SFMono-Regular', Menlo,
+  Consolas, monospace` fallback. Used for paths, the tree rows, breadcrumbs, badges,
+  table cells, tags, code and the uppercase section eyebrows (`h2.sec`, `.cap`).
 - Loaded via Google Fonts `preconnect` + a single combined stylesheet request.
-- Base body font size `13px`. Section captions (`.cap`) are `10.5px`, uppercase,
-  `letter-spacing: .13em` — the smallest, most label-like text on the page.
-- The type scale is five steps: `10.5` / `11.5` / `13` / `15` / `19px`, plus `21px` for stat
-  values. Nothing renders below `10.5px`. Pick from the scale rather than adding a size.
+- Base body font size `13px`, line-height `1.5`. Section eyebrows are `11px`, uppercase,
+  `letter-spacing: .14em` — the smallest, most label-like text on the page; nothing renders
+  below `10.5px`.
+- Common sizes: `10.5` / `11` / `11.5` / `12` / `12.5` / `13` / `13.5` / `14.5px`, `18px` for
+  reader `h2`, `24px` for reader `h1` and stat values, `26px` for the page title. Pick from
+  these rather than adding a size.
+
+## Shapes
+
+Radii come from three tokens on `:root`: `--r-sm: 6px` (buttons, tree and list rows,
+activity tabs, hub tabs, inputs), `--r-md: 8px` (the search box, search hits, code blocks,
+markdown tables and images), `--r-lg: 12px` (cards, panels, boxes). Stat tiles and the repo
+table use `10px`; filter chips and the toast are pills (`999px`). `--ease:
+cubic-bezier(.2,.7,.2,1)` is the one hover curve. Cards lift `2px` on hover and show a
+cursor-tracked ring and wash in the accent (`.card::before` / `::after`, fed `--mx`/`--my` as
+percentages by one delegated `pointermove` listener).
 
 ## The zoom knob
 
@@ -26,32 +40,39 @@ divides `100vh` back out of it (`height:calc(100vh / var(--zoom))`) because Chro
 **not** shrink the initial containing block to match a root `zoom`, so without that
 correction the page runs ~15% past the bottom of the viewport. Reproduce both halves
 together if you borrow this pattern — the zoom alone, without the height correction,
-breaks scrolling.
+breaks scrolling. (Re-measured in Chromium 140 on 2026-10-05: still true, a plain `100vh`
+overflows by 15%.)
 
 ## Color schemes (CSS custom properties)
 
-Eight schemes, selected by `html[data-theme="…"]`, applied before first paint via an
+Nine schemes, selected by `html[data-theme="…"]`, applied before first paint via an
 inline `<script>` reading `localStorage.getItem('hub.theme')` so there's no theme flash.
-Every color on the page resolves from one of these eight blocks — there is no color
+Every color on the page resolves from one of these nine blocks — there is no color
 hardcoded outside them. Adding a scheme is: copy a block, change the hex values,
-add an `<option>` to `#theme`.
+add an `<option>` to `#theme`, add the name to `THEMES`. The schemes differ in colour
+only; the shapes, type and hover treatments above are shared.
 
-| Token | midnight (default) | oxide (warm) | cobalt (cool) | paper (light) | plum (dark) | nord (dark) | sepia (light) | mono (dark) |
-|:---|:---|:---|:---|:---|:---|:---|:---|:---|
-| `--bg` | `#0a0c0e` | `#0f0d0a` | `#080d14` | `#f7f6f3` | `#0d0912` | `#20242c` | `#f4ecdd` | `#0b0b0b` |
-| `--panel` | `#0c0f12` | `#13100c` | `#0a1018` | `#efeeea` | `#110c17` | `#252a33` | `#ece2d0` | `#101010` |
-| `--card` | `#0e1114` | `#17130e` | `#0c131d` | `#ffffff` | `#150f1c` | `#2a303a` | `#fbf5e9` | `#141414` |
-| `--fg` | `#dbe1e8` | `#e8ded0` | `#d4e0ef` | `#2b2f33` | `#e2d9ee` | `#d8dee9` | `#3b3227` | `#dcdcdc` |
-| `--fg-max` | `#f0f4f8` | `#fbf4ea` | `#f1f6fc` | `#0f1215` | `#f6f2fb` | `#eceff4` | `#1a1510` | `#f7f7f7` |
-| `--dim` | `#8a939e` | `#9f9280` | `#8295ad` | `#565c63` | `#998cb2` | `#afb7c5` | `#5e5344` | `#959595` |
-| `--dimmer` | `#7a828c` | `#8c8071` | `#738498` | `#656b72` | `#877b9d` | `#9ca3b0` | `#6c6252` | `#848484` |
-| `--green` (accent) | `#5fe3a1` | `#e8b04b` | `#4fd6e8` | `#0f7a4e` | `#c48cf0` | `#8fbcbb` | `#5c6b2f` | `#e0e0e0` |
-| `--line` (borders) | `#22272e` | `#332a20` | `#1e2c40` | `#d4d2cb` | `#2e2340` | `#3c4350` | `#d2c4a8` | `#2b2b2b` |
-| `--orange` | `#e0a458` | `#e07b4a` | `#f0b45c` | `#a2670c` | `#f0a06c` | `#d08770` | `#a05a12` | `#b8b8b8` |
-| `--purple` | `#b48ce8` | `#c99ae0` | `#a99bf5` | `#6d4bb0` | `#9b8cf5` | `#b48ead` | `#6b4a8c` | `#c9c9c9` |
-| `--blue` | `#6aa9f0` | `#7fb3a8` | `#5b9df5` | `#1a5fb4` | `#6fa8e8` | `#81a1c1` | `#2a5f8f` | `#9e9e9e` |
-| `--red` | `#e06c75` | `#e0605a` | `#f0707f` | `#b3261e` | `#ec6f8e` | `#bf616a` | `#a33326` | `#d4d4d4` |
-| `--magenta` | `#d16ba5` | `#d98ba0` | `#e07ac4` | `#a3358a` | `#f07ad0` | `#c98cb8` | `#93356f` | `#aeaeae` |
+`obsidian` is the default since 2026-10-05: the ai-automation-tools.dev landing page's
+idiom (a `#060606` ground with a faint dot grid and one sky glow, zinc surfaces, sky as
+the accent). `midnight` is the previous default, terminal green on near-black.
+
+| Token | obsidian (default) | midnight (dark) | oxide (warm) | cobalt (cool) | paper (light) | plum (dark) | nord (dark) | sepia (light) | mono (dark) |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| `--bg` | `#060606` | `#0a0c0e` | `#0f0d0a` | `#080d14` | `#f7f6f3` | `#0d0912` | `#20242c` | `#f4ecdd` | `#0b0b0b` |
+| `--panel` | `#0a0a0c` | `#0c0f12` | `#13100c` | `#0a1018` | `#efeeea` | `#110c17` | `#252a33` | `#ece2d0` | `#101010` |
+| `--card` | `#0e0e11` | `#0e1114` | `#17130e` | `#0c131d` | `#ffffff` | `#150f1c` | `#2a303a` | `#fbf5e9` | `#141414` |
+| `--fg` | `#e4e4e7` | `#dbe1e8` | `#e8ded0` | `#d4e0ef` | `#2b2f33` | `#e2d9ee` | `#d8dee9` | `#3b3227` | `#dcdcdc` |
+| `--fg-max` | `#fafafa` | `#f0f4f8` | `#fbf4ea` | `#f1f6fc` | `#0f1215` | `#f6f2fb` | `#eceff4` | `#1a1510` | `#f7f7f7` |
+| `--dim` | `#a1a1aa` | `#8a939e` | `#9f9280` | `#8295ad` | `#565c63` | `#998cb2` | `#afb7c5` | `#5e5344` | `#959595` |
+| `--dimmer` | `#8e8e98` | `#7a828c` | `#8c8071` | `#738498` | `#656b72` | `#877b9d` | `#9ca3b0` | `#6c6252` | `#848484` |
+| `--green` (accent) | `#38bdf8` | `#5fe3a1` | `#e8b04b` | `#4fd6e8` | `#0f7a4e` | `#c48cf0` | `#8fbcbb` | `#5c6b2f` | `#e0e0e0` |
+| `--ok` (state) | `#34d399` | = `--green` | = `--green` | = `--green` | = `--green` | = `--green` | = `--green` | = `--green` | = `--green` |
+| `--line` (borders) | `#27272a` | `#22272e` | `#332a20` | `#1e2c40` | `#d4d2cb` | `#2e2340` | `#3c4350` | `#d2c4a8` | `#2b2b2b` |
+| `--orange` | `#fbbf24` | `#e0a458` | `#e07b4a` | `#f0b45c` | `#a2670c` | `#f0a06c` | `#d08770` | `#a05a12` | `#b8b8b8` |
+| `--purple` | `#a78bfa` | `#b48ce8` | `#c99ae0` | `#a99bf5` | `#6d4bb0` | `#9b8cf5` | `#b48ead` | `#6b4a8c` | `#c9c9c9` |
+| `--blue` | `#60a5fa` | `#6aa9f0` | `#7fb3a8` | `#5b9df5` | `#1a5fb4` | `#6fa8e8` | `#81a1c1` | `#2a5f8f` | `#9e9e9e` |
+| `--red` | `#f87171` | `#e06c75` | `#e0605a` | `#f0707f` | `#b3261e` | `#ec6f8e` | `#bf616a` | `#a33326` | `#d4d4d4` |
+| `--magenta` | `#f472b6` | `#d16ba5` | `#d98ba0` | `#e07ac4` | `#a3358a` | `#f07ad0` | `#c98cb8` | `#93356f` | `#aeaeae` |
 
 Each theme also defines `--card-hi`, `--row-hi`, `--sel`, `--sunken`, `--line-soft`,
 `--line-faint`, `--fg-hi`, `--fg-mid`, `--dimmest`, `--green-hi`,
@@ -60,16 +81,28 @@ live `<style>` block in `index.html` for exact values if you need a token not ta
 here; every one of them follows the same "accent tinted, background near-black/near-white"
 formula per theme.
 
+**Derived tokens.** `:root` derives a second set from each scheme's palette, so a scheme
+block only sets them when it wants something the derivation can't give: `--surface` /
+`--surface-2` (from `--card` / `--card-hi`; card, tile, input and hover fills), `--line-a` /
+`--line-b` (from `--line-soft` / `--line`; hairlines and control borders), `--ink` (from
+`--bg`; text on a filled accent), `--ok` (from `--green`; the clean repo, live site and
+connected-dot colour), `--glow` and `--grid` (9% of `--green`, 4% of `--fg`; the glow and
+dot grid behind the content column). `obsidian` overrides the surfaces with translucent
+zinc (`rgba(24,24,27,.45)` / `.8`), the lines with `rgba(63,63,70,.55)` / `.85`, `--ink`
+with `#09090b` and `--ok` with emerald; `paper` and `sepia` set `--glow` to transparent.
+
 **Text contrast.** `--dim` sits near 5.8:1 and `--dimmer` at 4.6:1 or better against `--bg`,
 `--panel`, `--card` and `--card-hi` in every theme, so both pass WCAG AA for text.
 `--dimmest` does not, and is for borders, scrollbars and disabled controls only. A new
 theme has to clear the same bar.
 
-`--green` is the accent used for links, the selected tree row's left border, focus rings,
-badges, and the terminal-green identity of the default theme — despite the variable name,
-each theme repoints it to that theme's own accent hue (amber for oxide, cyan for cobalt,
-a dark forest green for paper, violet for plum, muted teal for nord, olive for sepia, and
-plain white-on-grey for mono).
+`--green` is the accent used for links, the selected tree row's translucent pill, focus
+rings, badges, solid buttons and the `/` mark — despite the variable name, each theme
+repoints it to that theme's own accent hue (sky for obsidian, terminal green for midnight,
+amber for oxide, cyan for cobalt, a dark forest green for paper, violet for plum, muted
+teal for nord, olive for sepia, and plain white-on-grey for mono). State is `--ok`, not
+the accent: a clean repo's dot, a live site's dot and the sidebar's connected dot. The
+server's `DOT.clean` ships `var(--ok)` for this reason.
 
 ## Layout shell
 
@@ -86,7 +119,7 @@ plain white-on-grey for mono).
 │   ├── #tree          the scrollable node tree (role="tree") — the Explorer view
 │   └── .ex-foot       current file + live/scanning status dot
 └── main (flex column, fills remaining width)
-    ├── header         42px, fixed height
+    ├── header         48px, fixed height
     │     back/forward · breadcrumbs · search · rescan
     ├── #tabs          hub-tab strip, shown only while a website is open in a hub tab
     ├── #view          the scrollable content pane — everything else renders here
@@ -101,7 +134,7 @@ plain white-on-grey for mono).
 - The header's control order, left to right: **Back/Forward** → breadcrumbs → (grow) →
   search → rescan button. The theme picker moved into the Settings view on 2026-09-29.
 - `#view` is the only scrolling container for content; `.page` inside it caps at
-  `max-width: 1320px`, centered, with `22px 24px 48px` padding.
+  `max-width: 1320px`, centered, with `28px 28px 64px` padding.
 - Below `1024px` (`matchMedia`, so root zoom doesn't move it) the sidebar starts on the rail
   without overwriting the stored `hub.rail` choice, the search field shrinks to a `150px`
   floor, breadcrumb ancestors ellipsize ahead of the current page, the document toolbar
@@ -163,7 +196,7 @@ and its label (`KIND_LABEL`):
 | `config` | blue | CONFIG | `file` | dimmer (gray) | FILE |
 
 `root`, `docroot`, `userroot`, and `repo` render as **round** dots; every other kind
-renders as a **square** dot. Directory-ish kinds (`root`, `docroot`, `userroot`, `repo`,
+renders as a **rounded-square** dot (6px, 2px radius). Directory-ish kinds (`root`, `docroot`, `userroot`, `repo`,
 `cli`, `group`, `section`, `folder`) get a trailing chevron in the tree when they have
 children.
 
@@ -172,8 +205,8 @@ children.
 - Rendered server-side (`md2html()` in `hub.mjs`) and served as HTML via `/api/file`.
 - Headings get GitHub-style slug `id`s so in-document anchors (`#some-heading`) resolve.
 - YAML frontmatter is parsed for metadata and stripped from the rendered body.
-- Fenced code is escaped, never interpreted; inline code and code blocks use the mono
-  font at `11.5px`.
+- Fenced code is escaped, never interpreted; inline code is the mono font at `.9em` in an
+  accent-tinted 4px-radius chip, code blocks are `12px` on `--sunken` with an 8px radius.
 - Raw HTML embedded in a doc (house-style logo heroes, badge rows) is passed through, but
   only after `sanitizeHtml()` tokenizes and rebuilds it against an allowlist — a tag
   survives only if it's on the tag allowlist, an attribute only if it's on that tag's
@@ -187,16 +220,19 @@ children.
 
 ## Cards, tables, and the stat strip
 
-- **Stat strip** (`.stats`) — a wrapping flex row of tiles (`flex:1 1 140px`, so a
-  leftover tile fills its row) (runtimes / repos / skills /
+- **Stat strip** (`.stats`) — a wrapping flex row of separate 10px-radius tiles with a
+  10px gap (`flex:1 1 140px`, so a leftover tile fills its row) (runtimes / repos / skills /
   commands / sub-agents / MCP servers / uncommitted). Each tile with a `link` is
   clickable and scrolls to + flashes the matching section heading (`jumpTo()`), so the
   strip doubles as a table of contents.
 - **Cards** (`.card`, `.cards`) — used for Live Sites and root-doc listings. Fixed
   min-width grid (`repeat(auto-fill, minmax(272px,1fr))` or `minmax(340px,1fr)` for the
-  two-column variant), a header row with a colored dot, and a 4-line-clamped description.
-- **Repo table** — sortable columns, filter chips (`all` / `needs attention (N)` / one
-  chip per group), grid layout `1.5fr .8fr .7fr .7fr 1.6fr`.
+  two-column variant), 12px radius on `--surface`, a header row with a colored dot and an
+  Inter title, a 4-line-clamped description, and the spotlight hover described under Shapes.
+- **Repo table** — one rounded block: a tinted `.thead` with the top corners rounded, rows
+  that light on hover, the last row rounding the bottom. Sortable columns, pill filter chips
+  (`all` / `needs attention (N)` / one chip per group; the active one inverts to `--fg-max`
+  on `--ink`), grid layout `1.5fr .8fr .7fr .7fr 1.6fr`.
 - **Foldable sections** — every major page section is a native `<details>` (`.fold`),
   remembered open/closed by heading text in `localStorage.hub.collapsed`, so keyboard
   users and find-in-page get folding for free without custom JS disclosure logic.
@@ -204,6 +240,15 @@ children.
 Reuse these primitives rather than inventing new card/table shapes — a new section that
 doesn't fit `.card`/`.trow`/`.stat` patterns will look like it belongs to a different
 product.
+
+## Updates through 2026-10-05
+
+The 2026-10-05 restyle (`obsidian`) changed shapes, type and the default scheme, not
+layout or behaviour; see Typography, Shapes and Color schemes above, and the
+`project-hub` repo's `Docs/REDESIGN.md` for the full record. The accent and the state
+colour are separate tokens since then. The hub moves every viewer onto `obsidian` once on
+first load after the change (`hub.design` in `localStorage`); any scheme picked after that
+stands.
 
 ## Updates through 2026-09-09
 

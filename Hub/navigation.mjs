@@ -59,6 +59,74 @@ export function filterSearchPool(pool, { kind = null, root = '', type = '' } = {
   return pool.filter((h) => (!kind || h.kind === kind) && (!type || h.kind === type) && (!root || rootOf(h.id) === root));
 }
 
+// How much each kind is worth when ranking: a CLI or repo named like the query is more
+// likely the thing wanted than a config file of the same name.
+export const KIND_WEIGHT = { cli: 60, repo: 50, skill: 45, command: 45, agent: 45, routine: 45, hook: 40, style: 40, group: 35, section: 35, userroot: 35, md: 25, folder: 15, config: 10 };
+
+/** Substring score of one hit against a lowercased query; 0 means no match. */
+export function searchScore(h, q) {
+  const name = h.name.toLowerCase();
+  let s = 0;
+  if (name === q) s = 1000;
+  else if (name.startsWith(q)) s = 600;
+  else if (name.includes(q)) s = 400;
+  else if ((h.desc || '').toLowerCase().includes(q)) s = 150;
+  else if (h.id.toLowerCase().includes(q)) s = 60;
+  return s ? s + (KIND_WEIGHT[h.kind] || 0) : 0;
+}
+
+/**
+ * Edit distance with adjacent transpositions counted as one edit (optimal string
+ * alignment), because "kalhsi" is the commonest typo there is. Gives up and returns
+ * max + 1 as soon as every cell in a row exceeds `max`, so a long name against a short
+ * query costs a row or two rather than the full table.
+ */
+export function editDistance(a, b, max) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev2 = null, prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    let low = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let d = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + cost);
+      if (prev2 && i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d = Math.min(d, prev2[j - 2] + 1);
+      row.push(d);
+      if (d < low) low = d;
+    }
+    if (low > max) return max + 1;
+    prev2 = prev; prev = row;
+  }
+  return prev[b.length];
+}
+
+// P9-03: the typo budget grows with the query. Under four characters almost everything is
+// one edit from something, so short queries get no tolerance at all.
+const typoBudget = (q) => q.length < 4 ? 0 : q.length < 8 ? 1 : 2;
+
+/**
+ * Rank a search pool. The substring pass is the whole answer whenever it finds anything,
+ * so typo tolerance can never reorder or dilute real matches; only an empty result falls
+ * through to the edit-distance pass. That pass compares the query against the name, the
+ * name without its extension, and each word of the name, so "kalhsi" finds
+ * "kalshi-trader.md". `typo` tells the caller the list is a guess, not a match.
+ */
+export function rankSearch(pool, q) {
+  if (!q) return { ranked: pool.map((h) => ({ h, score: KIND_WEIGHT[h.kind] || 1 })).sort((a, b) => b.score - a.score), typo: false };
+  const exact = pool.map((h) => ({ h, score: searchScore(h, q) })).filter((x) => x.score > 0);
+  const max = typoBudget(q);
+  if (exact.length || !max) return { ranked: exact.sort((a, b) => b.score - a.score), typo: false };
+  const close = [];
+  for (const h of pool) {
+    const name = h.name.toLowerCase();
+    const candidates = new Set([name, name.replace(/\.[^.]+$/, ''), ...name.split(/[^a-z0-9]+/)]);
+    let best = max + 1;
+    for (const c of candidates) if (c) best = Math.min(best, editDistance(q, c, max));
+    if (best <= max) close.push({ h, score: 100 * (max + 1 - best) + (KIND_WEIGHT[h.kind] || 0) });
+  }
+  return { ranked: close.sort((a, b) => b.score - a.score), typo: close.length > 0 };
+}
+
 export function documentTarget(fromId, href) {
   try {
     const split = href.indexOf('#');

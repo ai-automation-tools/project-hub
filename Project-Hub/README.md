@@ -60,7 +60,7 @@ Requires Node 18+ and `git` on PATH. No dependencies, no build step.
 | **Folder** | A card per child, with the child's own README blurb. A folder that holds CLI runtimes (`Agents/`, the `User CLIs` root) leads with them under their category heading and its artifact counts, then everything else under **Folders & docs**. |
 | **Skill / command / sub-agent / hook** | The rendered doc. Its YAML frontmatter is read for the title and blurb, not shown in the body. |
 | **File** | Markdown rendered; HTML preview/source; PDF preview with Open/Download fallback; other text as source. |
-| **Search** | `⌘K` / `Ctrl+K`. Ranks by kind — runtimes and repos above folders and docs. |
+| **Search** | `⌘K` / `Ctrl+K`. Ranks by kind — runtimes and repos above folders and docs. When nothing matches, it shows names within a typo or two instead, labelled *close to … (no exact match)*. |
 
 Two chrome controls sit outside the views:
 

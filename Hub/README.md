@@ -129,7 +129,9 @@ Measured on September 8: the ordinary payload fell from 118,220 to 40,191 nodes 
 
 ## Report browsing and recovery
 
-PDF and HTML files have their own searchable types. Use `pdf:`, `html:`, or `image:` to narrow filenames; search shows the actual match total, a path for every result, and Load 200 More. Fuzzy matching and document-content search remain backlog items.
+PDF and HTML files have their own searchable types. Use `pdf:`, `html:`, or `image:` to narrow filenames; search shows the actual match total, a path for every result, and Load 200 More. Document-content search remains a backlog item (P9-04).
+
+Typo tolerance (P9-03) is a fallback, not a ranking change: `rankSearch()` in `navigation.mjs` runs the substring pass first and returns it untouched whenever it finds anything. Only an empty result falls through to an edit-distance pass (adjacent transpositions count as one edit) against each name, the name without its extension, and each word of the name. Queries under four characters get no tolerance, four to seven get one edit, eight or more get two. The count line then reads `close to “…” (no exact match)`. The Pictures section is searched server-side and stays substring-only.
 
 Under the result count, two rows of filter chips narrow a search without navigating first: one chip per top-level root (Projects, Documents, Skills, Pictures, Automations, the user-CLI root — whichever this hub has), and one per document type (DOC, HTML, PDF, IMAGE). Each row is single-choice and clicking the lit chip clears it. A chip and a typed prefix both apply, so `skill:` with PDF on is empty rather than one overriding the other. Pictures results are only fetched when no other root is chosen, and ask the server for the chosen type. The chips are toggle buttons (`aria-pressed`) in labelled groups, reachable with Tab and switched with Enter or Space; focus stays on the chip after the results redraw. A fresh search starts with no chips; refining the query keeps them.
 

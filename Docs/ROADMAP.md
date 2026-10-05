@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-shipped_2026--10--03-2ea44f?style=for-the-badge" alt="P7-14 narrow-pane layout shipped 2026-10-03">
-  <img src="https://img.shields.io/badge/tests-83_passing-8B5CF6?style=for-the-badge" alt="83 tests passing">
+  <img src="https://img.shields.io/badge/tests-84_passing-8B5CF6?style=for-the-badge" alt="84 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
@@ -35,8 +35,8 @@
 > time (since 2026-09-22).
 >
 > **Current next steps:** the unchecked items in [P9](#p9), in order. As of 2026-10-03 every
-> numbered P7 item has shipped except the optional P7-17–21 and the last two thirds of P7-07
-> (typo tolerance and content search) and of P7-15 (keyboard context menus and divider), all
+> numbered P7 item has shipped except the optional P7-17–21, the last third of P7-07
+> (content search; typo tolerance shipped 2026-10-04 as P9-03) and the last two thirds of P7-15 (keyboard context menus and divider), all
 > queued in P9. Everything above P9 is the record of why things were built the way they were.
 
 ## What was audited
@@ -1078,7 +1078,7 @@ optional and are queued in P9.
 | P7-04 | **Shipped; browser-verified; one follow-up open** | Cross-document headings and copyable Hub URLs, including old-hash compatibility and safe Markdown link formatting. A choice of document-relative Markdown destination remains open (P9-44). |
 | P7-05 | **Shipped; browser-verified** | Signed directory routes resolve nested images, CSS, JS, modules, and JSON relative to the report. Junction escapes, forged directory tokens, and unsupported assets are rejected. Browser pass: a report with sibling `icons/` and `logos/` folders rendered all twelve companion images. |
 | P7-06 | **Shipped; browser-verified — then corrected on September 9** | Response-level CSP sandbox for HTML and SVG, including direct navigation; no `allow-same-origin`, CORS limited to the signed report directory. Browser pass: direct navigation lands in an opaque origin. **The SVG half was too broad**: a `sandbox` CSP also stops `<img>` decoding an SVG, which silently blanked every SVG preview and embedded diagram for a day. Now negotiated on `Sec-Fetch-Dest` — see [the SVG sandbox](#the-svg-sandbox--a-p7-06-defect-this-surfaced). |
-| P7-07 | **Two thirds open** | Accurate total counts, Load 200 More, paths on every result, `pdf:`, `html:`, `image:` prefixes, and root/type filter chips (P9-02, 2026-09-29). **Still open:** typo tolerance (P9-03) and opt-in document-content search (P9-04). |
+| P7-07 | **One third open** | Accurate total counts, Load 200 More, paths on every result, `pdf:`, `html:`, `image:` prefixes, and root/type filter chips (P9-02, 2026-09-29). Typo tolerance as a fallback (P9-03, 2026-10-04). **Still open:** opt-in document-content search (P9-04). |
 | P7-08 | **Shipped; UI browser-verified, positive launch still unchecked** | Invalid/missing paths return errors; launch failures return 502. Paths are passed as environment data to fixed PowerShell commands. The synthetic Projects node has no filesystem actions; the reveal action is named Reveal in Explorer. **Still unverified:** no action was clicked through to a running application. |
 | P7-09 | **Shipped 2026-09-09; browser-verified** | Folder list view beside cards: name, type, modified, size, sortable, folders first only for name and type. Timestamps come from `/api/stat` per folder rather than the scan payload. See [P7-09 shipped](#p7-09-shipped--a-list-that-does-not-cost-a-payload). |
 | P7-10 | **Shipped 2026-09-09; browser-verified** | Bookmarks and Recent above the tree, three ways to pin, drag-reorder, in-place rename, unresolved entries with a relink offer, plus a context menu on pinned rows. `localStorage`, paths only. See [P7-10 shipped](#p7-10-shipped--two-lists-above-the-tree) and [`BOOKMARKS.md`](./BOOKMARKS.md). |
@@ -2062,7 +2062,13 @@ top to bottom.
   chip clears it and keeps focus, and Back from an opened result restores the type chip.)*
   Filter chips for each shared root and for document kind (md / html / pdf / image), kept
   in the search route so Back restores them.
-- [ ] **P9-03 · Search: typo tolerance** (P7-07, and #13's fuzzy search). A bounded edit
+- [x] **P9-03 · Search: typo tolerance** (P7-07, and #13's fuzzy search). *(done 2026-10-04: `rankSearch()` in
+  `navigation.mjs` returns the substring pass untouched when it finds anything; otherwise an
+  optimal-string-alignment distance (budget 0 under 4 chars, 1 up to 7, 2 from 8) against name, stem
+  and each word. `score()`/`KIND_WEIGHT` moved there from `index.html` so the test covers the real
+  ranking. Checked on the demo build: `raedme` → 24 READMEs, `workspce` → the three workspaces, both
+  labelled "close to … (no exact match)"; `readme` unchanged at 28. Pictures search stays
+  substring-only.)* A bounded edit
   distance on titles and filenames that only runs when the exact and prefix passes return
   nothing, so ranking for real matches doesn't change. Tested against a fixed index.
 - [ ] **P9-04 · Search: opt-in content search** (the last third of P7-07). Off by default,

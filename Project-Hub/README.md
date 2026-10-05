@@ -8,7 +8,7 @@ read-only copy over a fictional workspace at
 the real interface and real scan output, minus the two things that need a local server
 (live updates and opening files). [How it is built](../Demo/README.md).
 
-The [project-hub-scaffold-mfs skill](../Skills/project-hub-scaffold-mfs/SKILL.md) adds workspaces to this server or creates a portable installation.
+The [project-hub-scaffold skill](../Skills/project-hub-scaffold/SKILL.md) adds workspaces to this server or creates a portable installation.
 
 Nothing is hard-coded. Every repo, runtime, skill, command, sub-agent, hook, MCP server,
 and doc on the page comes from a live filesystem scan, and the page re-renders on its

@@ -84,12 +84,12 @@ The gear at the right end of the activity bar opens a Settings view (`#settings`
 
 | Setting | Key | Default |
 |:---|:---|:---|
-| Color scheme (moved here from the header) | `hub.theme` | `midnight` |
+| Color scheme (moved here from the header) | `hub.theme` | `obsidian` |
 | Interface size: 90, 100, 115 or 130%, which sets `--zoom` | `hub.zoom` | 115% |
 | Open websites in hub tabs | `hub.links` (`hub` / `browser`) | off: a browser tab |
 | Sync with browser favorites | `hub.favsource` (`sync` / `manual`) | off: manual |
 
-The pre-paint script in `<head>` applies the theme and the interface size before first paint, so neither flashes. The view also has favorites import and export, **Clear recent documents** and **Reset sidebar width**, which clears `hub.sbw`.
+The pre-paint script in `<head>` applies the theme and the interface size before first paint, so neither flashes. It also moves every viewer onto `obsidian` once, recorded in `hub.design`: the page had always stored the scheme on load, so a stored `midnight` was never a choice. Whatever is picked after that stands. The view also has favorites import and export, **Clear recent documents** and **Reset sidebar width**, which clears `hub.sbw`.
 
 ## Favorites
 

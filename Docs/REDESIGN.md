@@ -72,23 +72,26 @@ included.
 - **A command palette, a sticky scroll-spy nav and the constellation** from the landing page.
   The hub already has a search box, a tree and breadcrumbs doing those jobs.
 - **Any change to the views or the layout.** P9-37 to P9-42 cover those.
-- **New screenshots.** `Images/Public/` still shows the old design; its captions say so.
-- **The scaffold skill's design-system reference** (`Skills/project-hub-scaffold-mfs/`) is a
-  travel copy of `agent-skills` and still lists IBM Plex and eight schemes. It is updated there
-  first, then copied here.
+
+## Follow-ups, done the same day
+
+- **The viewport band, measured and left alone.** The proposal-stage screenshots showed the
+  page ending about 15% short of the window at the default 115% size, which looked like
+  `#app{height:calc(100vh / var(--zoom))}` dividing the zoom out twice. Measured properly
+  on the ported page in headless Chromium 140, at 1440×900 and 1600×1100, on the hub and
+  on the demo, and on the pre-redesign sheet too: the existing rule puts the sidebar footer
+  exactly on the viewport's bottom edge, and a plain `100vh` pushes it 15% past it. The
+  band was an artefact of how those first screenshots were taken. The rule stays as it was.
+- **Screenshots.** `Images/Public/` was recaptured from a real hub over the demo fixture.
+- **Skill docs.** The scaffold skill's design-system reference and the `project-hub-client`
+  skill were updated in `agent-skills` and copied here; the travel copy also picked up the
+  rename to `project-hub-scaffold` it had missed.
 
 ## Seen along the way
 
-Two things the comparison screenshots showed that are not part of this change:
-
-- In a current Chromium (headless 140) the page ends about 15% short of the window at the
-  default 115% size, leaving a black band under the sidebar and content.
-  `#app{height:calc(100vh / var(--zoom))}` divides the zoom out of `100vh`, which was right
-  when that comment was written; since Chrome standardised CSS `zoom` the viewport units
-  already account for it, so the division now happens twice. `height:100vh` closes the gap in
-  that build. Worth checking in the browsers actually in use before changing it.
-- A skill's own `SKILL.md` is not captured by the demo build (the reader shows "could not read
-  this file"), because the entity node carries no child for it. Unrelated to design.
+One thing the screenshots showed that is not part of this change: a skill's own `SKILL.md`
+is not captured by the demo build (the reader shows "could not read this file"), because the
+entity node carries no child for it. Unrelated to design.
 
 ---
 

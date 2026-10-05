@@ -11,12 +11,12 @@
 | Image | Shows |
 |:---|:---|
 | [**🖥️ Repo header**](project-hub-header.svg) | SVG wordmark with a workspace-tree icon, using the app palette |
-| [**🗂️ Project overview**](project-overview.png) | Two workspaces, five repositories, and shared tools in the midnight theme |
+| [**🗂️ Project overview**](project-overview.png) | A workspace's repositories, live sites and shared tools in the obsidian theme |
 | [**📖 Document reader**](document-reader.png) | A release guide with an outline and checklist in the paper theme |
 
-Screenshots captured at 1600 × 1100 on 2026-09-09 using an isolated demo and an empty user profile
-seeded with sample agent configuration. All repository names and documents are fictional.
-The displayed `C:/Temp/ProjectHub-Demo` path belongs to that fixture.
+Screenshots captured at 1600 × 1100 on 2026-10-05 from a real hub running over the demo
+fixture (`Demo/Workspace`, `Demo/Home`). All repository names and documents are fictional.
+The displayed `D:/Work` path is the generic one the fixture uses.
 
 That fixture was disposable and is gone; [`../../Demo/`](../../Demo/README.md) is the
 committed replacement, and it is what these should be recaptured against from now on.

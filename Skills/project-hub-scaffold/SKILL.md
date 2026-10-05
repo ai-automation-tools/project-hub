@@ -1,10 +1,13 @@
 ---
-name: project-hub-scaffold-mfs
+name: project-hub-scaffold
 description: >-
-  Add a workspace to an existing Project Hub, scaffold a portable installation of
-  its zero-dependency Node server and HTML explorer, or match its visual design.
-  Use when asked to add a project hub, scaffold a document browser, or give a
-  workspace the same live browsable console as an existing Hub installation.
+  Stand up a browsable HTML console over a folder of project documents — Project Hub
+  is a zero-dependency Node server plus a static explorer that turns any workspace
+  into a clickable document tree in the browser, with no build step and no install.
+  Use when asked to add a workspace to an existing Project Hub, scaffold a fresh
+  portable installation of the server and explorer, build a document browser or docs
+  console for a project, or match an existing Hub page's theme, sidebar tree and
+  navigation. Source: github.com/ai-automation-tools/project-hub (MIT).
 ---
 
 # Project Hub scaffold

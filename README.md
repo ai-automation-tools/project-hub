@@ -19,7 +19,7 @@
   <a href="https://project-hub.ai-automation-tools.dev">Live demo</a> ·
   <a href="#-screenshots">Screenshots</a> ·
   <a href="#-setup">Quick start</a> ·
-  <a href="Skills/project-hub-scaffold-mfs/SKILL.md">Scaffold skill</a>
+  <a href="Skills/project-hub-scaffold/SKILL.md">Scaffold skill</a>
 </p>
 
 <p align="center">
@@ -60,7 +60,7 @@ the demo says so where you reach them. [How it is built](Demo/README.md).
 
 Sample workspaces with fictional content. Click an image for the full view.
 
-[![Project overview in the midnight theme, with two workspaces, repository status, and shared tools.](Images/Public/project-overview.png)](Images/Public/project-overview.png)
+[![Project overview in the obsidian theme, with repository status, live sites and shared tools.](Images/Public/project-overview.png)](Images/Public/project-overview.png)
 
 <details>
 <summary><strong>📖 Document reader · paper theme</strong></summary>
@@ -117,7 +117,7 @@ server. Run tests with `npm test` from `Hub/`.
 | [**📁 Projects**](Projects/_example/hub.config.json.example) | Example workspace config |
 | [**📚 Docs**](Docs/README.md) | Guides, roadmap, and design research |
 | [**🌐 Demo**](Demo/README.md) | Fixture workspace and the build behind the hosted demo |
-| [**🧩 Scaffold skill**](Skills/project-hub-scaffold-mfs/SKILL.md) | Add workspaces or create a portable installation |
+| [**🧩 Scaffold skill**](Skills/project-hub-scaffold/SKILL.md) | Add workspaces or create a portable installation |
 | [**🖼️ Images**](Images/README.md) | Public screenshots and local design references |
 | [**🎨 Src**](Src/README.md) | Notes about the original design exports |
 
@@ -163,7 +163,7 @@ Part of the [**ai-automation-tools**](https://github.com/ai-automation-tools) or
 
 | Repo | How it relates |
 |:---|:---|
-| [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold-mfs/`](Skills/project-hub-scaffold-mfs/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present. Its scripts and references match the canonical copy byte for byte, and only the `SKILL.md` name and description differ. A change belongs there first. It also carries three **maintainer skills for this codebase** — see below. |
+| [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold/`](Skills/project-hub-scaffold/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present, byte for byte the canonical one. A change belongs there first. It also carries three **maintainer skills for this codebase** — see below. |
 | [**Agent-chat**](https://github.com/ai-automation-tools/Agent-chat) | MCP server for AI-to-AI conversations. Its workspace is one of the things a hub renders. |
 | [**cronsole**](https://github.com/ai-automation-tools/cronsole) | Scheduled-task control plane. The hub's watchdog is one of the tasks it can see. |
 
@@ -172,7 +172,7 @@ Part of the [**ai-automation-tools**](https://github.com/ai-automation-tools) or
 <p align="center">
   Built with Node.js and vanilla JavaScript · <a href="LICENSE">MIT license</a><br>
   <a href="Project-Hub/README.md">User manual</a> ·
-  <a href="Skills/project-hub-scaffold-mfs/SKILL.md">Scaffold skill</a> ·
+  <a href="Skills/project-hub-scaffold/SKILL.md">Scaffold skill</a> ·
   <a href="Docs/ROADMAP.md">Roadmap</a>
 </p>
 

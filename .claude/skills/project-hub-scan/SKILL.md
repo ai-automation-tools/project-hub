@@ -18,8 +18,8 @@ description: >-
 `resolveId()` agrees a second time.** Most "why isn't this showing up" bugs are one filter,
 and most "why can I read that" bugs are the second gate missing.
 
-All commands run from **`Hub/`**, not the repo root. `npm test` is 66 Node tests over
-`hub.mjs`, `reports.mjs` and `pictures.mjs`.
+All commands run from **`Hub/`**, not the repo root. `npm test` is 83 Node tests over
+`hub.mjs`, `reports.mjs`, `pictures.mjs`, `webmarks.mjs` and `favorites.mjs`.
 
 ---
 

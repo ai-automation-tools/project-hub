@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-10-05
 
+- Recapture the two public screenshots in the new design from a real hub over the demo fixture, and re-sync the scaffold skill's travel copy and the three maintainer-skill overlays from `agent-skills` (the travel copy had missed the rename to `project-hub-scaffold`).
 - Bring the roadmap up to date with the redesign: P7-14's table row no longer says "Blocked" (it shipped as P9-24), the redesign's follow-ups are their own queued items (P9-46 scaffold reference and screenshots, P9-47 the `100vh` / zoom gap, P9-48 a skill's `SKILL.md` in the demo), the never-clicked native-launch check is P9-49 (🔒 Needs Mike), and P9-08, P9-23 and P9-41 describe what is actually in the code today.
 - Redesign the explorer in the landing page's idiom: a new default scheme, `obsidian` (near-black ground with a faint dot grid and one sky glow, zinc surfaces, a sky accent), Inter for headings and controls with JetBrains Mono for paths and tables, 6/8/12px radii, stat tiles as separate cards, a rounded repo table, pill filter chips, and cards that lift with a cursor-tracked ring on hover. The eight existing schemes keep their colours and take the new shapes. A clean repo and a live site now use a separate `--ok` green rather than the accent. Everyone is moved onto `obsidian` once (`hub.design`); any scheme picked after that stands. Written up in [`REDESIGN.md`](REDESIGN.md). *(roadmap: P9-45)*
 

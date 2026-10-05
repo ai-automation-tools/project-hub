@@ -35,11 +35,13 @@ percentages by one delegated `pointermove` listener).
 ## The zoom knob
 
 The whole UI is sized in `px` off one CSS variable: `--zoom: 1.15` on `:root`, applied via
-`html{zoom:var(--zoom)}`. Changing that one value rescales everything together. `#app` is
-`height:100vh`: since Chrome 128 standardised CSS `zoom` (and in Firefox and Safari), the
-viewport units already account for a root zoom, so no correction is needed. The hub used
-to divide the zoom back out of `100vh` for older Chrome, which in a current browser left a
-band of empty page under the content; that division was dropped on 2026-10-05.
+`html{zoom:var(--zoom)}`. Changing that one value rescales everything together. `#app`
+divides `100vh` back out of it (`height:calc(100vh / var(--zoom))`) because Chrome does
+**not** shrink the initial containing block to match a root `zoom`, so without that
+correction the page runs ~15% past the bottom of the viewport. Reproduce both halves
+together if you borrow this pattern — the zoom alone, without the height correction,
+breaks scrolling. (Re-measured in Chromium 140 on 2026-10-05: still true, a plain `100vh`
+overflows by 15%.)
 
 ## Color schemes (CSS custom properties)
 

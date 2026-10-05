@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createReportHandler, REPORT_CSP } from './reports.mjs';
 import { kindOfFile, fileStamp, scanSignature } from './hub.mjs';
 import { routeHash, parseRoute, searchHash, parseSearch, documentTarget, markdownLink, includeInSearch,
-  SEARCH_TYPES, filterSearchPool } from './navigation.mjs';
+  SEARCH_TYPES, filterSearchPool, rankSearch, editDistance } from './navigation.mjs';
 import { launchNative } from './open-native.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -76,6 +76,42 @@ test('search root and type chips ride in the route and narrow the pool (P9-02)',
   assert.deepEqual(ids({ kind: 'skill', type: 'pdf' }), []);
   assert.deepEqual(ids({ kind: 'skill' }), ['Skills/demo/SKILL.md']);
   assert.deepEqual(ids({ root: 'Nowhere' }), []);
+});
+
+test('P9-03: typo tolerance only runs when the substring pass finds nothing', () => {
+  assert.equal(editDistance('kalhsi', 'kalshi', 2), 1, 'a transposition is one edit');
+  assert.equal(editDistance('roadmap', 'roadmpa', 1), 1);
+  assert.equal(editDistance('abc', 'abcdef', 1), 2, 'gives up past the budget');
+  assert.equal(editDistance('deploy', 'deploy', 1), 0);
+
+  const index = [
+    { id: 'Skills/kalshi-trader/SKILL.md', name: 'kalshi-trader', kind: 'skill' },
+    { id: 'Projects/Alpha/ROADMAP.md', name: 'ROADMAP.md', kind: 'md' },
+    { id: 'Projects/Alpha/roadmap-notes.md', name: 'roadmap-notes.md', kind: 'md' },
+    { id: 'Projects/Alpha/deploy.json', name: 'deploy.json', kind: 'config' },
+    { id: 'Projects/Beta', name: 'Beta', kind: 'repo', desc: 'the roadmap service' },
+  ];
+  const names = (q) => rankSearch(index, q).ranked.map((x) => x.h.name);
+
+  // Real matches: same order and same members as before the fallback existed.
+  const exact = rankSearch(index, 'roadmap');
+  assert.equal(exact.typo, false);
+  assert.deepEqual(names('roadmap'), ['ROADMAP.md', 'roadmap-notes.md', 'Beta']);
+
+  // A typo with no substring hit falls through to edit distance on names, stems and words.
+  const typo = rankSearch(index, 'kalhsi');
+  assert.equal(typo.typo, true);
+  assert.deepEqual(names('kalhsi'), ['kalshi-trader']);
+  assert.deepEqual(names('roadmpa'), ['ROADMAP.md', 'roadmap-notes.md']);
+  assert.deepEqual(names('delpoy.json'), ['deploy.json']);
+
+  // Short queries get no tolerance, and nothing close stays honestly empty.
+  assert.deepEqual(names('btea'), ['Beta']);
+  assert.deepEqual(names('bta'), []);
+  assert.deepEqual(rankSearch(index, 'zzzzzz'), { ranked: [], typo: false });
+
+  // An empty query is still everything, best kinds first.
+  assert.equal(rankSearch(index, '').ranked[0].h.kind, 'repo');
 });
 
 test('heading routes preserve old links and round-trip punctuation and Unicode', () => {

@@ -659,7 +659,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module" nonce="%NONCE%">
-import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, documentTarget, markdownLink, includeInSearch,
+import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
   pushRecent, resolveBookmarks, absolutePath } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
@@ -3528,9 +3528,7 @@ function viewSearch(page) {
   const root = S.byId.has(S.searchRoot) ? S.searchRoot : '', type = S.searchType;
   let pool = filterSearchPool(S.index, { kind, root, type }, rootIdOf);
   if (ctxProject && S.searchScoped) pool = pool.filter(h => topAncestorOf(h.id) === ctxProject);
-  const ranked = (q ? pool.map(h => ({ h, score: score(h, q) })).filter(x => x.score > 0)
-    : pool.map(h => ({ h, score: KIND_WEIGHT[h.kind] || 1 })))
-    .sort((a, b) => b.score - a.score);
+  const { ranked, typo } = rankSearch(pool, q);
   const hits = ranked.slice(0, S.hitLimit || 200).map(x => x.h);
 
   const head = el('div');
@@ -3540,7 +3538,7 @@ function viewSearch(page) {
     + (kind ? ` in ${KIND_LABEL[kind] || kind}` : '')
     + (type && type !== kind ? ` in ${KIND_LABEL[type]}` : '')
     + (root ? ` under ${S.byId.get(root).name}` : '')
-    + (q ? ` for “${q}”` : '')
+    + (q ? (typo ? ` close to “${q}” (no exact match)` : ` for “${q}”`) : '')
     + (hits.length ? ' — ↑↓ to move, Enter to open' : '');
   head.append(label);
   if (ctxProject) {
@@ -3669,18 +3667,6 @@ async function searchPictures(host, q, kind, previous = [], previousVersion = nu
     const retry = el('button', 'btn', 'Retry Pictures search'); retry.onclick = () => searchPictures(host, q, kind);
     host.append(retry);
   }
-}
-
-const KIND_WEIGHT = { cli: 60, repo: 50, skill: 45, command: 45, agent: 45, routine: 45, hook: 40, style: 40, group: 35, section: 35, userroot: 35, md: 25, folder: 15, config: 10 };
-function score(h, q) {
-  const name = h.name.toLowerCase();
-  let s = 0;
-  if (name === q) s = 1000;
-  else if (name.startsWith(q)) s = 600;
-  else if (name.includes(q)) s = 400;
-  else if ((h.desc || '').toLowerCase().includes(q)) s = 150;
-  else if (h.id.toLowerCase().includes(q)) s = 60;
-  return s ? s + (KIND_WEIGHT[h.kind] || 0) : 0;
 }
 
 // ── live updates ───────────────────────────────────────────────────────────

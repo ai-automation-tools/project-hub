@@ -184,7 +184,7 @@ The gear at the right end of the activity bar opens a Settings view (`#settings`
 
 | Setting | Key | Default |
 |:---|:---|:---|
-| Color scheme (moved here from the header) | `hub.theme` | `obsidian` |
+| Color scheme (all nine; the header keeps a Light / Dark switch for `paper` / `obsidian`) | `hub.theme` | `obsidian` |
 | Interface size: 90, 100, 115 or 130%, which sets `--zoom` | `hub.zoom` | 115% |
 | Open websites in hub tabs | `hub.links` (`hub` / `browser`) | off: a browser tab |
 | Sync with browser favorites | `hub.favsource` (`sync` / `manual`) | off: manual |

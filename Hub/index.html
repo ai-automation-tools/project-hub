@@ -8,7 +8,8 @@
 <!-- Applied before first paint so a non-default scheme doesn't flash the default one.
      The page stores the scheme on every load, so nobody who used the hub before 2026-10-05
      ever chose midnight; `hub.design` moves them onto obsidian once, after which their own
-     pick stands, midnight included. -->
+     pick stands, midnight included. The fallback ('obsidian') must agree with THEMES[0] in the
+     module below, or the first frame disagrees with the page that replaces it. -->
 <script nonce="%NONCE%">try{const d=document.documentElement,z=parseFloat(localStorage.getItem('hub.zoom'));let t=localStorage.getItem('hub.theme');if(localStorage.getItem('hub.design')!=='obsidian'){localStorage.setItem('hub.design','obsidian');t='obsidian';localStorage.setItem('hub.theme',t)}d.dataset.theme=t||'obsidian';if(z>=0.8&&z<=1.5)d.style.setProperty('--zoom',z)}catch{}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,14 +80,15 @@ html[data-theme="cobalt"]{                  /* cool dark — cyan/blue on deep n
   --orange:#f0b45c; --purple:#a99bf5; --blue:#5b9df5; --red:#f0707f; --magenta:#e07ac4;
   --accent-bg:#07171c; --accent-line:#163b45; --blue-bg:#0a1424; --blue-line:#1d3560;
 }
-html[data-theme="paper"]{                   /* light — ink on warm white */
+html[data-theme="paper"]{                   /* light — ink on warm white; the header toggle's Light */
+  color-scheme:light;
   --bg:#f7f6f3; --panel:#efeeea; --card:#ffffff; --card-hi:#f4f3ef; --row-hi:#e8e7e1;
   --sel:#e0e6e1; --sunken:#f0efeb;
   --line:#d4d2cb; --line-soft:#e0ded7; --line-faint:#e9e7e1;
   --fg:#2b2f33; --fg-hi:#1c2024; --fg-max:#0f1215; --fg-mid:#4d545b;
-  --dim:#565c63; --dimmer:#656b72; --dimmest:#a8afb6;
-  --green:#0f7a4e; --green-hi:#0b5c3a; --green-line:#9dcbb4;
-  --orange:#a2670c; --purple:#6d4bb0; --blue:#1a5fb4; --red:#b3261e; --magenta:#a3358a;
+  --dim:#565c63; --dimmer:#656b72; --dimmest:#80878e;
+  --green:#0d7048; --green-hi:#0b5c3a; --green-line:#9dcbb4;
+  --orange:#8a5807; --purple:#6d4bb0; --blue:#1a5fb4; --red:#b3261e; --magenta:#a3358a;
   --accent-bg:#e8f4ee; --accent-line:#bcded0; --blue-bg:#e8f0fa; --blue-line:#c1d5ee;
   --glow:transparent;
 }
@@ -111,13 +113,14 @@ html[data-theme="nord"]{                    /* dark — muted arctic blue-grey *
   --accent-bg:#243033; --accent-line:#3d5654; --blue-bg:#232c38; --blue-line:#3d5170;
 }
 html[data-theme="sepia"]{                   /* light — brown ink on aged cream */
+  color-scheme:light;
   --bg:#f4ecdd; --panel:#ece2d0; --card:#fbf5e9; --card-hi:#f2e9d8; --row-hi:#e6dac4;
   --sel:#e0d3b8; --sunken:#ebe1cf;
   --line:#d2c4a8; --line-soft:#ded2ba; --line-faint:#e7dcc7;
   --fg:#3b3227; --fg-hi:#2a231a; --fg-max:#1a1510; --fg-mid:#5c5142;
-  --dim:#5e5344; --dimmer:#6c6252; --dimmest:#b3a792;
+  --dim:#5e5344; --dimmer:#6c6252; --dimmest:#8a7e69;
   --green:#5c6b2f; --green-hi:#44521f; --green-line:#b6c090;
-  --orange:#a05a12; --purple:#6b4a8c; --blue:#2a5f8f; --red:#a33326; --magenta:#93356f;
+  --orange:#8e4f0f; --purple:#6b4a8c; --blue:#2a5f8f; --red:#a33326; --magenta:#93356f;
   --accent-bg:#eaeed6; --accent-line:#c8d0a6; --blue-bg:#e4ecf3; --blue-line:#b6cadd;
   --glow:transparent;
 }
@@ -247,6 +250,16 @@ header{height:48px;flex:0 0 48px;border-bottom:1px solid var(--line-a);backgroun
 #crumbs span[data-go]:hover{color:var(--fg)}
 .search{display:flex;align-items:center;gap:8px;height:32px;border:1px solid var(--line-b);border-radius:var(--r-md);background:var(--surface);padding:0 10px;flex:0 1 310px;min-width:150px;
   transition:border-color .2s,background .2s}
+/* Light / Dark switch, top-right of the header. Light = paper, Dark = obsidian; the other
+   schemes stay in Settings, and while one of those is on neither half is pressed. */
+.themetog{display:flex;align-items:center;gap:2px;padding:2px;border-radius:12px;flex:0 0 auto;
+  background:color-mix(in srgb,var(--line-soft) 60%,transparent)}
+.themetog button{display:flex;align-items:center;justify-content:center;width:28px;height:24px;padding:0;
+  border:none;border-radius:10px;background:transparent;color:var(--dimmer);cursor:pointer;transition:color .15s,background-color .15s}
+.themetog button:hover{color:var(--fg)}
+.themetog button[aria-pressed="true"]{background:var(--bg);color:var(--fg-hi);box-shadow:0 1px 2px rgb(0 0 0 / .05)}
+.themetog button:focus-visible{outline:2px solid color-mix(in srgb,var(--green) 60%,transparent);outline-offset:0}
+.themetog svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .search:focus-within{border-color:var(--dimmest);background:var(--surface-2)}
 .search>span.mono{color:var(--dimmer)}
 .search input{min-width:0}
@@ -366,6 +379,9 @@ h2.sec.flash{animation:secflash 1.4s ease-out}
 .split{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
 @media (max-width:1100px){.split{grid-template-columns:1fr}}
 @media (max-width:1024px){.page{padding:16px 14px 40px}header{gap:10px;padding:0 10px}.search .kbd{display:none}#rescan{white-space:nowrap}}
+/* Phone width: the crumbs had already been squeezed to nothing; dropping them and the rescan
+   label is what keeps the search and the theme switch on screen. */
+@media (max-width:600px){header{gap:6px}#crumbs,header .grow{display:none}.search{flex:1 1 0;min-width:0;padding:0 8px}#rescan{padding:0 9px}#rescan .lbl{display:none}}
 .panel{border:1px solid var(--line-a);border-radius:var(--r-lg);background:var(--card);overflow:hidden}
 .panel>.ph{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line-a);background:var(--surface-2);font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--fg-mid)}
 .panel>.ph em{font-style:normal;font-size:10.5px;font-weight:400;color:var(--dimmer)}
@@ -731,7 +747,11 @@ details[open]>summary .fchev{transform:rotate(90deg)}
           aria-label="Search the workspace. Prefix with a kind to narrow, for example skill: or repo:">
         <span class="kbd">Ctrl+K</span>
       </div>
-      <button class="btn" id="rescan">↻ rescan</button>
+      <button class="btn" id="rescan" aria-label="Rescan" title="Rescan">↻<span class="lbl"> rescan</span></button>
+      <div class="themetog" role="group" aria-label="Theme">
+        <button type="button" data-mode="paper" aria-pressed="false" aria-label="Light theme" title="Light theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button>
+        <button type="button" data-mode="obsidian" aria-pressed="false" aria-label="Dark theme" title="Dark theme"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+      </div>
     </header>
     <div id="connection" role="status" hidden style="padding:8px 16px;border-bottom:1px solid var(--orange)"><span></span> <button class="btn" id="retry">Retry</button></div>
     <div id="tabs" role="tablist" aria-label="Open pages" hidden></div>
@@ -2306,9 +2326,11 @@ const setTheme = (name) => {
   const t = THEMES.includes(name) ? name : THEMES[0];
   document.documentElement.dataset.theme = t;
   $('#theme').value = t;
+  for (const b of document.querySelectorAll('.themetog button')) b.setAttribute('aria-pressed', String(b.dataset.mode === t));
   try { localStorage.setItem('hub.theme', t); } catch {}
 };
 $('#theme').onchange = (e) => setTheme(e.target.value);
+for (const b of document.querySelectorAll('.themetog button')) b.onclick = () => setTheme(b.dataset.mode);
 
 let stored = {};
 try { stored = { rail: localStorage.getItem('hub.rail'), theme: localStorage.getItem('hub.theme'), side: localStorage.getItem('hub.side') }; } catch {}

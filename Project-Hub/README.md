@@ -547,7 +547,7 @@ The gear at the right end of the activity bar opens Settings:
 
 | Setting | What it does |
 | :--- | :--- |
-| **Color scheme** | One of eight themes. It moved here from the header. |
+| **Color scheme** | One of nine themes. The sun / moon switch at the right end of the header is the shortcut: Light is `paper`, Dark is `obsidian`, and while any other scheme is on neither half is pressed. |
 | **Interface size** | Scales the whole interface: 90, 100, 115 (the default) or 130%. |
 | **Open websites in hub tabs** | Off (the default): links to websites open in a new browser tab. On: they open in tabs inside the hub. See [Hub tabs](#hub-tabs). |
 | **Sync with browser favorites** | Off (the default): Favorites is the hub's own list. On: it shows your Edge, Chrome or Brave favorites, read-only. |

@@ -456,7 +456,7 @@ function readHooksFrom(file, format) {
 // readHead returns null for every failure alike, so the reason has to be stashed here for
 // the caller that records it. Single-threaded and read immediately, so one slot is enough.
 let lastReadHeadError = null;
-function readHead(file, bytes = 4096) {
+function readHead(file, bytes = 4096, encoding = 'utf8') {
   // The fd must close in a finally: a readSync that throws (file locked, or deleted
   // mid-scan) used to strand it, and the watcher calls this thousands of times a day.
   // That leak is what killed the AI Lab hub with EMFILE after four days up on 2026-08-31.
@@ -465,7 +465,7 @@ function readHead(file, bytes = 4096) {
     fd = fs.openSync(file, 'r');
     const buf = Buffer.alloc(bytes);
     const n = fs.readSync(fd, buf, 0, bytes, 0);
-    return buf.subarray(0, n).toString('utf8');
+    return buf.subarray(0, n).toString(encoding);
   } catch (err) { lastReadHeadError = err; return null; }   // null = could not read; '' = read fine, file is empty
   finally { if (fd !== undefined) try { fs.closeSync(fd); } catch {} }
 }
@@ -1145,6 +1145,11 @@ export function scopeRepos(repos, projects) {
 }
 
 // ── build payload ──────────────────────────────────────────────────────────
+// P9-04: what the last scan found for content search to index, and the index itself.
+// All three stay empty on a hub nobody content-searches; see contentIndexNow().
+let contentDocs = [], contentSig = '', contentIndex = null;
+export const CONTENT_FILE = /\.(md|mdx|markdown|txt|rst|adoc)$/i;
+
 async function scan(fresh = false) {
   const t0 = Date.now();
   const { tree, repos, runtimes, flat, artifacts, drafts } = scanTree();
@@ -1229,6 +1234,10 @@ async function scan(fresh = false) {
 
   // Modification times cover equal-byte-count edits, including bucket entry docs.
   const sig = scanSignature(flat, repos);
+  // Only a list of nodes; nothing is read here. resolveId() keeps the index to what
+  // /api/file would serve, so content search can never surface a denied file's text.
+  contentDocs = flat.filter((n) => n.abs && CONTENT_FILE.test(n.name) && resolveId(n.id));
+  contentSig = String(sig);
 
   // The search index used to ship here too: 25,731 entries, 4.42MB of the 10.23MB
   // payload, every field of it already present on the tree nodes it was copied from
@@ -1597,6 +1606,89 @@ async function scanJson(fresh) {
   return cached;
 }
 
+// ── content search (P9-04) ─────────────────────────────────────────────────
+// The ordinary search matches names, descriptions and paths, and P7-07 asked that it never
+// imply more. This is the explicit opt-in that looks inside documents. Nothing is read
+// until the first query asks for it -- never during a scan -- and only markdown and plain
+// text, each file capped, inside a total budget: a 12k-doc workspace would otherwise pin
+// its whole text in the heap for a feature most sessions never touch.
+//
+// Each file is held as its raw UTF-8 bytes decoded as latin1, one byte per character. V8
+// stores a string with a single em dash in it at two bytes per character, and nearly every
+// doc here has one. As latin1 the heap cost is the byte count, so the budget below is the
+// memory cost. Measured 2026-10-06 over a 7,752-doc tree (58MB of markdown), after a forced
+// GC: 64KB per file indexes 49.8MB and retains 51.5MB of heap; the same files decoded to
+// UTF-16 retain 86.1MB. A first cut at 128KB/32MB had left 2,968 of those files out.
+export const CONTENT_CAPS = { perFile: 64 * 1024, total: 64 * 1024 * 1024 };
+// The longest list one answer carries. The client applies the root and project filters to
+// it, so it is generous; each hit is an id, a count and a ~130-char snippet.
+const CONTENT_HITS_MAX = 1000;
+
+/**
+ * Index `docs` ({ id, abs, size, mtime }) for content search. An entry whose size and
+ * mtime match `prev` is reused, so the rebuild after a watcher rescan reads only what
+ * moved. Files clipped to the per-file cap, left out by the total budget, or unreadable
+ * are counted rather than silently dropped, so the page can say the index is partial.
+ */
+export function buildContentIndex(docs, prev = new Map(), read = (abs, n) => readHead(abs, n, 'latin1'), caps = CONTENT_CAPS) {
+  const entries = new Map();
+  let bytes = 0, clipped = 0, skipped = 0, unread = 0;
+  for (const d of docs) {
+    if (!d.size) continue;
+    const want = Math.min(d.size, caps.perFile);
+    if (bytes + want > caps.total) { skipped++; continue; }
+    const old = prev.get(d.id);
+    const text = old && old.size === d.size && old.mtime === d.mtime ? old.text : read(d.abs, want);
+    if (text == null) { unread++; continue; }
+    entries.set(d.id, { size: d.size, mtime: d.mtime, text });
+    bytes += want;
+    if (d.size > caps.perFile) clipped++;
+  }
+  return { entries, bytes, clipped, skipped, unread };
+}
+
+/**
+ * Literal match over an index whose texts are UTF-8 bytes as latin1 (see CONTENT_CAPS), so
+ * the query is encoded the same way. ASCII letters match either case; every other byte
+ * matches exactly -- a plain `i` flag would also fold latin1 lookalikes that are really
+ * halves of multi-byte characters. Files rank by how often the query occurs (counted to
+ * 100, plenty to rank by), then by id so the order is stable. The snippet is the decoded
+ * text around the first occurrence; the client marks the match.
+ */
+export function searchContent(index, q, limit = CONTENT_HITS_MAX) {
+  const needle = String(q || '').trim();
+  if (needle.length < 2) return { hits: [], total: 0 };
+  const bytes = Buffer.from(needle, 'utf8').toString('latin1');
+  const re = new RegExp([...bytes].map((c) => /[a-z]/i.test(c) ? `[${c.toLowerCase()}${c.toUpperCase()}]`
+    : c.replace(/[.*+?^${}()|[\]\\/-]/g, '\\$&')).join(''), 'g');
+  const hits = [];
+  for (const [id, { text }] of index.entries) {
+    re.lastIndex = 0;
+    const first = re.exec(text);
+    if (!first) continue;
+    let count = 1;
+    while (count < 100 && re.exec(text)) count++;
+    const start = Math.max(0, first.index - 60), end = Math.min(text.length, first.index + bytes.length + 60);
+    // A window edge can split a multi-byte character; its stray half decodes to U+FFFD.
+    const around = Buffer.from(text.slice(start, end), 'latin1').toString('utf8').replace(/^�+|�+$/g, '');
+    const snippet = (start ? '…' : '') + around.replace(/\s+/g, ' ').trim() + (end < text.length ? '…' : '');
+    hits.push({ id, count, snippet });
+  }
+  hits.sort((a, b) => b.count - a.count || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return { hits: hits.slice(0, limit), total: hits.length };
+}
+
+// The index is rebuilt lazily when the scan's signature moves on (state declared above
+// scan(), which `--scan` runs before this point is reached).
+function contentIndexNow() {
+  if (!contentIndex || contentIndex.sig !== contentSig) {
+    const t0 = Date.now();
+    contentIndex = { sig: contentSig, ...buildContentIndex(contentDocs, contentIndex?.entries) };
+    contentIndex.buildMs = Date.now() - t0;
+  }
+  return contentIndex;
+}
+
 // A page on any origin can point a request at 127.0.0.1, and an attacker's domain can be
 // re-resolved to it (DNS rebinding) to become same-origin. Neither survives a Host check:
 // a rebound request still carries the attacker's hostname.
@@ -1676,6 +1768,8 @@ const server = http.createServer(async (req, res) => {
       // The paths behind those counts, newest last. Relative ids, so the UI can link them.
       readErrorPaths: [...readErrorLog].map(([file, e]) => ({ path: rel(file), code: e.code, at: e.at })),
       descCache: descCache.size,
+      // null until the first content search builds it (P9-04).
+      contentIndex: contentIndex && { docs: contentIndex.entries.size, mb: +(contentIndex.bytes / 1048576).toFixed(2), buildMs: contentIndex.buildMs },
       lastScan: last && {
         at: new Date(last.at).toISOString(),
         ageSec: Math.round((Date.now() - last.at) / 1000),
@@ -1794,6 +1888,22 @@ const server = http.createServer(async (req, res) => {
       : { html: md2html(text) };
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify(payload));
+    return;
+  }
+
+  // P9-04: opt-in content search. Read-only and addressed by query, not path; the index
+  // only ever holds files scan() found and resolveId() admits.
+  if (url.pathname === '/api/content') {
+    if (req.method !== 'GET') { res.writeHead(405, { allow: 'GET' }).end('method not allowed'); return; }
+    const q = (url.searchParams.get('q') || '').trim();
+    if (q.length < 2) { res.writeHead(400).end('type at least two characters to search inside documents'); return; }
+    await scanJson(false);
+    const index = contentIndexNow();
+    const { hits, total } = searchContent(index, q);
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify({
+      hits, total, docs: index.entries.size, mb: +(index.bytes / 1048576).toFixed(2),
+      clipped: index.clipped, skipped: index.skipped, unread: index.unread, buildMs: index.buildMs, perFileKb: CONTENT_CAPS.perFile / 1024,
+    }));
     return;
   }
 

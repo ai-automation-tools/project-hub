@@ -71,6 +71,7 @@ node hub.mjs --config ..\Project-Hub\hub.config.json --scan   # writes scan.json
 | `/api/pictures?path=` | Immediate children of a Pictures folder, or a file and its ancestor path. |
 | `/api/pictures?action=search&q=&kind=&offset=&limit=` | Separate cached metadata search, up to 200 hits per page. Built only when requested. |
 | `/api/pictures?action=status` | Pictures cache/index version and read/build metrics. |
+| `/api/content?q=` | Opt-in search inside Markdown and text files (P9-04): up to 1000 files ranked by occurrences, each with a snippet, plus the index size and what it left out. The index is built on the first call, never during a scan. GET only; 400 under two characters. `/api/health` reports `contentIndex` once it exists. |
 | `/api/file?path=` | One text document, rendered to HTML. PDF/image input returns 415. |
 | `/api/raw?path=` | File bytes, including PDF MIME and byte ranges; `&download=1` requests attachment delivery. HTML redirects to the contained preview route. |
 | `/api/preview?path=` | Redirects an HTML report to its signed directory URL. |
@@ -129,7 +130,9 @@ Measured on September 8: the ordinary payload fell from 118,220 to 40,191 nodes 
 
 ## Report browsing and recovery
 
-PDF and HTML files have their own searchable types. Use `pdf:`, `html:`, or `image:` to narrow filenames; search shows the actual match total, a path for every result, and Load 200 More. Document-content search remains a backlog item (P9-04).
+PDF and HTML files have their own searchable types. Use `pdf:`, `html:`, or `image:` to narrow filenames; search shows the actual match total, a path for every result, and Load 200 More.
+
+Search matches names, descriptions and paths only, until you press the **inside documents** chip beside the result count (P9-04). That adds a section listing the Markdown and text files (`.md .mdx .markdown .txt .rst .adoc`) whose contents contain the query, ranked by how often it occurs, each with a snippet around the first occurrence. Matching is literal: ASCII letters ignore case, other characters match exactly. The root and project chips apply to it; a type chip other than DOC replaces it with a note, since PDFs, HTML and images are not indexed. The chip is off for every fresh query and rides in the route as `content=1`, so Back restores it. The server builds the index lazily on the first such query and rebuilds it only when a scan changes, rereading only files whose size or mtime moved. Each file is capped at 64 KB and the index at 64 MB. Files are held as their raw UTF-8 bytes, so the heap cost roughly equals the index size; the section says when a cap left anything out. Measured over a 7,752-doc tree: a 3.6–4.7 s first build (the reads are synchronous, like a scan), 49.8 MB indexed and 51.5 MB of heap retained, 8 ms to rebuild after a rescan, and 80–100 ms per query. The hosted demo has no server, so the section explains that instead.
 
 Typo tolerance (P9-03) is a fallback, not a ranking change: `rankSearch()` in `navigation.mjs` runs the substring pass first and returns it untouched whenever it finds anything. Only an empty result falls through to an edit-distance pass (adjacent transpositions count as one edit) against each name, the name without its extension, and each word of the name. Queries under four characters get no tolerance, four to seven get one edit, eight or more get two. The count line then reads `close to “…” (no exact match)`. The Pictures section is searched server-side and stays substring-only.
 
@@ -142,7 +145,7 @@ Document links retain heading fragments, and Copy Hub Link preserves the selecte
 A search has its own route too, so Back returns to the results you came from rather than the
 document you were on before them. Searching sets `#?q=<encoded-query>`, adding `scoped=1` when the
 project-scope chip is on, `limit=<n>` once Load 200 More has been used, and `root=<encoded-root-id>`
-/ `type=md|html|pdf|image` for the filter chips; all are omitted at their defaults to keep the URL
+/ `type=md|html|pdf|image` for the filter chips, and `content=1` for the inside-documents chip; all are omitted at their defaults to keep the URL
 short, and a `type` outside those four is ignored. Entering a search pushes one history entry and refining the query
 replaces it, so typing does not add an entry per keystroke. A `limit` outside 200-20000 is clamped
 rather than honoured. Because the query lives in the URL, a set of results is now a link you can

@@ -14,14 +14,16 @@ export function parseRoute(hash) {
 // so Back landed on the previous document instead of the results you came from. Giving the
 // search a route lets the browser's own history restore it, with no separate state to keep.
 // P9-02: the root and type chips live in the route too, so Back restores a narrowed search
-// exactly as it was left rather than widening it again.
-export function searchHash(query, scoped = false, limit = 200, { root = '', type = '' } = {}) {
+// exactly as it was left rather than widening it again. P9-04's content toggle rides along
+// for the same reason: it is per query, so it belongs to the search's own address.
+export function searchHash(query, scoped = false, limit = 200, { root = '', type = '', content = false } = {}) {
   if (!query) return '';
   const parts = ['q=' + encodeURIComponent(query)];
   if (scoped) parts.push('scoped=1');
   if (limit && limit !== 200) parts.push('limit=' + limit);
   if (root) parts.push('root=' + encodeURIComponent(root));
   if (type) parts.push('type=' + type);
+  if (content) parts.push('content=1');
   return '#?' + parts.join('&');
 }
 
@@ -41,6 +43,7 @@ export function parseSearch(hash) {
       // nothing; a type outside the chip set is dropped rather than becoming a kind filter.
       root: params.get('root') || '',
       type: SEARCH_TYPES.includes(params.get('type')) ? params.get('type') : '',
+      content: params.get('content') === '1',
     };
   } catch { return null; }
 }

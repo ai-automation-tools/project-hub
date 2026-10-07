@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#p9) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-06
+
+- Search inside documents, opt-in: an **inside documents** chip beside the result count lists the Markdown and text files containing the query, ranked by occurrences, each with a snippet. The server builds the index on the first such query, never during a scan, caps it at 64 KB per file and 64 MB in total, and keeps it as raw bytes, so the heap cost is about the index size (51.5 MB for a 7,752-doc tree). New endpoint `/api/content`. *(roadmap: P9-04)*
+
 ## 2026-10-05
 
 - Add a Light / Dark switch at the right end of the header (Light = `paper`, Dark = `obsidian`, the same `hub.theme` key as Settings, so a visitor who never clicks it sees no change). `paper` and `sepia` now declare `color-scheme: light`, so their scrollbars and form controls stop rendering dark, and their orange, faintest-text tier and (in `paper`) green are darkened to clear WCAG AA. At phone width the header drops the crumbs and the rescan label so the search and the switch stay on screen.

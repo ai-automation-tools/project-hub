@@ -12,7 +12,8 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps } from './hub.mjs';
+import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
+  buildContentIndex, searchContent, CONTENT_FILE } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   resolveBookmarks, RECENT_MAX, absolutePath } from './navigation.mjs';
 
@@ -470,9 +471,10 @@ test('the search combobox keeps its ARIA wiring', () => {
   assert.ok(/function syncCombobox/.test(html), 'syncCombobox was removed');
   assert.ok(html.includes('aria-activedescendant'), 'the active option is never announced');
   // Every path that repaints results has to re-sync: the render pass, the arrow keys,
-  // and the Pictures section, which appends after the main list is already on the page.
-  assert.equal((html.match(/syncCombobox\(/g) || []).length, 4,
-    'syncCombobox must be defined and called from renderView, the arrow keys, and searchPictures');
+  // and the Pictures and inside-documents sections, which append after the main list is
+  // already on the page.
+  assert.equal((html.match(/syncCombobox\(/g) || []).length, 5,
+    'syncCombobox must be defined and called from renderView, the arrow keys, searchPictures and searchContents');
 });
 
 // ── bookmarks and recents (P7-10) ──────────────────────────────────────────
@@ -752,4 +754,85 @@ test('hub tabs and favorites sync are off unless a viewer turns them on', () => 
   assert.ok(html.includes("prefs.hubTabs = localStorage.getItem('hub.links') === 'hub';"), 'hub tabs must need an explicit opt-in');
   assert.ok(html.includes("prefs.favSync = localStorage.getItem('hub.favsource') === 'sync';"), 'favorites sync must need an explicit opt-in');
   assert.ok(!/id="set-links"[^>]*\bchecked\b/.test(html) && !/id="set-favsync"[^>]*\bchecked\b/.test(html), 'neither switch starts checked in the markup');
+});
+
+// ── content search (P9-04) ─────────────────────────────────────────────────
+// A fixed in-memory "filesystem" so the caps, the reuse and the ranking are exact.
+test('the content index honours both caps, reuses unchanged files and counts what it left out', () => {
+  const files = { '/w/a.md': 'Alpha beta. ALPHA again, alpha.', '/w/b.txt': 'nothing here', '/w/long.md': 'x'.repeat(50) + ' alpha', '/w/gone.md': null };
+  const reads = [];
+  const read = (abs, bytes) => { reads.push(abs); return files[abs] == null ? null : files[abs].slice(0, bytes); };
+  const docs = [
+    { id: 'a.md', abs: '/w/a.md', size: 32, mtime: 1 },
+    { id: 'b.txt', abs: '/w/b.txt', size: 12, mtime: 1 },
+    { id: 'long.md', abs: '/w/long.md', size: 56, mtime: 1 },
+    { id: 'gone.md', abs: '/w/gone.md', size: 5, mtime: 1 },
+    { id: 'empty.md', abs: '/w/empty.md', size: 0, mtime: 1 },
+  ];
+  const caps = { perFile: 40, total: 90 };
+  const index = buildContentIndex(docs, new Map(), read, caps);
+  assert.deepEqual([...index.entries.keys()], ['a.md', 'b.txt', 'long.md']);
+  assert.equal(index.entries.get('long.md').text.length, 40, 'a long file is clipped to the per-file cap');
+  assert.equal(index.clipped, 1);
+  assert.equal(index.unread, 1, 'an unreadable file is counted, not fatal');
+  assert.equal(index.bytes, 32 + 12 + 40);
+  assert.ok(!reads.includes('/w/empty.md'), 'an empty file is never opened');
+
+  // The total budget: a fourth file that would cross it is left out and counted.
+  const over = buildContentIndex([...docs.slice(0, 3), { id: 'c.md', abs: '/w/a.md', size: 32, mtime: 1 }], new Map(), read, caps);
+  assert.equal(over.skipped, 1);
+  assert.ok(!over.entries.has('c.md'));
+
+  // A rebuild reads only what moved: same size and mtime reuses the text.
+  reads.length = 0;
+  const again = buildContentIndex([{ ...docs[0] }, { ...docs[1], mtime: 2 }], index.entries, read, caps);
+  assert.deepEqual(reads, ['/w/b.txt']);
+  assert.equal(again.entries.get('a.md').text, index.entries.get('a.md').text);
+});
+
+test('content search is a case-insensitive literal match ranked by occurrences, with a snippet', () => {
+  const entries = new Map([
+    ['one.md', { text: 'An alpha here.' }],
+    ['three.md', { text: 'alpha ALPHA Alpha' }],
+    ['regex.md', { text: 'costs $5 (a.b) today' }],
+    ['far.md', { text: 'y'.repeat(200) + ' alpha ' + 'z'.repeat(200) }],
+  ]);
+  const { hits, total } = searchContent({ entries }, 'Alpha');
+  assert.equal(total, 3);
+  assert.deepEqual(hits.map((h) => [h.id, h.count]), [['three.md', 3], ['far.md', 1], ['one.md', 1]]);
+  assert.equal(hits.find((h) => h.id === 'one.md').snippet, 'An alpha here.');
+  const far = hits.find((h) => h.id === 'far.md').snippet;
+  assert.ok(far.startsWith('…') && far.endsWith('…') && far.includes('alpha') && far.length < 140, 'the snippet is a window, not the file');
+  // Regex metacharacters are literal text, and a one-character query searches nothing.
+  assert.deepEqual(searchContent({ entries }, '(a.b)').hits.map((h) => h.id), ['regex.md']);
+  assert.equal(searchContent({ entries }, '.*').total, 0);
+  assert.equal(searchContent({ entries }, 'a').total, 0);
+  assert.equal(searchContent({ entries }, 'alpha', 1).hits.length, 1, 'the limit caps the list but not the total');
+
+  // Texts are held as UTF-8 bytes in latin1 (one heap byte each). ASCII letters fold, other
+  // bytes match exactly, and the snippet comes back decoded with no half-characters.
+  const utf = new Map([['cafe.md', { text: Buffer.from('Le Café — résumé ', 'utf8').toString('latin1') + 'x'.repeat(100) + '日本' }]]);
+  assert.equal(searchContent({ entries: utf }, 'CAFé').hits[0]?.snippet, 'Le Café — résumé ' + 'x'.repeat(46) + '…', 'the window is 60 bytes either side');
+  assert.equal(searchContent({ entries: utf }, 'café — rés').total, 1);
+  assert.equal(searchContent({ entries: utf }, 'CAFÉ').total, 0, 'non-ASCII letters match exactly');
+  assert.ok(!searchContent({ entries: utf }, 'xxxx').hits[0].snippet.includes('�'), 'a window edge must not leave a broken character');
+  assert.equal(CONTENT_FILE.test('notes.TXT') && CONTENT_FILE.test('a.md') && !CONTENT_FILE.test('a.json') && !CONTENT_FILE.test('a.pdf'), true);
+});
+
+test('content search is opt-in, never runs in a scan, and only indexes what resolveId admits', () => {
+  const server = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  assert.ok(/contentDocs = flat\.filter\([^\n]*resolveId\(n\.id\)/.test(server), 'the content index must be gated by resolveId');
+  const scanFn = /async function scan\(fresh = false\) \{[\s\S]*?\n\}/.exec(server)[0];
+  assert.ok(!scanFn.includes('buildContentIndex('), 'a scan must never read documents for content search');
+  const handler = /if \(url\.pathname === '\/api\/content'\) \{[\s\S]*?\n  \}/.exec(server)?.[0] || '';
+  assert.ok(handler.includes('contentIndexNow()'), '/api/content must build the index lazily');
+
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.ok(ui.includes("searchContent:false,"), 'the toggle must start off');
+  assert.ok(ui.includes("if (!wasSearching) { S.searchRoot = ''; S.searchType = ''; S.searchContent = false; }"), 'a fresh query must start with content search off');
+  assert.ok(/function reindex\(data\) \{[^}]*contentSearches\.clear\(\)/.test(ui), 'a new scan must drop cached content answers');
+  // viewSearch lowercases its `q`; the server matches non-ASCII bytes exactly, so the query
+  // has to reach it as typed or "Émile" can never be found.
+  assert.ok(ui.includes('searchContents(contents, asTyped,') && !ui.includes('searchContents(contents, q,'), 'content search must send the query as typed');
+  assert.ok(ui.includes('aria-controls="search-results content-results pictures-results"'), 'the combobox must own the content results');
 });

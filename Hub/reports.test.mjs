@@ -27,9 +27,9 @@ test('search routes round-trip so Back returns to the results, not the previous 
   // The defect this covers: opening a result cleared the query and left no route behind,
   // so Back landed on the last document instead of the search you came from.
   for (const q of ['readme', 'pdf: quarterly report', 'A & B', '日本語']) {
-    assert.deepEqual(parseSearch(searchHash(q)), { query: q, scoped: false, limit: 200, root: '', type: '' });
+    assert.deepEqual(parseSearch(searchHash(q)), { query: q, scoped: false, limit: 200, root: '', type: '', content: false });
   }
-  assert.deepEqual(parseSearch(searchHash('readme', true, 600)), { query: 'readme', scoped: true, limit: 600, root: '', type: '' });
+  assert.deepEqual(parseSearch(searchHash('readme', true, 600)), { query: 'readme', scoped: true, limit: 600, root: '', type: '', content: false });
 
   // Clean URLs: defaults are never spelled out, and an empty query has no route at all.
   assert.equal(searchHash('readme'), '#?q=readme');
@@ -53,8 +53,12 @@ test('search root and type chips ride in the route and narrow the pool (P9-02)',
   // Back has to restore a narrowed search as it was left, including a root id with spaces.
   const filters = { root: 'Documents/A & B', type: 'pdf' };
   assert.deepEqual(parseSearch(searchHash('report', false, 400, filters)),
-    { query: 'report', scoped: false, limit: 400, root: 'Documents/A & B', type: 'pdf' });
+    { query: 'report', scoped: false, limit: 400, root: 'Documents/A & B', type: 'pdf', content: false });
   assert.equal(searchHash('report', false, 200, { root: '', type: '' }), '#?q=report');
+  // P9-04: the content toggle is per query, so it rides in the route too, and only when on.
+  assert.equal(searchHash('report', false, 200, { content: true }), '#?q=report&content=1');
+  assert.equal(parseSearch('#?q=report&content=1').content, true);
+  assert.equal(parseSearch('#?q=report&content=yes').content, false);
   // A hand-edited type outside the chip set is dropped, not turned into a kind filter.
   assert.equal(parseSearch('#?q=x&type=skill').type, '');
   assert.deepEqual(SEARCH_TYPES, ['md', 'html', 'pdf', 'image']);
@@ -216,7 +220,7 @@ test('a reloaded search URL restores the query instead of navigating to a docume
     fetch: async () => ({ ok: true, json: async () => data }),
     showFatal: () => {}, reindex: (d) => { state.data = d; },
     renderTree() {}, renderPins() {}, folderTimes: new Map(), folderTimesGen: 0, renderView() { rendered++; }, go: (...args) => { navigated = args; },
-    parseRoute, parseSearch, location: { hash: searchHash('readme', true, 400, { root: 'Documents', type: 'md' }) },
+    parseRoute, parseSearch, location: { hash: searchHash('readme', true, 400, { root: 'Documents', type: 'md', content: true }) },
   });
   vm.runInContext(ui.slice(ui.indexOf('let loading = null;'), ui.indexOf("const HUB_PORT =")) + '\nglobalThis.runLoad = load;', context);
   await context.runLoad();
@@ -226,6 +230,7 @@ test('a reloaded search URL restores the query instead of navigating to a docume
   assert.equal(state.hitLimit, 400);
   assert.equal(state.searchRoot, 'Documents');
   assert.equal(state.searchType, 'md');
+  assert.equal(state.searchContent, true);
   assert.equal(select('#q').value, 'readme');
   assert.ok(rendered > 0);
 });

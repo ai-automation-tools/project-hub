@@ -51,6 +51,12 @@
         'this is a hosted demo — opening files and folders needs Project Hub running on your own machine',
         { status: 501 }));
     }
+    // Content search answers any query from a server-side index, so no crawl can capture it.
+    if (url.pathname === '/api/content') {
+      return Promise.resolve(new Response(
+        'this is a hosted demo — searching inside documents needs Project Hub running on your own machine',
+        { status: 501 }));
+    }
     // No Pictures root is configured in the demo fixture, so the browser never opens one.
     if (url.pathname === '/api/pictures') {
       return Promise.resolve(json({ error: 'Pictures is not part of the demo' }, 404));

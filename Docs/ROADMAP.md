@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-shipped_2026--10--03-2ea44f?style=for-the-badge" alt="P7-14 narrow-pane layout shipped 2026-10-03">
-  <img src="https://img.shields.io/badge/tests-84_passing-8B5CF6?style=for-the-badge" alt="84 tests passing">
+  <img src="https://img.shields.io/badge/tests-87_passing-8B5CF6?style=for-the-badge" alt="87 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
@@ -34,10 +34,10 @@
 > improvements, as one checklist that a weekly roadmap routine works through one item at a
 > time (since 2026-09-22).
 >
-> **Current next steps:** the unchecked items in [P9](#p9), in order. As of 2026-10-05 every
-> numbered P7 item has shipped except the optional P7-17–21, the last third of P7-07
-> (content search; typo tolerance shipped 2026-10-04 as P9-03) and the last two thirds of P7-15 (keyboard context menus and divider), all
-> queued in P9. The `obsidian` redesign shipped 2026-10-05 as P9-45; its follow-ups are P9-46–48.
+> **Current next steps:** the unchecked items in [P9](#p9), in order. As of 2026-10-06 every
+> numbered P7 item has shipped except the optional P7-17–21 and the last two thirds of P7-15
+> (keyboard context menus and divider), all queued in P9. P7-07 closed with content search
+> (P9-04, 2026-10-06). The `obsidian` redesign shipped 2026-10-05 as P9-45; its follow-ups are P9-46–48.
 > Everything above P9 is the record of why things were built the way they were.
 
 ## What was audited
@@ -1079,7 +1079,7 @@ optional and are queued in P9.
 | P7-04 | **Shipped; browser-verified; one follow-up open** | Cross-document headings and copyable Hub URLs, including old-hash compatibility and safe Markdown link formatting. A choice of document-relative Markdown destination remains open (P9-44). |
 | P7-05 | **Shipped; browser-verified** | Signed directory routes resolve nested images, CSS, JS, modules, and JSON relative to the report. Junction escapes, forged directory tokens, and unsupported assets are rejected. Browser pass: a report with sibling `icons/` and `logos/` folders rendered all twelve companion images. |
 | P7-06 | **Shipped; browser-verified — then corrected on September 9** | Response-level CSP sandbox for HTML and SVG, including direct navigation; no `allow-same-origin`, CORS limited to the signed report directory. Browser pass: direct navigation lands in an opaque origin. **The SVG half was too broad**: a `sandbox` CSP also stops `<img>` decoding an SVG, which silently blanked every SVG preview and embedded diagram for a day. Now negotiated on `Sec-Fetch-Dest` — see [the SVG sandbox](#the-svg-sandbox--a-p7-06-defect-this-surfaced). |
-| P7-07 | **One third open** | Accurate total counts, Load 200 More, paths on every result, `pdf:`, `html:`, `image:` prefixes, and root/type filter chips (P9-02, 2026-09-29). Typo tolerance as a fallback (P9-03, 2026-10-04). **Still open:** opt-in document-content search (P9-04). |
+| P7-07 | **Shipped 2026-10-06** | Accurate total counts, Load 200 More, paths on every result, `pdf:`, `html:`, `image:` prefixes, and root/type filter chips (P9-02, 2026-09-29). Typo tolerance as a fallback (P9-03, 2026-10-04). Opt-in content search with snippets (P9-04, 2026-10-06). |
 | P7-08 | **Shipped; UI browser-verified, positive launch still unchecked** | Invalid/missing paths return errors; launch failures return 502. Paths are passed as environment data to fixed PowerShell commands. The synthetic Projects node has no filesystem actions; the reveal action is named Reveal in Explorer. **Still unverified:** no action was clicked through to a running application. |
 | P7-09 | **Shipped 2026-09-09; browser-verified** | Folder list view beside cards: name, type, modified, size, sortable, folders first only for name and type. Timestamps come from `/api/stat` per folder rather than the scan payload. See [P7-09 shipped](#p7-09-shipped--a-list-that-does-not-cost-a-payload). |
 | P7-10 | **Shipped 2026-09-09; browser-verified** | Bookmarks and Recent above the tree, three ways to pin, drag-reorder, in-place rename, unresolved entries with a relink offer, plus a context menu on pinned rows. `localStorage`, paths only. See [P7-10 shipped](#p7-10-shipped--two-lists-above-the-tree) and [`BOOKMARKS.md`](./BOOKMARKS.md). |
@@ -2072,7 +2072,19 @@ top to bottom.
   substring-only.)* A bounded edit
   distance on titles and filenames that only runs when the exact and prefix passes return
   nothing, so ranking for real matches doesn't change. Tested against a fixed index.
-- [ ] **P9-04 · Search: opt-in content search** (the last third of P7-07). Off by default,
+- [x] **P9-04 · Search: opt-in content search** (the last third of P7-07). *(done 2026-10-06: an
+  **inside documents** chip beside the result count, off for every fresh query, carried as
+  `content=1` in the route. `/api/content` answers from an index of `.md .mdx .markdown .txt .rst
+  .adoc` files that the first such query builds, never a scan, and that rebuilds only files whose
+  size or mtime moved. Capped at 64 KB per file and 64 MB in total, gated by `resolveId()`; the root
+  and project chips apply. **Memory cost**, measured over a 7,752-doc tree with 58 MB of markdown,
+  after a forced GC: 49.8 MB indexed (69 files clipped, none left out), **51.5 MB of heap retained**.
+  Files are held as raw UTF-8 bytes in latin1 strings: decoded to UTF-16, the same files retained
+  86.1 MB, since one em dash makes V8 store a whole string at two bytes per character. The first
+  build took 3.6–4.7 s, a rebuild after a rescan 8 ms, and a query 77–95 ms (280 ms for `the`, with
+  5,499 files). On the demo fixture: 61 files, 0.03 MB, 28 ms. Browser-checked on a fixture hub:
+  Enter on the chip, the route, focus kept, Back from a result, the PDF-chip note. The hosted demo
+  answers 501 with a message, since it has no server.)* Off by default,
   toggled per query, with a bounded index: markdown and text only, capped per file and in
   total, built lazily on first use. Record the memory cost in this file.
 - [ ] **P9-05 · Keyboard access to context menus** (P7-15). The ContextMenu key and

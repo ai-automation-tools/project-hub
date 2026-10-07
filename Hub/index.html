@@ -743,7 +743,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
         <span class="mono" style="font-size:11.5px;color:var(--dimmer)">⌕</span>
         <input id="q" placeholder="Search repos, skills, commands, agents, docs" autocomplete="off"
           role="combobox" aria-autocomplete="list" aria-expanded="false"
-          aria-controls="search-results pictures-results"
+          aria-controls="search-results content-results pictures-results"
           aria-label="Search the workspace. Prefix with a kind to narrow, for example skill: or repo:">
         <span class="kbd">Ctrl+K</span>
       </div>
@@ -771,6 +771,8 @@ import { PictureNodes } from '/pictures-client.mjs';
 const pictureNodes = new PictureNodes();
 const pictureRequests = new Map();
 const pictureSearches = new Map();
+// P9-04: content-search answers by query, dropped whenever a new scan arrives (reindex).
+const contentSearches = new Map();
 let navigationRequest = 0;
 let requestedNavigation = null;
 let pictureGeneration = 0;
@@ -801,6 +803,7 @@ const S = { data:null, byId:new Map(), parent:new Map(), index:[], sel:null, ope
   folderSort:{ key:'name', dir:1 },   // folder list view, see viewFolder
   searchScoped:false,   // "only <project>" toggle, see viewSearch
   searchRoot:'', searchType:'',   // P9-02 root and type chips, see viewSearch
+  searchContent:false,   // P9-04 "inside documents" toggle, see viewSearch
   docOff:new Set(),   // docFirst nodes the reader switched off this session, see viewDocFirst
   focus:null,   // id of the row holding the tree's keyboard cursor
   hit:-1 };     // index of the highlighted search result
@@ -857,6 +860,7 @@ function toast(msg, ms = 1400) {
 // ── data ───────────────────────────────────────────────────────────────────
 function reindex(data) {
   pictureNodes.attach(data.tree);
+  contentSearches.clear();
   S.data = data;
   S.byId.clear(); S.parent.clear();
   // The search index used to arrive from the server as a second copy of the tree --
@@ -964,7 +968,7 @@ async function doLoad({ quiet, fresh, force } = {}) {
     const search = parseSearch(location.hash);
     if (search) {
       S.query = search.query; S.searchScoped = search.scoped; S.hitLimit = search.limit; S.hit = -1;
-      S.searchRoot = search.root; S.searchType = search.type;
+      S.searchRoot = search.root; S.searchType = search.type; S.searchContent = search.content;
       $('#q').value = search.query;
       renderView();
     } else {
@@ -2172,7 +2176,7 @@ async function go(id, heading = '') {
  */
 function syncSearchRoute(replace) {
   const hash = S.query
-    ? searchHash(S.query, S.searchScoped, S.hitLimit, { root: S.searchRoot, type: S.searchType })
+    ? searchHash(S.query, S.searchScoped, S.hitLimit, { root: S.searchRoot, type: S.searchType, content: S.searchContent })
     : routeHash(S.sel || defaultRootId(), S.heading);
   if (location.hash === hash) return;
   try { history[replace ? 'replaceState' : 'pushState'](null, '', hash); }
@@ -2207,7 +2211,7 @@ $('#q').addEventListener('input', (e) => {
   const wasSearching = !!S.query;
   S.query = e.target.value.trim(); S.hit = -1; S.hitLimit = 200;
   // Refining a query keeps its chips; a fresh search starts wide, like the page does.
-  if (!wasSearching) { S.searchRoot = ''; S.searchType = ''; }
+  if (!wasSearching) { S.searchRoot = ''; S.searchType = ''; S.searchContent = false; }
   syncSearchRoute(wasSearching);
   clearTimeout(queryTimer); queryTimer = setTimeout(renderView, 150);
 });
@@ -2346,7 +2350,7 @@ window.addEventListener('hashchange', () => {
   const search = parseSearch(location.hash);
   if (search) {
     S.query = search.query; S.searchScoped = search.scoped; S.hitLimit = search.limit; S.hit = -1;
-    S.searchRoot = search.root; S.searchType = search.type;
+    S.searchRoot = search.root; S.searchType = search.type; S.searchContent = search.content;
     $('#q').value = search.query;
     renderView();
     return;
@@ -3663,6 +3667,9 @@ function viewSearch(page) {
     const toggle = searchChip(`only ${ctxProject.name}`, S.searchScoped, 'scoped', () => { S.searchScoped = !S.searchScoped; });
     head.append(toggle);
   }
+  // P9-04: names and paths are all the list above ever matches; this asks the server to
+  // look inside Markdown and text too. Off for every fresh query, so it never runs unasked.
+  head.append(searchChip('inside documents', S.searchContent, 'content', () => { S.searchContent = !S.searchContent; }));
   page.append(head);
 
   // P9-02: one chip per top-level root and per document type. Each row is single-choice;
@@ -3703,6 +3710,20 @@ function viewSearch(page) {
     more.onclick = () => { const scroll = $('#view').scrollTop; S.hitLimit = (S.hitLimit || 200) + 200; syncSearchRoute(true); renderView(); $('#view').scrollTop = scroll; };
     page.append(more);
   }
+  if (S.searchContent) {
+    const contents = el('section'); page.append(contents);
+    if ((kind && kind !== 'md') || (type && type !== 'md')) {
+      contents.append(el('p', 'lede', 'Inside documents covers Markdown and text files only. Clear the type filter to search them.'));
+    } else if (q.length < 2) {
+      contents.append(el('p', 'lede', 'Type at least two characters to search inside documents.'));
+    } else {
+      // As typed, not lowercased: the server folds ASCII case itself and matches everything
+      // else exactly, so a lowercased "émile" would never find "Émile".
+      const asTyped = kind ? S.query.replace(/^[a-z]+:\s*/i, '').trim() : S.query;
+      searchContents(contents, asTyped, (id) => (!root || rootIdOf(id) === root)
+        && (!ctxProject || !S.searchScoped || topAncestorOf(id) === ctxProject));
+    }
+  }
   // Pictures is searched server-side, so the chips are applied by deciding whether to ask
   // at all (another root is chosen, or prefix and chip disagree) and by what kind to ask for.
   const picKind = kind || type;
@@ -3735,6 +3756,56 @@ function searchChip(label, on, key, flip) {
     [...$('#view').querySelectorAll('[data-chip]')].find(c => c.dataset.chip === key)?.focus();
   });
   return chip;
+}
+
+/**
+ * P9-04: the "inside documents" section. The server holds the index and answers up to
+ * 1000 files per query; the root and project filters are applied here because they are
+ * tree relationships only the page knows. `keep(id)` is that filter.
+ */
+async function searchContents(host, q, keep) {
+  host.textContent = 'Searching inside documents… the first search reads them, so it takes a moment.';
+  try {
+    if (!contentSearches.has(q)) {
+      if (contentSearches.size >= 30) contentSearches.delete(contentSearches.keys().next().value);
+      contentSearches.set(q, fetch('/api/content?q=' + encodeURIComponent(q)).then(async (r) => {
+        if (!r.ok) throw new Error((await r.text()) || 'content search unavailable');
+        return r.json();
+      }));
+    }
+    const data = await contentSearches.get(q);
+    if (!host.isConnected) return;
+    const found = data.hits.filter(h => S.byId.has(h.id) && keep(h.id));
+    const hits = found.slice(0, 200);
+    host.textContent = '';
+    host.append(el('h2', 'sec', `Inside documents — showing ${hits.length} of ${found.length} file${found.length === 1 ? '' : 's'} containing “${q}”`));
+    const partial = [data.total > data.hits.length && `only the ${data.hits.length} files with the most matches were returned`,
+      data.skipped && `${data.skipped} files left out by the index size cap`,
+      data.clipped && `${data.clipped} long files searched only in their first ${data.perFileKb} KB`,
+      data.unread && `${data.unread} files could not be read`].filter(Boolean);
+    host.append(el('p', 'lede', `Searched ${data.docs} Markdown and text files (${data.mb} MB).` + (partial.length ? ' Partial: ' + partial.join('; ') + '.' : '')));
+    const list = el('div'); list.id = 'content-results'; list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', 'Results inside documents');
+    for (const h of hits) {
+      const n = S.byId.get(h.id);
+      const row = el('div', 'hit');
+      const k = el('span', 'k', KIND_LABEL[n.kind] || n.kind); k.style.color = tintOf(n);
+      const snip = el('span', 'd'); snip.append(mark(h.snippet, q.toLowerCase()));
+      snip.style.cssText = 'grid-column:2/-1;white-space:normal';
+      row.append(k, el('span', 'n', n.name), el('span', 'd', (h.count >= 100 ? '100+' : h.count) + ' match' + (h.count === 1 ? '' : 'es') + ' · ' + h.id), snip);
+      row.title = h.id;
+      activate(row, () => go(h.id), 'option');
+      list.append(row);
+    }
+    if (!hits.length) list.append(el('div', 'empty', 'no document contains that text' + (found.length < data.hits.length ? ' under the current filters' : '')));
+    host.append(list);
+    syncCombobox();
+  } catch (err) {
+    contentSearches.delete(q);
+    if (!host.isConnected) return;
+    host.textContent = err.message + ' ';
+    const retry = el('button', 'btn', 'Retry content search'); retry.onclick = () => searchContents(host, q, keep);
+    host.append(retry);
+  }
 }
 
 async function searchPictures(host, q, kind, previous = [], previousVersion = null) {

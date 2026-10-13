@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-10-13
 
+- Cap the sidebar at half the page width, so on a phone it no longer covers most of the screen. Measured as `%` of the layout, not `vw`, which the interface-size zoom inflates. Below 600px the activity icons tighten to fit.
 - Reach the hub from a phone over Tailscale: a new optional `allowedHosts` config key lets the Host check accept exact tailnet names behind `tailscale serve` (patterns and ports are refused at startup; the bind stays loopback). `Start-Hub.ps1` now ignores `tailscaled`'s tailnet-address listener on the same port, and waits for the port to free on `-Restart` instead of a fixed 2 s sleep. Setup guide in [REMOTE-ACCESS.md](REMOTE-ACCESS.md).
 
 ## 2026-10-06

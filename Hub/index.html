@@ -157,7 +157,7 @@ input::placeholder{color:var(--dimmer)}
 /* ── explorer ───────────────────────────────────────────── */
 /* flex:0 0 auto so `width` alone drives the panel — one property to animate, and
    an interrupted transition can't leave basis and width disagreeing. */
-aside{position:relative;width:var(--sbw,284px);flex:0 0 auto;border-right:1px solid var(--line-a);background:var(--panel);display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease}
+aside{position:relative;width:min(var(--sbw,284px),50%);flex:0 0 auto;border-right:1px solid var(--line-a);background:var(--panel);display:flex;flex-direction:column;overflow:hidden;transition:width .16s ease}
 #app.dragging aside{transition:none}
 /* collapsed rail — the panel folds down to just the ex-head strip (so #sidetoggle,
    the control that reopens it, stays reachable) instead of vanishing entirely. */
@@ -556,6 +556,8 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 #app:not([data-side="settings"]) #settings{display:none}
 .act.gear{margin-left:auto}
 #app.rail .act.gear{margin-left:0}
+/* The sidebar caps at half the viewport, so on a phone the six icons must fit ~180px. */
+@media (max-width:600px){#activity{gap:0;padding:6px 4px 0}.act{width:28px}}
 /* settings */
 #settings{flex:1;overflow-y:auto;padding:4px 0 16px}
 .set{padding:12px 14px 14px;border-bottom:1px solid var(--line-a)}

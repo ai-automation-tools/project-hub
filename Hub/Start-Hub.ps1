@@ -39,9 +39,12 @@ $ErrorActionPreference = 'Stop'
 $here      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $hubScript = Join-Path $here 'hub.mjs'
 
+# Only the loopback listener can collide with the hub's bind. `tailscale serve` holds the
+# same port number on the tailnet addresses, and must not read as a squatter.
 function Get-PortOwner {
     param([int] $Port)
     Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+        Where-Object { $_.LocalAddress -in '127.0.0.1', '0.0.0.0', '::', '::1' } |
         Select-Object -ExpandProperty OwningProcess -Unique
 }
 
@@ -108,7 +111,8 @@ try {
         if ($Restart) {
             Write-Host "Stopping existing hub (PID $($owners.Id -join ', '))..." -ForegroundColor Yellow
             $owners | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
-            Start-Sleep -Seconds 2
+            # A fixed 2s sleep lost the race on a busy machine and the new hub died on EADDRINUSE.
+            for ($i = 0; $i -lt 20 -and (Get-PortOwner -Port $Port); $i++) { Start-Sleep -Milliseconds 500 }
         }
         else {
             Write-Host "Hub already running at $url - reusing it. Use -Restart to reload code changes." -ForegroundColor Cyan

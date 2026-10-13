@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#p9) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-13
+
+- Reach the hub from a phone over Tailscale: a new optional `allowedHosts` config key lets the Host check accept exact tailnet names behind `tailscale serve` (patterns and ports are refused at startup; the bind stays loopback). `Start-Hub.ps1` now ignores `tailscaled`'s tailnet-address listener on the same port, and waits for the port to free on `-Restart` instead of a fixed 2 s sleep. Setup guide in [REMOTE-ACCESS.md](REMOTE-ACCESS.md).
+
 ## 2026-10-06
 
 - Search inside documents, opt-in: an **inside documents** chip beside the result count lists the Markdown and text files containing the query, ranked by occurrences, each with a snippet. The server builds the index on the first such query, never during a scan, caps it at 64 KB per file and 64 MB in total, and keeps it as raw bytes, so the heap cost is about the index size (51.5 MB for a 7,752-doc tree). New endpoint `/api/content`. *(roadmap: P9-04)*

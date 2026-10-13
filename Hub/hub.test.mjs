@@ -357,6 +357,18 @@ test('loadConfig normalises base and sharedRoots', () => {
   assert.deepEqual(c.sharedRoots, [{ name: 'Docs', dir: 'D:/Work/Documents', tint: 'var(--dimmer)' }]);
 });
 
+// allowedHosts widens the DNS-rebinding Host check, so it takes exact names only.
+test('loadConfig accepts exact allowedHosts and refuses patterns', () => {
+  const base = { port: 4300, base: 'D:/Work' };
+  assert.deepEqual(loadConfig(tmpConfig(base)).allowedHosts, []);
+  assert.deepEqual(loadConfig(tmpConfig({ ...base, allowedHosts: ['my-pc', 'my-pc.tailnet-name.ts.net'] })).allowedHosts,
+    ['my-pc', 'my-pc.tailnet-name.ts.net']);
+  for (const bad of ['*', '*.ts.net', 'my-pc:4300', 'My-PC', '', 'a b', 42]) {
+    assert.throws(() => loadConfig(tmpConfig({ ...base, allowedHosts: [bad] })), /allowedHosts/, String(bad));
+  }
+  assert.throws(() => loadConfig(tmpConfig({ ...base, allowedHosts: 'my-pc' })), /allowedHosts/);
+});
+
 test('loadConfig rejects what would otherwise fail deep in a scan', () => {
   assert.throws(() => loadConfig(tmpConfig({})), /missing required key "port"/);
   assert.throws(() => loadConfig(tmpConfig({ port: 80 })), /port/);

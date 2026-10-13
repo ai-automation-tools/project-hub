@@ -42,6 +42,9 @@ const CONFIG_DEFAULTS = {
   // Roots every project shares (Documents, Pictures, …). Machine-specific: config too.
   sharedRoots: [],
   favicon: { glyph: '/', ink: '#5fe3a1', line: '#2f6b52' },
+  // Extra Host names the hub answers to, besides loopback — e.g. the MagicDNS name a
+  // `tailscale serve` proxy forwards with. Exact names only; the bind stays 127.0.0.1.
+  allowedHosts: [],
 };
 const PROJECT_DEFAULTS = {
   name: '', dir: '',
@@ -79,6 +82,10 @@ export function loadConfig(file) {
     throw new Error(`${file}: "port" must be an integer 1024-65535, got ${JSON.stringify(j.port)}`);
   }
   if (!j.base) throw new Error(`${file} is missing required key "base" (the workspace drive root, e.g. "D:/Work")`);
+  const hosts = j.allowedHosts || [];
+  if (!Array.isArray(hosts) || hosts.some((h) => typeof h !== 'string' || !/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(h))) {
+    throw new Error(`${file}: "allowedHosts" must be lowercase hostnames without port or wildcard, got ${JSON.stringify(hosts)}`);
+  }
   const cfg = {
     ...CONFIG_DEFAULTS, ...j,
     base: normalizeDir(j.base),
@@ -1691,8 +1698,9 @@ function contentIndexNow() {
 
 // A page on any origin can point a request at 127.0.0.1, and an attacker's domain can be
 // re-resolved to it (DNS rebinding) to become same-origin. Neither survives a Host check:
-// a rebound request still carries the attacker's hostname.
-const HOSTS_OK = new Set([`127.0.0.1:${PORT}`, `localhost:${PORT}`, `[::1]:${PORT}`]);
+// a rebound request still carries the attacker's hostname. `allowedHosts` adds exact
+// names (a tailnet's MagicDNS name) — never a pattern, so the check stays as tight.
+const HOSTS_OK = new Set(['127.0.0.1', 'localhost', '[::1]', ...CONFIG.allowedHosts].map((h) => `${h}:${PORT}`));
 
 // Browsers label every request's relationship to the page that made it. Anything a
 // foreign page triggers reads `cross-site` or `same-site`; our own fetch reads

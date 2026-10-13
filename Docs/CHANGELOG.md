@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-10-13
 
+- Phone polish, all below 600px or on touch screens only, so the desktop layout is untouched: the sidebar is a drawer over the page (tap the dimmed page to close it; opening a document closes it, a folder keeps it open), tree rows grow to 36px with a tighter indent, the search box uses 16px text so iOS stops zooming in on focus, repo and folder tables keep two columns and search hits wrap, card grids and the search header no longer push the page sideways, controls that waited for a hover are always shown on touch, and the app height follows the visible viewport (`dvh`) so a mobile URL bar no longer hides the bottom.
 - Cap the sidebar at half the page width, so on a phone it no longer covers most of the screen. Measured as `%` of the layout, not `vw`, which the interface-size zoom inflates. Below 600px the activity icons tighten to fit.
 - Reach the hub from a phone over Tailscale: a new optional `allowedHosts` config key lets the Host check accept exact tailnet names behind `tailscale serve` (patterns and ports are refused at startup; the bind stays loopback). `Start-Hub.ps1` now ignores `tailscaled`'s tailnet-address listener on the same port, and waits for the port to free on `-Restart` instead of a fixed 2 s sleep. Setup guide in [REMOTE-ACCESS.md](REMOTE-ACCESS.md).
 

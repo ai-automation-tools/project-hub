@@ -347,6 +347,13 @@ repos reach its overview table — `groups` for a workspace with a `Repos/<group
 config loader rejects that and every other malformed shape at startup rather than
 halfway through a scan.
 
+**Adding a folder to the sidebar** needs no JSON: **Settings → Folders** (or **+ folder** in the
+Explorer header) takes a path — paste one from File Explorer's *Copy as path*, quotes and all —
+and an optional name, and the folder appears next to Projects at once. The ✕ beside a folder
+removes it from the sidebar; nothing on disk is touched. Both write `sharedRoots` in
+`hub.config.json` and need no restart. They only work in a browser on the hub's own PC: a
+phone on the tailnet sees the list but not the controls.
+
 The shared roots — `Documents`, `Pictures`, `Automations`, `Links` and whatever else you
 configure — and the six user-scope runtimes are the same for every project, so they stay in
 [`../Hub/hub.mjs`](../Hub/hub.mjs) (`SHARED_ROOTS` and `USER_RUNTIMES`) and are scanned once

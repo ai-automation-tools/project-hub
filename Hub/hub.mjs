@@ -112,6 +112,37 @@ export function loadProjectConfig(file) {
   };
 }
 
+// ── folders added from Settings ────────────────────────────────────────────
+// A root added in the UI is a sharedRoots entry like any other: validated here, written
+// back to the config file, and mounted live by the server. Tints come from a fixed list
+// because the value reaches a style attribute.
+export const ROOT_TINTS = ['var(--blue)', 'var(--purple)', 'var(--magenta)', 'var(--orange)', 'var(--red)', 'var(--green)', 'var(--dimmer)'];
+
+/** Check a folder someone asked to mount. Returns `{ name, dir, tint }` or throws a readable reason. */
+export function validateNewRoot(input, roots, isDir) {
+  const name = String(input?.name ?? '').trim();
+  // Explorer's "Copy as path" wraps the path in quotes.
+  const raw = String(input?.dir ?? '').trim().replace(/^"(.*)"$/, '$1');
+  if (!name || name.length > 40 || /[\\/]/.test(name)) throw new Error('Name must be 1–40 characters, without slashes.');
+  if (!raw || !path.isAbsolute(raw)) throw new Error('Give the full path to the folder, e.g. D:/Work/Notes.');
+  const dir = normalizeDir(path.resolve(raw));
+  // Mounting a whole drive would walk all of it on every scan.
+  if (!dir || /^[a-z]:$/i.test(dir)) throw new Error('A whole drive is too much to scan. Pick a folder on it.');
+  if (dir.split('/').some((s) => SECRET_DIRS.has(s.toLowerCase()))) throw new Error('That folder is on the hub’s deny-list for credentials.');
+  if (!isDir(dir)) throw new Error(`No folder at ${dir}.`);
+  if (roots.some((r) => r.name.toLowerCase() === name.toLowerCase())) throw new Error(`The sidebar already has a folder called ${name}.`);
+  if (roots.some((r) => r.dir.toLowerCase() === dir.toLowerCase())) throw new Error('That folder is already in the sidebar.');
+  return { name, dir, tint: ROOT_TINTS.includes(input?.tint) ? input.tint : 'var(--blue)' };
+}
+
+/** Rewrite only `sharedRoots` in the config file, keeping every other key; atomic. */
+export function writeSharedRoots(file, roots) {
+  const j = readConfigJson(file);
+  j.sharedRoots = roots.map(({ name, dir, tint }) => ({ name, dir, tint }));
+  fs.writeFileSync(file + '.tmp', JSON.stringify(j, null, 2) + '\n');
+  fs.renameSync(file + '.tmp', file);
+}
+
 const argv = process.argv.slice(2);
 const argOf = (flag) => { const i = argv.indexOf(flag); return i > -1 ? argv[i + 1] : null; };
 
@@ -1258,6 +1289,7 @@ async function scan(fresh = false) {
     nodes: flat.length,
     home: HOME, base: BASE,
     roots: ROOTS.map((r) => ({ name: r.name, dir: r.dir })),
+    sharedRoots: SHARED_ROOTS.map((r) => ({ name: r.name, dir: r.dir, tint: r.tint })),
     tree, stats, rootDocs, liveSites, artifacts: artifactList, drafts: draftList,
     runtimes: runtimes.map((r) => ({
       id: r.id, name: r.name, desc: r.desc, config: r.config, counts: r.counts,
@@ -1701,6 +1733,8 @@ function contentIndexNow() {
 // a rebound request still carries the attacker's hostname. `allowedHosts` adds exact
 // names (a tailnet's MagicDNS name) — never a pattern, so the check stays as tight.
 const HOSTS_OK = new Set(['127.0.0.1', 'localhost', '[::1]', ...CONFIG.allowedHosts].map((h) => `${h}:${PORT}`));
+// Loopback alone: what only the PC itself may do (widening what the hub can read).
+const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'].map((h) => `${h}:${PORT}`));
 
 // Browsers label every request's relationship to the page that made it. Anything a
 // foreign page triggers reads `cross-site` or `same-site`; our own fetch reads
@@ -1827,6 +1861,51 @@ const server = http.createServer(async (req, res) => {
   // write can never interleave into a tree neither edit meant. A cross-site page cannot
   // send a JSON content type without a preflight this server never answers, and
   // sameOrigin refuses it anyway.
+  // Add or remove a sidebar folder (a shared root). Mounting one widens what every
+  // path-addressed endpoint will read, so beyond same-origin it takes a loopback Host:
+  // a phone on the tailnet can browse the folders but not add C:/Users to them.
+  if (url.pathname === '/api/roots') {
+    if (!sameOrigin(req) || !LOCAL_HOSTS.has(req.headers.host || '')) {
+      res.writeHead(403).end('Folders can only be changed on the computer running the hub.');
+      return;
+    }
+    if (req.method !== 'POST' && req.method !== 'DELETE') { res.writeHead(405, { allow: 'POST, DELETE' }).end('method not allowed'); return; }
+    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) { res.writeHead(415).end('application/json required'); return; }
+    let body = '';
+    for await (const chunk of req) {
+      body += chunk;
+      if (body.length > 4096) { res.writeHead(413).end('request too large'); req.destroy(); return; }
+    }
+    let input = null;
+    try { input = JSON.parse(body); } catch {}
+    if (!input || typeof input !== 'object') { res.writeHead(400).end('expected a JSON object'); return; }
+    let root, why;
+    if (req.method === 'POST') {
+      try { root = validateNewRoot(input, ROOTS, safeIsDir); }
+      catch (e) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }).end(e.message); return; }
+      mountRoot(root);
+      why = `added ${root.name}`;
+    } else {
+      root = SHARED_ROOTS.find((r) => r.name === input.name);
+      if (!root) { res.writeHead(404).end('no such folder'); return; }
+      if (root === pictureRoot) { res.writeHead(400).end('Pictures is wired up at startup; remove it in hub.config.json.'); return; }
+      unmountRoot(root);
+      why = `removed ${root.name}`;
+    }
+    // Saved after the in-memory change succeeds, and undone if the save fails, so the
+    // config file and the running hub never disagree.
+    try { writeSharedRoots(CONFIG_FILE, SHARED_ROOTS); }
+    catch {
+      if (req.method === 'POST') unmountRoot(root); else mountRoot(root);
+      res.writeHead(500).end(`could not save ${CONFIG_FILE}`);
+      return;
+    }
+    await rootsChanged(why);
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' })
+      .end(JSON.stringify({ sharedRoots: SHARED_ROOTS.map((r) => ({ name: r.name, dir: r.dir, tint: r.tint })) }));
+    return;
+  }
+
   if (url.pathname === '/api/favorites') {
     if (!sameOrigin(req)) { res.writeHead(403).end('same-origin only'); return; }
     if (req.method === 'GET') {
@@ -2019,9 +2098,10 @@ const WATCH = [
 ].filter((d) => { try { return fs.statSync(d).isDirectory(); } catch { return false; } });
 
 let pictureTimer;
-if (IS_MAIN) for (const dir of WATCH) {
+const watchers = new Map();   // dir -> FSWatcher, so a folder removed in Settings stops being watched
+function watchDir(dir) {
   try {
-    fs.watch(dir, { recursive: true, persistent: false }, (_evt, name) => {
+    watchers.set(dir, fs.watch(dir, { recursive: true, persistent: false }, (_evt, name) => {
       if (dir === pictureRoot.dir) {
         // OneDrive emits directory metadata 'change' events while folders are read.
         // Keep rename events (including new empty folders), but don't invalidate
@@ -2038,10 +2118,41 @@ if (IS_MAIN) for (const dir of WATCH) {
       }
       if (ignoreWatchEvent(dir, name)) return;
       bump(posix(name));
-    });
+    }));
   } catch (e) {
     console.warn(`watch failed for ${dir}: ${e.message}`);
   }
+}
+if (IS_MAIN) for (const dir of WATCH) watchDir(dir);
+
+// Mount or unmount a shared root without a restart. Every list a root was copied into at
+// startup is updated in place: the scan (ROOTS, SHARED_ROOTS), the walker's prune set,
+// resolveId's SERVE_DIRS gate, and the watcher. The Pictures root stays fixed, since its
+// lazy library is wired up once at boot.
+function mountRoot(r) {
+  SHARED_ROOTS.push(r);
+  ROOTS.push(r);
+  MOUNTED_ROOTS.add(r.dir.toLowerCase());
+  SERVE_DIRS.push(r.dir);
+  WATCH.push(r.dir);
+  watchDir(r.dir);
+}
+function unmountRoot(r) {
+  const drop = (list, item) => { const i = list.indexOf(item); if (i > -1) list.splice(i, 1); };
+  drop(SHARED_ROOTS, r);
+  drop(ROOTS, r);
+  drop(SERVE_DIRS, r.dir);
+  drop(WATCH, r.dir);
+  MOUNTED_ROOTS.delete(r.dir.toLowerCase());
+  watchers.get(r.dir)?.close();
+  watchers.delete(r.dir);
+}
+/** Rescan now (not after the watcher's debounce) and tell every open page. */
+async function rootsChanged(why) {
+  dirty = true;
+  if (scanning) await scanning.catch(() => {});   // an in-flight scan predates the change
+  await rescan(false).catch(() => {});
+  for (const res of sse) res.write(`event: change\ndata: ${JSON.stringify({ why })}\n\n`);
 }
 
 // Node closes idle keep-alive sockets after 5s by default. Browsers happily reuse a

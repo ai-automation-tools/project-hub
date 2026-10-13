@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   resolveBookmarks, RECENT_MAX, absolutePath } from './navigation.mjs';
 
@@ -367,6 +367,51 @@ test('loadConfig accepts exact allowedHosts and refuses patterns', () => {
     assert.throws(() => loadConfig(tmpConfig({ ...base, allowedHosts: [bad] })), /allowedHosts/, String(bad));
   }
   assert.throws(() => loadConfig(tmpConfig({ ...base, allowedHosts: 'my-pc' })), /allowedHosts/);
+});
+
+// Folders added from Settings widen what /api/* will serve, so the checks are the point.
+test('validateNewRoot accepts a real folder and refuses what it should', () => {
+  // Built from the platform's own root: `D:/Work` is not absolute on the Linux CI runner.
+  const W = path.resolve('/Work').split(path.sep).join('/');
+  const w = W.toLowerCase();
+  const roots = [{ name: 'Documents', dir: `${W}/Documents` }];
+  const isDir = (d) => d.toLowerCase() === w || d.toLowerCase().startsWith(w + '/');
+  // Explorer's "Copy as path": quoted, and backslashes on Windows.
+  const pasted = `"${path.join(path.resolve('/Work'), 'Notes')}${path.sep}"`;
+  const ok = validateNewRoot({ name: ' Notes ', dir: pasted, tint: 'var(--purple)' }, roots, isDir);
+  assert.deepEqual(ok, { name: 'Notes', dir: `${W}/Notes`, tint: 'var(--purple)' });
+  assert.equal(validateNewRoot({ name: 'N', dir: `${W}/N`, tint: 'red;background:url(x)' }, roots, isDir).tint, 'var(--blue)');
+  const refuse = (input, re) => assert.throws(() => validateNewRoot(input, roots, isDir), re, JSON.stringify(input));
+  refuse({ name: '', dir: `${W}/N` }, /Name/);
+  refuse({ name: 'a/b', dir: `${W}/N` }, /Name/);
+  refuse({ name: 'x'.repeat(41), dir: `${W}/N` }, /Name/);
+  refuse({ name: 'N', dir: 'Work/N' }, /full path/);
+  refuse({ name: 'N', dir: path.parse(W).root }, /whole drive/);
+  refuse({ name: 'N', dir: `${W}/.ssh` }, /deny-list/);
+  refuse({ name: 'N', dir: `${W}/app/Secrets` }, /deny-list/);
+  refuse({ name: 'N', dir: `${W}-elsewhere` }, /No folder/);
+  refuse({ name: 'documents', dir: `${W}/Other` }, /already has a folder called/);
+  refuse({ name: 'Docs2', dir: `${W}/Documents/` }, /already in the sidebar/);
+  if (process.platform === 'win32') refuse({ name: 'Docs3', dir: `${w}/documents` }, /already in the sidebar/);
+  assert.ok(ROOT_TINTS.every((t) => /^var\(--[a-z]+\)$/.test(t)));
+});
+
+test('writeSharedRoots replaces only sharedRoots and keeps the rest of the config', () => {
+  const f = tmpConfig('\uFEFF' + JSON.stringify({ '//': 'note', port: 4300, base: 'D:/Work', allowedHosts: ['pc'], sharedRoots: [] }));
+  writeSharedRoots(f, [{ name: 'Notes', dir: 'D:/Work/Notes', tint: 'var(--blue)', extra: 1 }]);
+  const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+  assert.deepEqual(j, { '//': 'note', port: 4300, base: 'D:/Work', allowedHosts: ['pc'],
+    sharedRoots: [{ name: 'Notes', dir: 'D:/Work/Notes', tint: 'var(--blue)' }] });
+  assert.deepEqual(loadConfig(f).sharedRoots, j.sharedRoots);
+  assert.ok(!fs.existsSync(f + '.tmp'));
+});
+
+test('/api/roots is loopback-only, not just same-origin', () => {
+  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const route = src.slice(src.indexOf("url.pathname === '/api/roots'"), src.indexOf("url.pathname === '/api/favorites'"));
+  assert.match(route, /!sameOrigin\(req\) \|\| !LOCAL_HOSTS\.has\(req\.headers\.host/);
+  assert.match(src, /const LOCAL_HOSTS = new Set\(\['127\.0\.0\.1', 'localhost', '\[::1\]'\]\.map/);
+  assert.match(route, /validateNewRoot\(input, ROOTS, safeIsDir\)/);
 });
 
 test('loadConfig rejects what would otherwise fail deep in a scan', () => {

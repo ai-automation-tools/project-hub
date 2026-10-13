@@ -13,6 +13,7 @@
 | [**🚀 User manual**](../Project-Hub/README.md) | Configuration, navigation, and reader tools |
 | [**⚙️ Engine reference**](../Hub/README.md) | API, scanning, and health checks |
 | [**🌐 Demo site**](../Demo/README.md) | The fixture workspace, and how the hosted demo is built |
+| [**🌐 Remote access**](REMOTE-ACCESS.md) | Open the hub from your phone over Tailscale |
 | [**⭐ Bookmarks**](BOOKMARKS.md) | Save, rename, and revisit pages |
 | [**📋 Roadmap**](ROADMAP.md) | Shipped changes and remaining work |
 | [**📝 Changelog**](CHANGELOG.md) | What changed, newest first |

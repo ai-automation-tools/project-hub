@@ -70,5 +70,8 @@ desktop.ini
 !/Demo/**/.mcp.json
 !/Demo/**/.codex/config.toml
 
+# Machine-specific runbooks (tailnet names, device IPs).
+/Docs/Local/
+
 # Local Claude Code scratch (screenshots, notes) - never published.
 .claude/temp/

@@ -94,7 +94,7 @@ directory does not appear until something else triggers a scan.
 | `/api/health` | Uptime, scan history, `readErrors`, `state`. 503 when unwell. |
 
 Every response carries a Content-Security-Policy and is refused unless the `Host` header
-is loopback.
+is loopback or a name listed in `allowedHosts` ([remote access](../Docs/REMOTE-ACCESS.md)).
 
 ## Sidebar context menu
 
@@ -332,6 +332,7 @@ favicon: there's only one process now) and one small config per project it mount
 | `name` | | Cosmetic — the startup log line and `/api/health`'s `workspace` field fall back to it when no project is discovered. Defaults to `Portfolio`. |
 | `title` | | Browser tab title. Defaults to `Project Hub — <name>`. |
 | `favicon` | | `{ glyph, ink, line }` — one or two characters and two hex colors. The SVG is built server-side. There is exactly one favicon per process; it is not per-project. |
+| `allowedHosts` | | Exact hostnames the hub answers to besides loopback, e.g. a tailnet's MagicDNS name behind `tailscale serve`. Lowercase, no port, no wildcard. The bind stays `127.0.0.1`. See [remote access](../Docs/REMOTE-ACCESS.md). |
 | `sharedRoots` | | `[{ name, dir, tint }]` — folders mounted next to every project. `tint` is any theme colour var and defaults to `var(--dimmer)`. A root named **`Pictures`** additionally turns on the picture library; without one those endpoints are inert. |
 
 > [!NOTE]

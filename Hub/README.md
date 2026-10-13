@@ -80,6 +80,7 @@ node hub.mjs --config ..\Project-Hub\hub.config.json --scan   # writes scan.json
 | `/api/events` | Server-sent events; one `change` per settled watcher burst. |
 | `/api/webmarks?source=` | Browser profiles with favorites, and the chosen profile's tree (the first profile by default). Same-origin only. |
 | `/api/favicon?url=` | One icon per origin, resolved server-side and cached for the process. `http(s)` only, same-origin only, 404 on a miss. |
+| `/api/roots` | `POST {dir, name, tint?}` mounts a folder as a shared root, `DELETE {name}` unmounts one. Applied live (scan lists, `resolveId()` gate, watcher) and written back to `sharedRoots` in the config. Same-origin **and** a loopback `Host` — an `allowedHosts` name is refused, so a tailnet device can browse but not widen what is served. Refuses drive roots, deny-listed folders, duplicates and the Pictures root. |
 | `/api/favorites` | `GET` the manual favorites, `PUT` `{roots}` to replace them. Same-origin only, JSON only, 5 MB cap, and the tree is rebuilt by `cleanTree()`. |
 | `/api/frameable?url=` | `{frameable}`, which says whether the site's headers allow a hub tab to frame it. Cached per URL, same-origin only. |
 
@@ -333,7 +334,7 @@ favicon: there's only one process now) and one small config per project it mount
 | `title` | | Browser tab title. Defaults to `Project Hub — <name>`. |
 | `favicon` | | `{ glyph, ink, line }` — one or two characters and two hex colors. The SVG is built server-side. There is exactly one favicon per process; it is not per-project. |
 | `allowedHosts` | | Exact hostnames the hub answers to besides loopback, e.g. a tailnet's MagicDNS name behind `tailscale serve`. Lowercase, no port, no wildcard. The bind stays `127.0.0.1`. See [remote access](../Docs/REMOTE-ACCESS.md). |
-| `sharedRoots` | | `[{ name, dir, tint }]` — folders mounted next to every project. `tint` is any theme colour var and defaults to `var(--dimmer)`. A root named **`Pictures`** additionally turns on the picture library; without one those endpoints are inert. |
+| `sharedRoots` | | `[{ name, dir, tint }]` — folders mounted next to every project. `tint` is any theme colour var and defaults to `var(--dimmer)`. A root named **`Pictures`** additionally turns on the picture library; without one those endpoints are inert. Also editable from **Settings → Folders** (see `/api/roots`), which rewrites only this key. |
 
 > [!NOTE]
 > **`base` and `sharedRoots` are the only machine-specific values in the codebase.** They

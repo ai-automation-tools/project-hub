@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-10-13
 
+- Add folders to the sidebar from **Settings → Folders** (or **+ folder** in the Explorer header): paste a path, optionally name it, and it mounts at once next to Projects, with no JSON edit and no restart; ✕ removes one. A new `/api/roots` endpoint applies the change live and writes `sharedRoots` back to `hub.config.json`. It only answers a loopback `Host`, so a phone on the tailnet can browse folders but not add them.
 - Reach the hub from a phone over Tailscale: a new optional `allowedHosts` config key lets the Host check accept exact tailnet names behind `tailscale serve` (patterns and ports are refused at startup; the bind stays loopback). `Start-Hub.ps1` now ignores `tailscaled`'s tailnet-address listener on the same port, and waits for the port to free on `-Restart` instead of a fixed 2 s sleep. Setup guide in [REMOTE-ACCESS.md](REMOTE-ACCESS.md).
 
 ## 2026-10-06

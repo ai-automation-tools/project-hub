@@ -371,22 +371,28 @@ test('loadConfig accepts exact allowedHosts and refuses patterns', () => {
 
 // Folders added from Settings widen what /api/* will serve, so the checks are the point.
 test('validateNewRoot accepts a real folder and refuses what it should', () => {
-  const roots = [{ name: 'Documents', dir: 'D:/Work/Documents' }];
-  const isDir = (d) => d.toLowerCase().startsWith('d:/work');   // Windows paths are case-insensitive
-  const ok = validateNewRoot({ name: ' Notes ', dir: '"D:\\Work\\Notes\\"', tint: 'var(--purple)' }, roots, isDir);
-  assert.deepEqual(ok, { name: 'Notes', dir: 'D:/Work/Notes', tint: 'var(--purple)' });
-  assert.equal(validateNewRoot({ name: 'N', dir: 'D:/Work/N', tint: 'red;background:url(x)' }, roots, isDir).tint, 'var(--blue)');
+  // Built from the platform's own root: `D:/Work` is not absolute on the Linux CI runner.
+  const W = path.resolve('/Work').split(path.sep).join('/');
+  const w = W.toLowerCase();
+  const roots = [{ name: 'Documents', dir: `${W}/Documents` }];
+  const isDir = (d) => d.toLowerCase() === w || d.toLowerCase().startsWith(w + '/');
+  // Explorer's "Copy as path": quoted, and backslashes on Windows.
+  const pasted = `"${path.join(path.resolve('/Work'), 'Notes')}${path.sep}"`;
+  const ok = validateNewRoot({ name: ' Notes ', dir: pasted, tint: 'var(--purple)' }, roots, isDir);
+  assert.deepEqual(ok, { name: 'Notes', dir: `${W}/Notes`, tint: 'var(--purple)' });
+  assert.equal(validateNewRoot({ name: 'N', dir: `${W}/N`, tint: 'red;background:url(x)' }, roots, isDir).tint, 'var(--blue)');
   const refuse = (input, re) => assert.throws(() => validateNewRoot(input, roots, isDir), re, JSON.stringify(input));
-  refuse({ name: '', dir: 'D:/Work/N' }, /Name/);
-  refuse({ name: 'a/b', dir: 'D:/Work/N' }, /Name/);
-  refuse({ name: 'x'.repeat(41), dir: 'D:/Work/N' }, /Name/);
+  refuse({ name: '', dir: `${W}/N` }, /Name/);
+  refuse({ name: 'a/b', dir: `${W}/N` }, /Name/);
+  refuse({ name: 'x'.repeat(41), dir: `${W}/N` }, /Name/);
   refuse({ name: 'N', dir: 'Work/N' }, /full path/);
-  refuse({ name: 'N', dir: 'D:/' }, /whole drive/);
-  refuse({ name: 'N', dir: 'D:/Work/.ssh' }, /deny-list/);
-  refuse({ name: 'N', dir: 'D:/Work/app/Secrets' }, /deny-list/);
-  refuse({ name: 'N', dir: 'E:/Elsewhere' }, /No folder/);
-  refuse({ name: 'documents', dir: 'D:/Work/Other' }, /already has a folder called/);
-  refuse({ name: 'Docs2', dir: 'd:/work/documents/' }, /already in the sidebar/);
+  refuse({ name: 'N', dir: path.parse(W).root }, /whole drive/);
+  refuse({ name: 'N', dir: `${W}/.ssh` }, /deny-list/);
+  refuse({ name: 'N', dir: `${W}/app/Secrets` }, /deny-list/);
+  refuse({ name: 'N', dir: `${W}-elsewhere` }, /No folder/);
+  refuse({ name: 'documents', dir: `${W}/Other` }, /already has a folder called/);
+  refuse({ name: 'Docs2', dir: `${W}/Documents/` }, /already in the sidebar/);
+  if (process.platform === 'win32') refuse({ name: 'Docs3', dir: `${w}/documents` }, /already in the sidebar/);
   assert.ok(ROOT_TINTS.every((t) => /^var\(--[a-z]+\)$/.test(t)));
 });
 

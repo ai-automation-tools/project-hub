@@ -312,9 +312,7 @@ try {
   // static host there is nothing to stream from.
   sub('%TITLE%', 'Project Hub — live demo', 1);
   sub('%FAVICON%', 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-    + '<rect width="32" height="32" rx="7" fill="#38bdf8"/>'
-    + '<text x="16" y="23" font-family="monospace" font-size="20" font-weight="700" fill="#09090b" text-anchor="middle">/</text></svg>'), 1);
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>Project Hub</title><rect width="32" height="32" rx="7" fill="#0b0b0e"/><rect x="1" y="1" width="30" height="30" rx="6" fill="none" stroke="#297a46" stroke-width="2"/><g transform="translate(6 6) scale(0.8333333333333334)" fill="none" stroke="#4ade80" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 9v11"/></g></svg>'), 1);
   sub('%PORT%', '4273', 1);
   sub(' nonce="%NONCE%"', '', 2);
 

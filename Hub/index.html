@@ -227,7 +227,7 @@ aside{position:relative;width:min(var(--sbw,284px),50%);flex:0 0 auto;border-rig
   box-shadow:0 20px 50px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.03) inset;padding:5px}
 .ctxmenu button{display:block;width:100%;text-align:left;background:none;border:none;border-radius:var(--r-sm);color:var(--fg);
   font-family:var(--sans);font-size:12.5px;padding:7px 10px;cursor:pointer}
-.ctxmenu button:hover{background:var(--surface-2);color:var(--fg)}
+.ctxmenu button:hover,.ctxmenu button:focus-visible{background:var(--surface-2);color:var(--fg)}
 .ctxmenu button:disabled{color:var(--dimmest);cursor:default}
 .ctxmenu button:disabled:hover{background:none;color:var(--dimmest)}
 .ctxmenu hr{border:none;border-top:1px solid var(--line-a);margin:4px 0}
@@ -811,7 +811,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
-  pushRecent, resolveBookmarks, absolutePath } from '/navigation.mjs';
+  pushRecent, resolveBookmarks, absolutePath, isMenuKey, menuStep } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
 import { PictureNodes } from '/pictures-client.mjs';
@@ -2008,10 +2008,15 @@ activate($('#collapse'), () => { S.open.clear(); renderTree(); });
 // destination from "Open"/"Open File": Open acts on the row itself (browse into a
 // folder, launch a file), Open Folder always shows you where it lives.
 let ctxMenuEl = null;
-function closeCtxMenu() {
+// The row the menu was opened on (P9-05). Escape, or choosing an item, puts focus back on
+// it; an outside click, scroll or resize doesn't, since the user has already moved on.
+let ctxOpener = null;
+function closeCtxMenu(returnFocus = false) {
   if (!ctxMenuEl) return;
   ctxMenuEl.remove();
   ctxMenuEl = null;
+  if (returnFocus === true && ctxOpener?.isConnected) ctxOpener.focus();
+  ctxOpener = null;
   document.removeEventListener('pointerdown', onCtxOutside, true);
   document.removeEventListener('keydown', onCtxEscape, true);
   window.removeEventListener('resize', closeCtxMenu);
@@ -2020,13 +2025,32 @@ function closeCtxMenu() {
   $('#tree').removeEventListener('scroll', closeCtxMenu);
 }
 function onCtxOutside(e) { if (ctxMenuEl && !ctxMenuEl.contains(e.target)) closeCtxMenu(); }
-function onCtxEscape(e) { if (e.key === 'Escape') closeCtxMenu(); }
+// Escape is the menu's and only the menu's: without stopPropagation the page-level
+// handler would also clear the search query sitting behind it.
+function onCtxEscape(e) {
+  if (e.key !== 'Escape') return;
+  e.stopPropagation();
+  closeCtxMenu(true);
+}
 
 function ctxItem(label, handler, disabled = false) {
   const b = el('button', '', label);
+  b.setAttribute('role', 'menuitem');
+  b.tabIndex = -1;
   if (disabled) b.disabled = true;
-  else b.onclick = () => { closeCtxMenu(); handler(); };
+  else b.onclick = () => { closeCtxMenu(true); handler(); };
   return b;
+}
+
+// The menu pattern: arrows walk the enabled items and wrap, Home/End jump, Tab leaves and
+// closes. Disabled buttons can't take focus, so they're skipped rather than landed on.
+function onCtxMenuKey(e) {
+  const items = [...ctxMenuEl.querySelectorAll('[role="menuitem"]:not(:disabled)')];
+  if (e.key === 'Tab') { closeCtxMenu(); return; }
+  const next = menuStep(items.length, items.indexOf(document.activeElement), e.key);
+  if (next < 0) return;
+  e.preventDefault();
+  items[next].focus();
 }
 
 function showCtxMenu(x, y, n, opts = {}) {
@@ -2040,6 +2064,9 @@ function showCtxMenu(x, y, n, opts = {}) {
   const unlaunchable = virtual || !!opts.missing;
   const copy = (value) => navigator.clipboard.writeText(value).then(() => toast('copied')).catch(() => toast('copy failed'));
   const menu = el('div', 'ctxmenu');
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', n.name);
+  menu.addEventListener('keydown', onCtxMenuKey);
   menu.append(
     ctxItem(isBookmarked(pins.bookmarks, n.id) ? 'Remove Bookmark' : 'Add Bookmark', () => togglePin(n.id, n.name)),
     ...(opts.rename ? [ctxItem('Rename Bookmark', opts.rename)] : []),
@@ -2059,6 +2086,9 @@ function showCtxMenu(x, y, n, opts = {}) {
   menu.style.left = Math.max(4, Math.min(x, window.innerWidth - r.width - 6)) + 'px';
   menu.style.top = Math.max(4, Math.min(y, window.innerHeight - r.height - 6)) + 'px';
   ctxMenuEl = menu;
+  ctxOpener = opts.opener || null;
+  // Opened from the keyboard, focus goes in; a right-click leaves it where the mouse put it.
+  if (opts.keyboard) menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus();
 
   // Deferred one tick so the click that opened the menu doesn't also close it via
   // the outside-pointerdown listener (both fire on the same physical right-click).
@@ -2189,32 +2219,54 @@ async function showStatusPanel(anchor) {
 activate($('#live'), () => showStatusPanel($('#live')));
 $('#live').title = 'Scan status and read errors';
 
-$('#tree').addEventListener('contextmenu', (e) => {
-  const row = e.target.closest('.node');
-  if (!row) return;
-  e.preventDefault();
+function treeRowMenu(row, x, y, opts) {
   const n = S.byId.get(row.dataset.id);
-  if (n) showCtxMenu(e.clientX, e.clientY, n);
-});
+  if (n) showCtxMenu(x, y, n, opts);
+}
 
 // Pinned rows are rows: they get the same menu the tree offers. A pin whose file is gone
 // has no node to describe it, so one is synthesized from what the pin itself stores --
 // enough for the copy actions, with the filesystem ones disabled. Rename reuses the
 // double-click editor rather than growing a second one.
-$('#pins').addEventListener('contextmenu', (e) => {
-  const row = e.target.closest('.pin');
-  if (!row) return;
-  e.preventDefault();
+function pinRowMenu(row, x, y, opts) {
   const path = row.dataset.path;
-  const missing = row.dataset.missing === 'true';
   const n = S.byId.get(path) || { id: path, name: row.querySelector('.nm').textContent, kind: 'file' };
-  showCtxMenu(e.clientX, e.clientY, n, {
-    missing,
+  showCtxMenu(x, y, n, {
+    ...opts,
+    missing: row.dataset.missing === 'true',
     rename: row.dataset.renameable === 'true'
       ? () => row.querySelector('.nm')?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
       : null,
   });
-});
+}
+
+for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pin', pinRowMenu]]) {
+  $(host).addEventListener('contextmenu', (e) => {
+    const row = e.target.closest(sel);
+    if (!row) return;
+    e.preventDefault();
+    open(row, e.clientX, e.clientY, { opener: row });
+  });
+  // P9-05: the ContextMenu key or Shift+F10 on the focused row opens the same menu, under
+  // the row's name rather than at a pointer that isn't there.
+  $(host).addEventListener('keydown', (e) => {
+    if (!isMenuKey(e)) return;
+    const row = e.target.closest(sel);
+    if (!row) return;
+    e.preventDefault();
+    const r = (row.querySelector('.nm') || row).getBoundingClientRect();
+    open(row, r.left, r.bottom + 2, { opener: row, keyboard: true });
+  });
+}
+
+// Some platforms follow the key with a real `contextmenu` event, aimed at whatever now has
+// focus -- the menu's first item. Swallow it while a menu is up so the browser's own menu
+// doesn't open on top. A right-click elsewhere has already closed ours on pointerdown.
+document.addEventListener('contextmenu', (e) => {
+  if (!ctxMenuEl) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, true);
 
 async function ensurePicture(id) {
   const generation = pictureGeneration;

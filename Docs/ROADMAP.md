@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
   <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
   <img src="https://img.shields.io/badge/P7--14-shipped_2026--10--03-2ea44f?style=for-the-badge" alt="P7-14 narrow-pane layout shipped 2026-10-03">
-  <img src="https://img.shields.io/badge/tests-87_passing-8B5CF6?style=for-the-badge" alt="87 tests passing">
+  <img src="https://img.shields.io/badge/tests-92_passing-8B5CF6?style=for-the-badge" alt="92 tests passing">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
 
@@ -1087,7 +1087,7 @@ optional and are queued in P9.
 | P7-12 | **Shipped 2026-09-09; browser-verified** | Heading outline, rendered/source toggle behind `?raw=1`, copy buttons on code blocks, reading width and text size, and a print stylesheet. See [P7-12 shipped](#p7-12-shipped--five-small-things-that-make-a-file-a-document). |
 | P7-13 | **Shipped 2026-09-09; browser-verified** | Lazy thumbnails on image cards, and a viewer with fit/100%/zoom, natural dimensions, prev-next and arrow keys. Uncovered and fixed the P7-06 SVG regression. See [P7-13 shipped](#p7-13-shipped--thumbnails-a-real-viewer-and-the-svg-bug-it-uncovered). |
 | P7-14 | **Shipped 2026-10-03; browser-verified** | Narrow embedded panes. Long blocked because the Chrome extension's `resize_window` never moved `innerWidth` off 1549; Playwright's `browser_resize` reached real 800px and 700px viewports. See P9-24. |
-| P7-15 | **Shipped 2026-09-09; browser-verified; partly open** | The search box is a real combobox with `aria-expanded`, `aria-controls` and `aria-activedescendant` across both listboxes. `Ctrl+K` and announced toasts shipped earlier. **Still open:** keyboard focus entry/return for context menus (P9-05), and keyboard resizing for the mouse-only sidebar divider (P9-06). See [P7-15 fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). |
+| P7-15 | **Shipped 2026-09-09; browser-verified; partly open** | The search box is a real combobox with `aria-expanded`, `aria-controls` and `aria-activedescendant` across both listboxes. `Ctrl+K` and announced toasts shipped earlier. **Still open:** keyboard resizing for the mouse-only sidebar divider (P9-06). See [P7-15 fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). |
 | P7-16 | **Shipped 2026-09-09; browser-verified** | The scan status line opens a detail panel: last scan, duration, timing split, roots, and the **paths** behind the read-error count. The understated "only docs and config" wording is replaced and linked to the explanation. See [P7-16 shipped](#p7-16-shipped--the-number-and-then-the-paths-behind-it). |
 | P7-17–21 | **Optional; queued** | Related report files, repo-changes drilldown, document link checking, saved views, and copy-context-for-an-agent — P9-13, P9-10, P9-11, P9-15 and P9-14. |
 | P7-22 | **Withdrawn** | The large-folder tab stall was a measurement artifact of a hidden tab, not a defect. Kept as a record so the same wrong conclusion is not reached twice. |
@@ -1203,8 +1203,8 @@ combobox attributes, that every id named in `aria-controls` is actually built, a
 `syncCombobox` is defined and called from all three paths). There is no DOM in the test runner, so
 that test pins the wiring rather than the behaviour; the table above is the behavioural evidence.
 
-**Still open in P7-15:** keyboard focus entry and return for context menus, and keyboard resizing
-for the mouse-only sidebar divider. The `⌘K`/`Ctrl+K` half was already shipped.
+**Still open in P7-15:** ~~keyboard focus entry and return for context menus~~ (shipped
+2026-10-13 as P9-05), and keyboard resizing for the mouse-only sidebar divider. The `⌘K`/`Ctrl+K` half was already shipped.
 
 #### Still unverified after this pass
 
@@ -2087,7 +2087,15 @@ top to bottom.
   answers 501 with a message, since it has no server.)* Off by default,
   toggled per query, with a bounded index: markdown and text only, capped per file and in
   total, built lazily on first use. Record the memory cost in this file.
-- [ ] **P9-05 · Keyboard access to context menus** (P7-15). The ContextMenu key and
+- [x] **P9-05 · Keyboard access to context menus** (P7-15). *(done 2026-10-13: both keys open the
+  menu on a focused tree, bookmark or recent row, anchored under the row's name, with focus on the
+  first enabled item. The menu is `role="menu"` with `menuitem` buttons; ↑/↓ wrap and skip disabled
+  items, Home/End jump, Tab closes, Escape closes and refocuses the row, and so does choosing an item
+  (Rename then moves focus into its editor). A follow-on native `contextmenu` is swallowed while the
+  menu is up. `isMenuKey()` / `menuStep()` in `navigation.mjs` are the tested core. Browser-checked
+  with Playwright on the demo build: Shift+F10 and ContextMenu on a tree row, ↑ wrapping to the last
+  item, Escape back to the row, Enter on Add Bookmark, then Shift+F10 → Rename on the bookmark row
+  landing in the rename field; right-click still opens the menu without moving focus.)* The ContextMenu key and
   Shift+F10 open the sidebar menu on the focused row. Escape returns focus to that row.
 - [ ] **P9-06 · Keyboard-resizable sidebar divider** (P7-15). `role="separator"` with
   `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the

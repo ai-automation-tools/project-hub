@@ -153,6 +153,26 @@ export function includeInSearch(node) {
   return node.kind !== 'file';
 }
 
+// ── keyboard context menus (P9-05) ─────────────────────────────────────────
+// The two keys a file explorer opens a row's menu with. Browsers also turn both into a
+// `contextmenu` event, but only on some platforms and with coordinates that point at
+// nothing useful, so the page handles the key itself and anchors the menu under the row.
+export function isMenuKey(e) {
+  return e.key === 'ContextMenu' || (e.key === 'F10' && !!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey);
+}
+
+/** Next item index for a menu key over `count` enabled items, wrapping; -1 for any other key. */
+export function menuStep(count, from, key) {
+  if (!count) return -1;
+  switch (key) {
+    case 'ArrowDown': return (from + 1) % count;
+    case 'ArrowUp': return from <= 0 ? count - 1 : from - 1;
+    case 'Home': return 0;
+    case 'End': return count - 1;
+    default: return -1;
+  }
+}
+
 // ── bookmarks and recents (P7-10) ──────────────────────────────────────────
 // Paths only, never document contents: these outlive a process restart in localStorage,
 // and a rendered document does not. The hub has no per-user server state and this does

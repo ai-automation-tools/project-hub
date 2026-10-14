@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createReportHandler, REPORT_CSP } from './reports.mjs';
 import { kindOfFile, fileStamp, scanSignature } from './hub.mjs';
 import { routeHash, parseRoute, searchHash, parseSearch, documentTarget, markdownLink, includeInSearch,
-  SEARCH_TYPES, filterSearchPool, rankSearch, editDistance } from './navigation.mjs';
+  SEARCH_TYPES, filterSearchPool, rankSearch, editDistance, isMenuKey, menuStep } from './navigation.mjs';
 import { launchNative } from './open-native.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -116,6 +116,34 @@ test('P9-03: typo tolerance only runs when the substring pass finds nothing', ()
 
   // An empty query is still everything, best kinds first.
   assert.equal(rankSearch(index, '').ranked[0].h.kind, 'repo');
+});
+
+test('P9-05: the context menu opens from the keyboard and walks like a menu', () => {
+  assert.equal(isMenuKey({ key: 'ContextMenu' }), true);
+  assert.equal(isMenuKey({ key: 'F10', shiftKey: true }), true);
+  assert.equal(isMenuKey({ key: 'F10' }), false, 'plain F10 is the browser menu bar');
+  assert.equal(isMenuKey({ key: 'F10', shiftKey: true, ctrlKey: true }), false);
+  assert.equal(isMenuKey({ key: 'Enter' }), false);
+
+  // Five enabled items; -1 means focus isn't on one yet.
+  assert.equal(menuStep(5, 0, 'ArrowDown'), 1);
+  assert.equal(menuStep(5, 4, 'ArrowDown'), 0, 'down wraps to the top');
+  assert.equal(menuStep(5, 0, 'ArrowUp'), 4, 'up wraps to the bottom');
+  assert.equal(menuStep(5, -1, 'ArrowDown'), 0);
+  assert.equal(menuStep(5, -1, 'ArrowUp'), 4);
+  assert.equal(menuStep(5, 2, 'Home'), 0);
+  assert.equal(menuStep(5, 2, 'End'), 4);
+  assert.equal(menuStep(5, 2, 'Enter'), -1, 'other keys are left to the button');
+  assert.equal(menuStep(0, -1, 'ArrowDown'), -1);
+
+  // The wiring: both lists answer the key, the menu carries its roles, and Escape hands
+  // focus back to the row it was opened on.
+  assert.match(ui, /\['#tree', '\.node', treeRowMenu\], \['#pins', '\.pin', pinRowMenu\]/);
+  assert.match(ui, /if \(!isMenuKey\(e\)\) return;/);
+  assert.match(ui, /menu\.setAttribute\('role', 'menu'\)/);
+  assert.match(ui, /b\.setAttribute\('role', 'menuitem'\)/);
+  assert.match(ui, /closeCtxMenu\(true\);\n\}/);
+  assert.match(ui, /ctxOpener\.focus\(\)/);
 });
 
 test('heading routes preserve old links and round-trip punctuation and Unicode', () => {

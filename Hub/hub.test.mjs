@@ -267,6 +267,11 @@ test('house-style header HTML is preserved', () => {
   assert.match(html, /&amp;logo=x/);
 });
 
+test('an HTML block runs to the next blank line, so bare text inside it stays inside', () => {
+  const html = md2html('<p align="center">\n  <a href="a">A</a>\n  ·\n  <a href="b">B</a>\n</p>\n\nafter');
+  assert.match(html, /^<p align="center">\n  <a href="a">A<\/a>\n  ·\n  <a href="b">B<\/a>\n<\/p>\n<p>after<\/p>$/);
+});
+
 // ── frontmatter / blurb ────────────────────────────────────────────────────
 test('frontmatter reads scalars and folded blocks', () => {
   const fm = frontmatter('---\nname: my-skill\ndescription: >-\n  first line\n  second line\n---\nbody');

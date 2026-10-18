@@ -8,6 +8,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/reviewed-2026--10--05-2ea44f?style=for-the-badge" alt="Reviewed 2026-10-05">
+  <img src="https://img.shields.io/badge/open-36_items-F59E0B?style=for-the-badge" alt="36 items remaining">
   <img src="https://img.shields.io/badge/phases_0--4-shipped-2ea44f?style=for-the-badge" alt="Phases 0 to 4 shipped">
   <img src="https://img.shields.io/badge/P5-9_of_10_fixed-2ea44f?style=for-the-badge" alt="P5: 9 of 10 items fixed 2026-09-03">
   <img src="https://img.shields.io/badge/P6-merged_to_1_process-2ea44f?style=for-the-badge" alt="P6: merged to one process 2026-09-07">
@@ -24,21 +25,165 @@
 > [!NOTE]
 > **All five phases shipped 2026-08-31.** Every P0 defect is closed, the three hubs are one
 > codebase plus a config file each, the UI is keyboard-navigable with real URLs, and the
-> hubs report their own health. Detail per phase: [0](#phase-0--what-shipped),
-> [1](#phase-1--what-shipped), [2](#phase-2--what-shipped), [3](#phase-3--what-shipped),
-> [4](#phase-4--what-shipped). A second, independent audit on 2026-09-03 found four more
+> hubs report their own health. A second, independent audit on 2026-09-03 found four more
 > defects — all fixed same day — plus six enhancement ideas, five of which are also now
-> fixed. See [P5](#p5--2026-09-03-antigravity-audit). **On 2026-09-07 the three hubs
-> became one** — see [P6](#p6--2026-09-07-one-process-not-three).
-> **The work queue now lives in [P9](#p9)**: every open item below, plus new
-> improvements, as one checklist that a weekly roadmap routine works through one item at a
-> time (since 2026-09-22).
+> fixed ([P5](#p5--2026-09-03-antigravity-audit)). On 2026-09-07 the three hubs became one
+> ([P6](#p6--2026-09-07-one-process-not-three)). Everything below this summary is the
+> record of why things were built the way they were.
 >
-> **Current next steps:** the unchecked items in [P9](#p9), in order. As of 2026-10-06 every
-> numbered P7 item has shipped except the optional P7-17–21 and the last two thirds of P7-15
-> (keyboard context menus and divider), all queued in P9. P7-07 closed with content search
-> (P9-04, 2026-10-06). The `obsidian` redesign shipped 2026-10-05 as P9-45; its follow-ups are P9-46–48.
-> Everything above P9 is the record of why things were built the way they were.
+> **Where the work queue lives.** A weekly roadmap routine works [the remaining list](#remaining)
+> — the unchecked items below, in order, one item per run — since 2026-09-22. The completed
+> items roll up in [the shipped list](#shipped); the full history stays in
+> [P9](#p9) and the phase sections beneath it.
+
+## ✅ Remaining
+
+Every open item from the P4–P9 backlog, in the order a weekly run takes them. Items marked
+🔒 need Mike and are skipped by the routine. Once an item is done it moves to [the shipped
+list](#shipped) with a dated note.
+
+- [ ] **P9-06 · Keyboard-resizable sidebar divider** (P7-15). `role="separator"` with
+  `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the
+  mouse width.
+- [ ] **P9-07 · Settle the `~/.gemini/skills` read errors** that P7-16's status panel
+  surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a
+  directory named like a file, and make the scanner skip it quietly or report it once.
+  Add a test using a fixture that reproduces it.
+- [ ] **P9-08 · Skip git spawns for unchanged repos** (#36). `gitStateCached()` in
+  `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are
+  instant; this replaces the TTL with invalidation on each repo's `.git/index` and
+  `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result
+  when neither has moved. Measure scan time before and after on the demo fixture and record
+  both numbers here.
+- [ ] **P9-09 · Close the testable verification gaps.** Unit tests for malformed or
+  missing heading destinations, and for copy-link output on paths containing spaces.
+  These are two of the gaps listed under
+  [Verification still needed](#verification-still-needed) that don't need a browser.
+- [ ] **P9-25 · Connection-recovery check.** Start a second hub on a spare port with the
+  demo config, open it in Playwright, stop and restart that process, and confirm the
+  connection banner appears, Retry works, and the page recovers without a manual reload.
+  Never stop the live hub on 4273.
+- [ ] **P9-49 · The positive native-launch path.** 🔒 Needs Mike. Rejections are covered by
+  HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been
+  clicked through to a running application. One click per action on this machine, then
+  note the result under [Verification still needed](#verification-still-needed).
+- [ ] **P9-10 · Repo changes detail** (P7-18 / #23). "uncommitted" on a repo card
+  expands into the changed filenames. A read-only diff loads on demand for one file at a
+  time, size-capped.
+- [ ] **P9-11 · On-demand document link check** (P7-19). An endpoint plus a panel listing
+  broken relative links, missing images, and missing heading targets, each linked to its
+  source document. It never runs as part of a routine scan.
+- [ ] **P9-12 · Routine pass/fail, not just run count** (#24). Read the last line of the
+  newest log for each routine and show ok / failed / unknown beside the run count.
+- [ ] **P9-13 · Related report files** (P7-17). Group a report's `.md` / `.html` / `.pdf`
+  / charts into one entry with format buttons, inferred from shared basenames in one
+  folder.
+- [ ] **P9-14 · Copy context for an agent** (P7-21). Multi-select files, then copy a
+  compact list of titles, relative paths, and hub links. Content stays out unless
+  explicitly included, and is capped.
+- [ ] **P9-15 · Saved views** (P7-20). Save a search plus its filters under a name, list
+  saved views above Bookmarks, and give each one a hub link.
+- [ ] **P9-16 · `--init` for a new workspace** (#21). `node hub.mjs --init <dir>` writes a
+  commented `hub.config.json` skeleton for a new workspace and prints the next step. It
+  never overwrites an existing config.
+- [ ] **P9-17 · Roadmap progress on repo cards.** Count `- [ ]` / `- [x]` in each repo's
+  `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos
+  in the lab now carry one, and the routines work them weekly.
+- [ ] **P9-18 · "Changed this week" view.** A landing-page list of documents modified in
+  the last 7 days across every root, newest first, built from data the scan already has.
+- [ ] **P9-19 · Frontmatter tags.** Show a document's frontmatter (tags, dates, status) in
+  a small metadata strip, and let search filter by tag. `frontmatter()` already parses it.
+- [ ] **P9-20 · Scan-time history in the status panel.** Keep the last 20 scan durations
+  in memory and draw a tiny inline sparkline. This makes a slow scan visible before it
+  becomes a complaint.
+- [ ] **P9-21 · Split `hub.mjs`.** Move markdown rendering and sanitizing into
+  `Hub/markdown.mjs`, and the scanner into `Hub/scan.mjs`. Exports stay the same and every
+  existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the
+  largest single thing a weekly run has to read.
+- [ ] **P9-22 · Syntax check in CI.** `node --check` over every `Hub/*.mjs`, plus a
+  check that the inline script in `index.html` parses. No new dependencies.
+- [ ] **P9-23 · Keep the demo showing what shipped.** Add fixture content to
+  `Demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't
+  show them yet: enough documents of each kind that the root and type chips (P9-02) narrow
+  something, and a few near-miss names so the typo fallback (P9-03) has something to find.
+  Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land.
+- [ ] **P9-37 · Repos before Live Sites on a project page.** Eleven Live Sites cards fill the
+  first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list
+  with one row per site (name, domain, status dot).
+- [ ] **P9-38 · Make "N need attention" actionable.** On the Projects landing cards it's plain
+  grey text. Color it orange and link it to the uncommitted repos. Fill a missing card
+  description from the project README's first line so the cards are even.
+- [ ] **P9-39 · A quieter document header.** The filename shows three times (breadcrumb,
+  heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's
+  filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the
+  green `open` button opens. That also brings the header back to one row in a narrow window.
+- [ ] **P9-40 · Rescan feedback and the sidebar footer.** `rescan` gives no sign of the 3–4 s
+  it takes: show a spinner or elapsed time. The footer's `index.html` label is a leftover —
+  show the last scan's duration, or remove it.
+- [ ] **P9-41 · Phone widths (below 640px).** P9-24 was measured at 800px and 700px, with
+  one breakpoint at 1024px and nothing narrower. Measure 390px in
+  Playwright, then decide whether the rail should become an overlay drawer and the header
+  drop to two rows.
+- [ ] **P9-42 · Show which stat tiles are clickable.** Tiles with a jump target only reveal it
+  on hover. Give them a resting affordance (a faint arrow or underline) so they read as links.
+- [ ] **P9-43 · Playwright verification pass.** Close the browser gaps the Chrome extension
+  couldn't reach: every clipboard write (grant `clipboard-read`/`clipboard-write`), and focus
+  and scroll survival across a refresh. Record results under
+  [Verification still needed](#verification-still-needed).
+- [ ] **P9-44 · Document-relative Markdown links** (P7-04's open follow-up). Offer copy-link as
+  a path relative to the current document, alongside the hub link.
+- [ ] **P9-46 · Bring the scaffold reference and the public screenshots up to `obsidian`.**
+  The scaffold skill's `references/design-system.md` still lists IBM Plex, eight schemes,
+  `midnight` as the default, a 42px header and square corners. It is canonical in
+  `agent-skills` (`Skills/Core/Web/project-hub-scaffold/`): update it there from
+  [REDESIGN.md](REDESIGN.md), then copy the travel copy here byte-identical. Then recapture
+  `Images/Public/project-overview.png` and `document-reader.png` from the demo build, per
+  `Images/Public/README.md`, and update its table.
+- [ ] **P9-47 · `#app` height under CSS zoom.** `#app{height:calc(100vh / var(--zoom))}`
+  was written when `100vh` ignored `zoom`; in a current Chromium (headless 140 in the
+  redesign's comparison shots) the page ends about 15% short of the window at the default
+  115%, so the division now happens twice. Confirm in the browsers actually in use, switch
+  to `100vh` if it holds, and update the comment in `index.html` and the design-system
+  reference, which explains the old pattern.
+- [ ] **P9-48 · A skill's own `SKILL.md` in the demo.** The demo build never captures it
+  (the entity node carries no child for the file), so the reader shows "could not read this
+  file" on every skill in the hosted demo. Give the node a child, or have `build-demo.mjs`
+  capture it; add a test either way.
+- [ ] **P9-29 · Keep icons visible on dark themes.** Black favicons (GitHub, Plex) disappear
+  on the dark themes. Give an icon a light backing when its average luminance is low,
+  measured once per icon on a canvas.
+- [ ] **P9-30 · Keep favicons across restarts.** The cache is memory-only, so a restart
+  resolves every origin again. Persist it beside `scan.json` if the first open after a
+  restart feels slow.
+- [ ] **P9-31 · Favorites in the demo.** The demo shows a note in place of favorites.
+  Capture a fixture `favorites.json` and a `Bookmarks` file from `Demo/Home`, and teach
+  `demo.js` to answer `/api/favorites` read-only, so both modes are visible there.
+- [ ] **P9-35 · Keep hub tabs across reloads.** Open tabs vanish on a refresh. Store their
+  URLs and titles, not their contents, and reopen them lazily when first shown.
+- [ ] **P9-36 · Keyboard for favorites and tabs.** Arrow-key navigation in the Favorites
+  list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite
+  without dragging.
+
+## ✅ Shipped
+
+Every closed item, newest last within each group. Details live in [P9](#p9) and the phase
+sections beneath it.
+
+- [x] **P9-45 · The `obsidian` redesign** — 2026-10-05. New default scheme, Inter + JetBrains Mono, rounded surfaces, spotlight cards; the other eight schemes keep their colours. Follow-ups P9-46–48 are in [Remaining](#remaining).
+- [x] **P9-05 · Keyboard access to context menus** — 2026-10-13.
+- [x] **P9-04 · Search: opt-in content search** — 2026-10-06.
+- [x] **P9-03 · Search: typo tolerance** — 2026-10-04.
+- [x] **P9-24 · Narrow-pane layout (P7-14)** — 2026-10-03.
+- [x] **P9-26–28, 32–34 · Sidebar views** (activity bar, browser favorites, import, settings, manual favorites, hub tabs) — 2026-09-29.
+- [x] **P9-02 · Search: root and type filters** — 2026-09-29.
+- [x] **P9-01 · Start `Docs/CHANGELOG.md`** — 2026-09-22.
+- [x] **P8 · Links root, README landing views, eight color schemes** — 2026-09-09.
+- [x] **P7-01 through P7-16** — shipped 2026-09-08 / 2026-09-09 (P7-14 last, 2026-10-03 as P9-24); P7-22 withdrawn.
+- [x] **P6 · One process, not three** — 2026-09-07.
+- [x] **P5 · Antigravity audit** — four defects (#27–30) and five ideas (#31–35, #37) fixed 2026-09-03.
+- [x] **Phases 0–4** — shipped 2026-08-31.
+
+---
 
 ## What was audited
 
@@ -560,8 +705,9 @@ Everything sequenced above is done.
 
 ## Still open
 
-Every item that was left open here now lives in [P9](#p9): fuzzy search (#13) is P9-03, the
-git-mtime cache (#36) is P9-08, and the P4 ideas are P9-10, P9-12 and P9-16 (#22 shipped as
+Every item that was left open here now lives in [the remaining list](#remaining): fuzzy
+search (#13) is P9-03 (done), the git-mtime cache (#36) is P9-08, and the P4 ideas are
+P9-10, P9-12 and P9-16 (#22 shipped as
 [P6](#p6--2026-09-07-one-process-not-three), and #25's narrow-window half as P9-24). One
 decision stays here because it isn't queued anywhere: **#17, moving the scan off the event
 loop, was measured and declined** — the ~2 s stall is git, not the walk, and a worker would
@@ -1064,12 +1210,12 @@ already existed, it just never had a chance to run on a plain report folder befo
 
 ## P7 — 2026-09-08 Codex review: document browsing and scale
 
-**Status: P7-01 through P7-16 have all shipped.** The report/reliability and Pictures passes landed 2026-09-08 along with the browser verification pass (see [Browser verification pass](#browser-verification-pass--2026-09-08)); the daily-usability half — P7-09, P7-10, P7-12, P7-13, P7-15 and P7-16 — landed 2026-09-09, and P7-13 uncovered and fixed a P7-06 regression on the way. P7-14 shipped 2026-10-03 as P9-24. **What is left** is queued in [P9](#p9): the rest of P7-07 and P7-15, and the optional P7-17–21. This section incorporates all 21 recommendations from the September 8 suggestions document. P7-01–21 are scoped identifiers so the original audit's #1–37 retain their meanings. The implementation sequence below is the current recommendation; earlier phase sequences remain the historical record.
+**Status: P7-01 through P7-16 have all shipped.** The report/reliability and Pictures passes landed 2026-09-08 along with the browser verification pass (see [Browser verification pass](#browser-verification-pass--2026-09-08)); the daily-usability half — P7-09, P7-10, P7-12, P7-13, P7-15 and P7-16 — landed 2026-09-09, and P7-13 uncovered and fixed a P7-06 regression on the way. P7-14 shipped 2026-10-03 as P9-24. **What is left** is queued in [the remaining list](#remaining): the rest of P7-07 and P7-15, and the optional P7-17–21. This section incorporates all 21 recommendations from the September 8 suggestions document. P7-01–21 are scoped identifiers so the original audit's #1–37 retain their meanings. The implementation sequence below is the current recommendation; earlier phase sequences remain the historical record.
 
 ### Current implementation status — September 9
 
 Every one of P7-01 through P7-16 has shipped; P7-14 last, on 2026-10-03. P7-17–21 remain
-optional and are queued in P9.
+optional and are queued in [the remaining list](#remaining).
 
 | Item | Status | Delivered / remaining |
 |:---|:---|:---|
@@ -1878,7 +2024,7 @@ immediately afterwards showed the images loaded. No user documents were modified
 
 P7-17 to P7-21 moved to [P9](#p9) with the same scope: related report files (P9-13), repo
 changes detail (P9-10), document link checks (P9-11), saved views (P9-15) and copy context for
-an agent (P9-14).
+an agent (P9-14). All five are still open, now in [the remaining list](#remaining).
 
 ### Suggested implementation sequence
 
@@ -1895,7 +2041,8 @@ sixteen numbered items shipped across two days, in roughly the order recommended
 | 6 | Optional workflow features: P7-17–21 | Not started, by choice. |
 
 What was left after this sequence — the rest of P7-07 and P7-15, P7-14, the optional P7-17–21,
-and the `~/.gemini/skills` read errors — moved to [P9](#p9). P7-14 shipped there as P9-24.
+and the `~/.gemini/skills` read errors — moved to [P9](#p9). P7-14 shipped there as P9-24; the
+still-open rest now sits in [the remaining list](#remaining).
 
 Keep the existing no-build architecture unless a particular change earns extra tooling. A framework rewrite, editable filesystem operations, and a general AI assistant are not prerequisites for these improvements.
 
@@ -2038,16 +2185,14 @@ recolored the tree for free.
 
 ## P9 — 2026-09-22: the weekly backlog
 
-Everything open from P4–P8, plus new improvements, as one ordered checklist. **A weekly
-roadmap routine works this list:** each Tuesday night it takes the first unchecked item it
-can finish and verify, then opens a PR, and the Sunday PR sweep merges it. The sections
-above stay as the record of why things were built the way they were. This section is
-where the work queue lives.
+The weekly routine started here in 2026-09-22, working one item per run. The **open** items
+have since moved up to [the remaining checklist](#remaining), which is the live work queue;
+this section now records **what shipped** and why, kept as the reference for the dated
+`done` notes. Every item below is closed; the open ones are listed at the top of this file.
 
-How items are marked: `- [ ]` open · `- [-]` claimed by a run in progress · `- [x]` done,
-with a dated note · `- [!]` blocked, with the reason. `🔒 Needs Mike` means only a person
-can do it, so the routine skips it. Order is priority within each group. Groups are worked
-top to bottom.
+How items are marked: `- [x]` done, with a dated note · `- [ ]` open (see
+[Remaining](#remaining)) · `🔒 Needs Mike` means only a person can do it, so the routine
+skips it.
 
 ### Finish what's open
 
@@ -2097,138 +2242,23 @@ top to bottom.
   item, Escape back to the row, Enter on Add Bookmark, then Shift+F10 → Rename on the bookmark row
   landing in the rename field; right-click still opens the menu without moving focus.)* The ContextMenu key and
   Shift+F10 open the sidebar menu on the focused row. Escape returns focus to that row.
-- [ ] **P9-06 · Keyboard-resizable sidebar divider** (P7-15). `role="separator"` with
-  `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the
-  mouse width.
-- [ ] **P9-07 · Settle the `~/.gemini/skills` read errors** that P7-16's status panel
-  surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a
-  directory named like a file, and make the scanner skip it quietly or report it once.
-  Add a test using a fixture that reproduces it.
-- [ ] **P9-08 · Skip git spawns for unchanged repos** (#36). `gitStateCached()` in
-  `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are
-  instant; this replaces the TTL with invalidation on each repo's `.git/index` and
-  `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result
-  when neither has moved. Measure scan time before and after on the demo fixture and record
-  both numbers here.
-- [ ] **P9-09 · Close the testable verification gaps.** Unit tests for malformed or
-  missing heading destinations, and for copy-link output on paths containing spaces.
-  These are two of the gaps listed under
-  [Verification still needed](#verification-still-needed) that don't need a browser.
 - [x] **P9-24 · Narrow-pane layout (P7-14).** *(done 2026-10-03: Playwright's `browser_resize` reached a
   real 800px and 700px viewport. Below 1024px the sidebar starts on the rail without overwriting the
   stored choice, the search field shrinks, breadcrumb ancestors ellipsize, and the document toolbar
   wraps. Measured: no horizontal overflow in `header`, `#view`, `#crumbs` or the panel header at 700px.)*
-- [ ] **P9-25 · Connection-recovery check.** Start a second hub on a spare port with the
-  demo config, open it in Playwright, stop and restart that process, and confirm the
-  connection banner appears, Retry works, and the page recovers without a manual reload.
-  Never stop the live hub on 4273.
-- [ ] **P9-49 · The positive native-launch path.** 🔒 Needs Mike. Rejections are covered by
-  HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been
-  clicked through to a running application. One click per action on this machine, then
-  note the result under [Verification still needed](#verification-still-needed).
 
-### Optional features (P7-17–21 and P4)
+*The open items that used to follow here — P9-06 through P9-09, P9-10 through P9-16,
+P9-17 through P9-23, P9-25, P9-29 through P9-31, P9-35 through P9-44 and P9-46 through
+P9-49 — now live in [the remaining checklist](#remaining).*
 
-- [ ] **P9-10 · Repo changes detail** (P7-18 / #23). "uncommitted" on a repo card
-  expands into the changed filenames. A read-only diff loads on demand for one file at a
-  time, size-capped.
-- [ ] **P9-11 · On-demand document link check** (P7-19). An endpoint plus a panel listing
-  broken relative links, missing images, and missing heading targets, each linked to its
-  source document. It never runs as part of a routine scan.
-- [ ] **P9-12 · Routine pass/fail, not just run count** (#24). Read the last line of the
-  newest log for each routine and show ok / failed / unknown beside the run count.
-- [ ] **P9-13 · Related report files** (P7-17). Group a report's `.md` / `.html` / `.pdf`
-  / charts into one entry with format buttons, inferred from shared basenames in one
-  folder.
-- [ ] **P9-14 · Copy context for an agent** (P7-21). Multi-select files, then copy a
-  compact list of titles, relative paths, and hub links. Content stays out unless
-  explicitly included, and is capped.
-- [ ] **P9-15 · Saved views** (P7-20). Save a search plus its filters under a name, list
-  saved views above Bookmarks, and give each one a hub link.
-- [ ] **P9-16 · `--init` for a new workspace** (#21). `node hub.mjs --init <dir>` writes a
-  commented `hub.config.json` skeleton for a new workspace and prints the next step. It
-  never overwrites an existing config.
+### Shipped by group
 
-### New improvements
-
-- [ ] **P9-17 · Roadmap progress on repo cards.** Count `- [ ]` / `- [x]` in each repo's
-  `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos
-  in the lab now carry one, and the routines work them weekly.
-- [ ] **P9-18 · "Changed this week" view.** A landing-page list of documents modified in
-  the last 7 days across every root, newest first, built from data the scan already has.
-- [ ] **P9-19 · Frontmatter tags.** Show a document's frontmatter (tags, dates, status) in
-  a small metadata strip, and let search filter by tag. `frontmatter()` already parses it.
-- [ ] **P9-20 · Scan-time history in the status panel.** Keep the last 20 scan durations
-  in memory and draw a tiny inline sparkline. This makes a slow scan visible before it
-  becomes a complaint.
-- [ ] **P9-21 · Split `hub.mjs`.** Move markdown rendering and sanitizing into
-  `Hub/markdown.mjs`, and the scanner into `Hub/scan.mjs`. Exports stay the same and every
-  existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the
-  largest single thing a weekly run has to read.
-- [ ] **P9-22 · Syntax check in CI.** `node --check` over every `Hub/*.mjs`, plus a
-  check that the inline script in `index.html` parses. No new dependencies.
-- [ ] **P9-23 · Keep the demo showing what shipped.** Add fixture content to
-  `Demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't
-  show them yet: enough documents of each kind that the root and type chips (P9-02) narrow
-  something, and a few near-miss names so the typo fallback (P9-03) has something to find.
-  Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land.
-
-### UI review (added 2026-10-03)
-
-From a browser review at 1440, 800 and 700px. Contrast, the type scale, the stat strip, the
-reading width and the narrow layout shipped the same day; these are what's left.
-
-- [ ] **P9-37 · Repos before Live Sites on a project page.** Eleven Live Sites cards fill the
-  first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list
-  with one row per site (name, domain, status dot).
-- [ ] **P9-38 · Make "N need attention" actionable.** On the Projects landing cards it's plain
-  grey text. Color it orange and link it to the uncommitted repos. Fill a missing card
-  description from the project README's first line so the cards are even.
-- [ ] **P9-39 · A quieter document header.** The filename shows three times (breadcrumb,
-  heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's
-  filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the
-  green `open` button opens. That also brings the header back to one row in a narrow window.
-- [ ] **P9-40 · Rescan feedback and the sidebar footer.** `rescan` gives no sign of the 3–4 s
-  it takes: show a spinner or elapsed time. The footer's `index.html` label is a leftover —
-  show the last scan's duration, or remove it.
-- [ ] **P9-41 · Phone widths (below 640px).** P9-24 was measured at 800px and 700px, with
-  one breakpoint at 1024px and nothing narrower. Measure 390px in
-  Playwright, then decide whether the rail should become an overlay drawer and the header
-  drop to two rows.
-- [ ] **P9-42 · Show which stat tiles are clickable.** Tiles with a jump target only reveal it
-  on hover. Give them a resting affordance (a faint arrow or underline) so they read as links.
-- [ ] **P9-43 · Playwright verification pass.** Close the browser gaps the Chrome extension
-  couldn't reach: every clipboard write (grant `clipboard-read`/`clipboard-write`), and focus
-  and scroll survival across a refresh. Record results under
-  [Verification still needed](#verification-still-needed).
-- [ ] **P9-44 · Document-relative Markdown links** (P7-04's open follow-up). Offer copy-link as
-  a path relative to the current document, alongside the hub link.
 - [x] **P9-45 · The `obsidian` redesign.** Proposed on the demo and adopted the same day:
   a new default scheme in the landing page's idiom, Inter + JetBrains Mono, rounded surfaces,
   spotlight cards, and `--ok` split from the accent for clean / live state. The other eight
   schemes keep their colours. Record in [REDESIGN.md](REDESIGN.md). What it left open is
-  queued below as P9-46 (docs and screenshots), P9-47 (the `100vh` / zoom gap) and P9-48
+  queued above as P9-46 (docs and screenshots), P9-47 (the `100vh` / zoom gap) and P9-48
   (a skill's `SKILL.md` in the demo).
-- [ ] **P9-46 · Bring the scaffold reference and the public screenshots up to `obsidian`.**
-  The scaffold skill's `references/design-system.md` still lists IBM Plex, eight schemes,
-  `midnight` as the default, a 42px header and square corners. It is canonical in
-  `agent-skills` (`Skills/Core/Web/project-hub-scaffold/`): update it there from
-  [REDESIGN.md](REDESIGN.md), then copy the travel copy here byte-identical. Then recapture
-  `Images/Public/project-overview.png` and `document-reader.png` from the demo build, per
-  `Images/Public/README.md`, and update its table.
-- [ ] **P9-47 · `#app` height under CSS zoom.** `#app{height:calc(100vh / var(--zoom))}`
-  was written when `100vh` ignored `zoom`; in a current Chromium (headless 140 in the
-  redesign's comparison shots) the page ends about 15% short of the window at the default
-  115%, so the division now happens twice. Confirm in the browsers actually in use, switch
-  to `100vh` if it holds, and update the comment in `index.html` and the design-system
-  reference, which explains the old pattern.
-- [ ] **P9-48 · A skill's own `SKILL.md` in the demo.** The demo build never captures it
-  (the entity node carries no child for the file), so the reader shows "could not read this
-  file" on every skill in the hosted demo. Give the node a child, or have `build-demo.mjs`
-  capture it; add a test either way.
-
-### Sidebar views (added 2026-09-29)
-
 - [x] **P9-26 · VS Code-style activity bar.** *(done 2026-09-29: Explorer, Bookmarks and
   Recent became separate sidebar views behind an icon row, with a bookmark count badge. The
   active view persists in `hub.side`, clicking the active icon folds the sidebar to the rail,
@@ -2241,15 +2271,6 @@ reading width and the narrow layout shipped the same day; these are what's left.
 - [x] **P9-28 · Import a bookmarks HTML file.** *(done 2026-09-29: Settings → Import bookmarks
   file…, parsed by `parseBookmarksHtml()` in `favorites.mjs` into the manual list. The favicons
   come from `/api/favicon` like the rest, so `ICON=` data URIs are not stored.)*
-- [ ] **P9-29 · Keep icons visible on dark themes.** Black favicons (GitHub, Plex) disappear
-  on the dark themes. Give an icon a light backing when its average luminance is low,
-  measured once per icon on a canvas.
-- [ ] **P9-30 · Keep favicons across restarts.** The cache is memory-only, so a restart
-  resolves every origin again. Persist it beside `scan.json` if the first open after a
-  restart feels slow.
-- [ ] **P9-31 · Favorites in the demo.** The demo shows a note in place of favorites.
-  Capture a fixture `favorites.json` and a `Bookmarks` file from `Demo/Home`, and teach
-  `demo.js` to answer `/api/favorites` read-only, so both modes are visible there.
 - [x] **P9-32 · Settings view.** *(done 2026-09-29: a gear at the end of the activity bar,
   with the color scheme moved out of the header, interface size (`hub.zoom`, applied before
   first paint), the hub-tabs and favorites-sync switches, import and export, clear recent, and
@@ -2261,11 +2282,6 @@ reading width and the narrow layout shipped the same day; these are what's left.
 - [x] **P9-34 · Hub tabs.** *(done 2026-09-29: sandboxed iframes without top navigation,
   kept alive across switches, and a `/api/frameable` check that sends sites refusing to be
   framed to a browser tab. Checked live: Wikipedia opens in a hub tab and GitHub falls back.)*
-- [ ] **P9-35 · Keep hub tabs across reloads.** Open tabs vanish on a refresh. Store their
-  URLs and titles, not their contents, and reopen them lazily when first shown.
-- [ ] **P9-36 · Keyboard for favorites and tabs.** Arrow-key navigation in the Favorites
-  list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite
-  without dragging.
 
 ---
 

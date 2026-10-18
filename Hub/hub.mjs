@@ -1482,7 +1482,7 @@ export function md2html(src) {
   for (const line of lines) {
     const fence = /^\s*```(\w*)/.exec(line);
     if (fence) {
-      flushPara(); closeList(); flushQuote();
+      flushHtml(); flushPara(); closeList(); flushQuote();
       if (inCode) { out.push('</code></pre>'); inCode = false; }
       else { out.push(`<pre class="code"><code>`); inCode = true; }
       continue;
@@ -1491,11 +1491,16 @@ export function md2html(src) {
 
     if (htmlBuf === null && isBlockHtml(line)) { flushPara(); closeList(); flushQuote(); htmlBuf = ''; }
     if (htmlBuf !== null) {
-      htmlBuf += (htmlBuf ? '\n' : '') + line;
-      htmlLines++;
-      // Still inside a tag? Keep reading. The line cap stops a stray '<' in prose from
-      // swallowing the rest of the document.
-      if (htmlBuf.lastIndexOf('<') > htmlBuf.lastIndexOf('>') && htmlLines < 25) continue;
+      // Still inside a tag? Keep reading, even across a blank line. The line cap stops a
+      // stray '<' in prose from swallowing the rest of the document.
+      const inTag = htmlBuf.lastIndexOf('<') > htmlBuf.lastIndexOf('>') && htmlLines < 25;
+      // Otherwise the block runs to the next blank line, as on GitHub (CommonMark type 6):
+      // the bare `·` separators between centred links are part of the <p>, not new paragraphs.
+      if (inTag || line.trim()) {
+        htmlBuf += (htmlBuf ? '\n' : '') + line;
+        htmlLines++;
+        continue;
+      }
       flushHtml();
       continue;
     }

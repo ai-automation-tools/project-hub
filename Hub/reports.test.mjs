@@ -187,6 +187,10 @@ test('native launch treats paths as data and propagates process errors', async (
     cb(null);
   });
   assert.ok(called);
+  await launchNative('D:/Reports/a.pdf', 'reveal', (_p, _a, options, cb) => {
+    assert.equal(options.env.HUB_OPEN_PATH, 'D:\\Reports\\a.pdf');
+    cb(null);
+  });
   await assert.rejects(launchNative(file, 'default', (_p, _a, _o, cb) => cb(new Error('failed'))), /launch request failed/);
   await assert.rejects(launchNative(file, 'bad'), /unsupported/);
 });

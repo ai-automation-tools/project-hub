@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import path from 'node:path';
 
 // Paths travel as data in the child environment, never as cmd.exe command text.
 export function launchNative(file, mode, execute = execFile) {
@@ -11,7 +12,8 @@ export function launchNative(file, mode, execute = execFile) {
   const command = "$ErrorActionPreference = 'Stop'; " + scripts[mode];
   return new Promise((resolve, reject) => {
     execute('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(command, 'utf16le').toString('base64')],
-      { windowsHide: true, timeout: 30000, env: { ...process.env, HUB_OPEN_PATH: file } },
+      // Hub ids are posix; `explorer /select,` ignores a forward-slash path and opens Documents.
+      { windowsHide: true, timeout: 30000, env: { ...process.env, HUB_OPEN_PATH: path.win32.normalize(file) } },
       (err) => err ? reject(new Error('The launch request failed. Check the file association or that VS Code is installed on PATH.')) : resolve());
   });
 }

@@ -7,5 +7,8 @@
   "dir": "D:/Work/Projects/My_Workspace",
 
   "//repoScope": "Which repos reach the overview table. `groups` matches Repos/<group>/ names; `pathPrefix` matches the id prefix, for workspaces with no group tier. Omit for all. The two are mutually exclusive.",
-  "repoScope": { "groups": ["Live_Apps", "Tools"] }
+  "repoScope": { "groups": ["Live_Apps", "Tools"] },
+
+  "//maxDepth": "Optional. Directory recursion below this workspace: integer 1-32, default 10. Omit to inherit the hub default; raise it for deeply nested deliverables.",
+  "maxDepth": 10
 }

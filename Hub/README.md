@@ -123,7 +123,7 @@ launch actions now use `open-native.mjs`, with paths passed through an environme
 
 Pictures is a lightweight root in `/api/scan`. Expanding or opening a folder loads only its immediate children; following a picture deep link fetches that file and the ancestor path. Previously loaded folders are retained across ordinary project refreshes. Raw image delivery still uses `/api/raw`.
 
-A search that includes Pictures gets a separate results section. Its metadata index is built asynchronously on the first relevant query and reused, with up to 200 results per page. Project-only searches and repo/skill/CLI queries do not build it. Search preserves the former scan depth limit of seven recursive levels; deeper folders are still browsable, and the UI explains the search boundary. Unreadable folders are disclosed rather than silently counted as complete coverage.
+A search that includes Pictures gets a separate results section. Its metadata index is built asynchronously on the first relevant query and reused, with up to 200 results per page. Project-only searches and repo/skill/CLI queries do not build it. Search follows the same configurable scan depth as the rest of the hub (default 10); deeper folders are still browsable, and the UI explains the search boundary. Unreadable folders are disclosed rather than silently counted as complete coverage.
 
 The Pictures watcher invalidates only Pictures and emits a `pictures` SSE event. Directory metadata `change` notifications are ignored; file changes and directory `rename` events invalidate the cache, so new empty folders appear too. `/api/health` reports `pictures.state`, version, cache counts, read errors, and search build duration. The main scan's node count now excludes the lazy subtree; Pictures counts live in the separate status data once indexed.
 
@@ -360,6 +360,7 @@ The config folder is also the server's own directory — `hub.log`, `hub.err.log
 | `name` | ✅ | Display name of the project root, and the label on the tree's top node. |
 | `dir` | ✅ | Absolute path to the workspace. Backslashes and a trailing slash are normalised. |
 | `repoScope` | | Which of *this project's* repos reach its overview table: `groups` for a `Repos/<group>/` tier, `pathPrefix` for a flat `Repos/`, neither for all. Setting both is rejected. |
+| `maxDepth` | | Directory recursion below the workspace root: integer 1–32, default 10. Raise it for deeply nested deliverables (for example, 12 for a design workspace), then restart the hub. Larger values scan more files; other workspaces and shared roots keep their own limits. |
 
 `loadConfig()` validates the server config (`port` required); `loadProjectConfig()`
 validates a project one (`name`+`dir` required, no `port`) — both share the same

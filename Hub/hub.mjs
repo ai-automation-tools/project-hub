@@ -35,6 +35,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 // title, favicon), and each project it mounts gets its own small config under `Projects/`
 // (see loadProjectConfig below).
 const CONFIG_DEFAULTS = {
+  maxDepth: 10,
   name: 'Portfolio', port: 4273, title: '',
   // The workspace drive root. Every id in the tree is a path relative to this, so it is
   // the one value that has to match the machine — it lives in config, not in this file.
@@ -48,6 +49,7 @@ const CONFIG_DEFAULTS = {
 };
 const PROJECT_DEFAULTS = {
   name: '', dir: '',
+  maxDepth: null,
   // Which repos reach that project's overview table. `groups` matches Repos/<group>/
   // names; `pathPrefix` matches the id, for workspaces with no group tier. Neither = all.
   repoScope: {},
@@ -77,6 +79,7 @@ function readConfigJson(file) {
 /** Read and validate the server's own hub.config.json (port/title/favicon only). */
 export function loadConfig(file) {
   const j = readConfigJson(file);
+  if (j.maxDepth !== undefined) validateScanDepth(j.maxDepth);
   if (!j.port) throw new Error(`${file} is missing required key "port"`);
   if (!Number.isInteger(j.port) || j.port < 1024 || j.port > 65535) {
     throw new Error(`${file}: "port" must be an integer 1024-65535, got ${JSON.stringify(j.port)}`);
@@ -105,6 +108,7 @@ export function loadProjectConfig(file) {
   for (const k of ['name', 'dir']) {
     if (!j[k]) throw new Error(`${file} is missing required key "${k}"`);
   }
+  if (j.maxDepth !== undefined) validateScanDepth(j.maxDepth);
   return {
     ...PROJECT_DEFAULTS, ...j,
     dir: normalizeDir(j.dir),
@@ -143,6 +147,23 @@ export function writeSharedRoots(file, roots) {
   fs.renameSync(file + '.tmp', file);
 }
 
+export function validateScanDepth(value) {
+  if (!Number.isInteger(value) || value < 1 || value > 32) {
+    throw new Error('maxDepth must be an integer 1–32.');
+  }
+  return value;
+}
+
+/** Null removes a workspace override; preserve every other config field. */
+export function writeScanDepth(file, value) {
+  if (value !== null) validateScanDepth(value);
+  const config = readConfigJson(file);
+  if (value === null) delete config.maxDepth;
+  else config.maxDepth = value;
+  fs.writeFileSync(file + '.tmp', JSON.stringify(config, null, 2) + '\n');
+  fs.renameSync(file + '.tmp', file);
+}
+
 const argv = process.argv.slice(2);
 const argOf = (flag) => { const i = argv.indexOf(flag); return i > -1 ? argv[i + 1] : null; };
 
@@ -175,7 +196,9 @@ function discoverProjects() {
     if (!e.isDirectory()) continue;
     const cfgFile = path.join(dir, e.name, 'hub.config.json');
     if (!fs.existsSync(cfgFile)) continue;
-    out.push(loadProjectConfig(cfgFile));
+    const project = loadProjectConfig(cfgFile);
+    Object.defineProperty(project, 'configFile', { value: cfgFile });
+    out.push(project);
   }
   return out;
 }
@@ -284,7 +307,7 @@ const DOT_OK = new Set(['.claude', '.codex', '.opencode', '.agents', '.antigravi
 const CONFIG_DIRS = new Set(['.claude', '.codex', '.opencode', '.agents', '.antigravity', '.gemini']);
 const BUCKETS = { skills: 'skill', commands: 'command', agents: 'agent', hooks: 'hook', 'sub-agents': 'agent',
   skill: 'skill', command: 'command', agent: 'agent', prompts: 'command', 'output-styles': 'style' };
-const MAX_DEPTH = 7;
+const MAX_DEPTH = 10;
 // A folder by one of these names is a signal the .html files under it are meant to be
 // looked at, not read as source -- so they survive the repo doc-only filter (which
 // otherwise drops every .html, #31) and get surfaced on the overview as a shelf.
@@ -646,6 +669,7 @@ export function kindOfFile(name) {
 // never reached: no root means no 'Pictures' node in the tree and no watcher match.
 const pictureRoot = SHARED_ROOTS.find((r) => r.name === 'Pictures') || { dir: '' };
 const pictures = new PictureLibrary({
+  maxDepth: CONFIG.maxDepth,
   dir: pictureRoot.dir, id: pictureRoot.dir ? rel(pictureRoot.dir) : 'Pictures', classify: kindOfFile,
   allow: (name, directory) => directory
     ? !SKIP_DIRS.has(name) && !SECRET_DIRS.has(name.toLowerCase()) && (!name.startsWith('.') || DOT_OK.has(name))
@@ -653,7 +677,7 @@ const pictures = new PictureLibrary({
 });
 
 // ── scan ───────────────────────────────────────────────────────────────────
-function scanTree() {
+export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, userRuntimes = USER_RUNTIMES } = {}) {
   const repos = [];
   const runtimes = [];
   const flat = [];
@@ -715,9 +739,10 @@ function scanTree() {
           // rather than stopping at the repo card. `section` is cleared so the
           // depth-1 group/CLI rules can't fire again on a folder deep inside a repo,
           // and `repo` marks the subtree for the doc-only file filter in walk().
-          node.children = depth < MAX_DEPTH
-            ? walk(full, depth + 1, { ...ctx, section: null, bucket: null, repo: id, group: node.group })
-            : [];
+          // Use the workspace's bounded scan depth, including its wrapper folders.
+          node.children = depth < (ctx.maxDepth ?? MAX_DEPTH) ? walk(full, depth + 1, {
+            ...ctx, section: null, bucket: null, repo: id, group: node.group,
+          }) : [];
           if (node.children.more) node.more = node.children.more;
           if (node.children.length) node.badge = node.children.length; else delete node.children;
           repos.push(node);
@@ -742,9 +767,9 @@ function scanTree() {
             node.doc = rel(path.join(full, readme));
             node.docFirst = true;   // a draft renders through viewFolder, so the same rule applies
           }
-          node.children = depth < MAX_DEPTH
-            ? walk(full, depth + 1, { ...ctx, section: null, bucket: null, repo: id })
-            : [];
+          node.children = depth < (ctx.maxDepth ?? MAX_DEPTH) ? walk(full, depth + 1, {
+            ...ctx, section: null, bucket: null, repo: id,
+          }) : [];
           if (node.children.more) node.more = node.children.more;
           if (node.children.length) node.badge = node.children.length; else delete node.children;
           drafts.push(node);
@@ -781,7 +806,7 @@ function scanTree() {
           // branch above, where the README already renders beside the git box.
           if (kind !== 'cli') node.docFirst = true;
         }
-        node.children = depth < MAX_DEPTH ? walk(full, depth + 1, nextCtx) : [];
+        node.children = depth < (ctx.maxDepth ?? MAX_DEPTH) ? walk(full, depth + 1, nextCtx) : [];
         if (node.children.more) node.more = node.children.more;
         if (node.children.length) node.badge = node.children.length;
         else delete node.children;
@@ -840,7 +865,10 @@ function scanTree() {
   function buildRootNode(r, shared) {
     if (r.name === 'Pictures') { const node = pictures.root(); flat.push(node); return node; }
     const node = leaf(rel(r.dir), r.name, r.name === 'Documents' ? 'docroot' : 'root', r.dir, '');
-    node.children = walk(r.dir, 0, { rootDir: r.dir, section: null, cli: null, inConfig: false, bucket: null });
+    node.children = walk(r.dir, 0, {
+      rootDir: r.dir, maxDepth: shared ? CONFIG.maxDepth : (r.maxDepth ?? CONFIG.maxDepth),
+      section: null, cli: null, inConfig: false, bucket: null,
+    });
     node.badge = node.children.length;
     const readme = path.join(r.dir, 'README.md');
     if (fs.existsSync(readme)) {
@@ -857,8 +885,8 @@ function scanTree() {
   }
   // Arrow-wrapped, not passed bare: Array.map would hand the index in as `shared` and
   // flag every project root but the first.
-  const projectNodes = PROJECTS.map((p) => buildRootNode(p));
-  const sharedNodes = SHARED_ROOTS.map((r) => buildRootNode(r, true));
+  const projectNodes = projects.map((p) => buildRootNode(p));
+  const sharedNodes = sharedRoots.map((r) => buildRootNode(r, true));
 
   // Every project workspace nests under one "Projects" folder rather than sitting at
   // the top level next to Documents/Skills/Pictures/Automations -- a real tree node
@@ -875,7 +903,7 @@ function scanTree() {
   // downstream consumer (counts, search index, the CLI page) works unchanged.
   function buildUserRoot() {
     const kids = [];
-    for (const rt of USER_RUNTIMES) {
+    for (const rt of userRuntimes) {
       if (!safeIsDir(rt.dir)) continue;
       const node = leaf(rel(rt.dir), rt.name, 'cli', rt.dir, rt.note || '');
       node.scope = 'user';
@@ -889,8 +917,8 @@ function scanTree() {
         // the last segment, so a nested entry classifies and reads the same as a plain one.
         const label = path.basename(sub);
         const b = leaf(rel(full), label, 'folder', full, '');
-        // depth 4 leaves three levels of headroom under MAX_DEPTH and keeps every
-        // `depth === 0/1` special case in walk() from firing on a user subtree.
+        // Starting at depth 4 keeps every `depth === 0/1` special case in walk() from
+        // firing on a user subtree, and leaves headroom under the scan-depth limit.
         // inConfig only for a real bucket dir. `extensions/` bundles vendor skill packs
         // (google-workspace-cli alone ships ~95) — browsable as folders, but counting
         // them would swamp the portfolio skill total with someone else's library.
@@ -902,6 +930,7 @@ function scanTree() {
           for (const r of b.children) flat.push(r);
         } else {
           b.children = walk(full, 4, {
+            maxDepth: CONFIG.maxDepth,
             rootDir: rt.dir, section: 'Agents', cli: rt.name, inConfig: !!bucket, bucket,
           });
         }
@@ -1869,6 +1898,52 @@ const server = http.createServer(async (req, res) => {
   // Add or remove a sidebar folder (a shared root). Mounting one widens what every
   // path-addressed endpoint will read, so beyond same-origin it takes a loopback Host:
   // a phone on the tailnet can browse the folders but not add C:/Users to them.
+  if (url.pathname === '/api/scan-settings') {
+    const settings = () => ({ defaultDepth: CONFIG.maxDepth, workspaces: PROJECTS.map((p) => ({
+      name: p.name, maxDepth: p.maxDepth, effectiveDepth: p.maxDepth ?? CONFIG.maxDepth,
+    })) });
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify(settings()));
+      return;
+    }
+    if (!sameOrigin(req) || !LOCAL_HOSTS.has(req.headers.host || '')) {
+      res.writeHead(403).end('Scan settings can only be changed on the computer running the hub.'); return;
+    }
+    if (req.method !== 'PUT') { res.writeHead(405, { allow: 'GET, PUT' }).end('method not allowed'); return; }
+    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) { res.writeHead(415).end('application/json required'); return; }
+    let body = '';
+    for await (const chunk of req) {
+      body += chunk;
+      if (body.length > 4096) { res.writeHead(413).end('request too large'); req.destroy(); return; }
+    }
+    let input, project;
+    try {
+      input = JSON.parse(body);
+      if (!input || typeof input !== 'object') throw new Error('Expected settings.');
+      if (input.workspace !== undefined) {
+        project = PROJECTS.find((p) => p.name === input.workspace);
+        if (!project) throw new Error('Unknown workspace.');
+      }
+      if (!project || input.maxDepth !== null) validateScanDepth(input.maxDepth);
+    } catch (e) { res.writeHead(400).end(e.message); return; }
+    // The request selects a known workspace, never an arbitrary filesystem path.
+    try { writeScanDepth(project ? project.configFile : CONFIG_FILE, input.maxDepth); }
+    catch { res.writeHead(500).end('Could not save scan settings.'); return; }
+    if (project) project.maxDepth = input.maxDepth;
+    else {
+      CONFIG.maxDepth = input.maxDepth;
+      pictures.maxDepth = input.maxDepth;
+      pictures.invalidate();
+    }
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify(settings()));
+    // Finish any older scan first so its cached result cannot swallow this change.
+    setImmediate(async () => {
+      try { if (scanning) await scanning; await rootsChanged('scan depth changed'); }
+      catch (e) { console.error('Could not refresh scan settings:', e.message); }
+    });
+    return;
+  }
+
   if (url.pathname === '/api/roots') {
     if (!sameOrigin(req) || !LOCAL_HOSTS.has(req.headers.host || '')) {
       res.writeHead(403).end('Folders can only be changed on the computer running the hub.');

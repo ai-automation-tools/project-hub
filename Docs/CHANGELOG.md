@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-10-19
 
+- **Docs**: The live demo moves to `project-hub-demo.ai-automation-tools.dev`; `project-hub.ai-automation-tools.dev` is now the project homepage (served from `project-hub-site`). Old demo deep links redirect.
 - **Docs**: Move `Docs/ROADMAP.md` onto the lab roadmap standard. Phases 0–4 and P5–P8 are done phases at the top, then a `## 🚦 Public release` gate phase (CI, MIT licence and the live demo ticked; a README check from a clean clone and `SECURITY.md` with a secret scan open), then `## After public release` with the P9 backlog as one checklist, shipped items first and every open item on one line. The audit and shipping record stays at the end of the file under *The record*, one heading level down, so every existing anchor still resolves; its P9 entries are plain ✅ bullets now, so each item is counted once. No items added or dropped beyond the two release gates.
 - Allow a workspace to set `maxDepth` (1–32, default 10) for deeply nested documents and images. Increasing one workspace's depth leaves other workspaces, shared libraries and file/security filters unchanged.
 

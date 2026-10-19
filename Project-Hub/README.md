@@ -4,7 +4,7 @@ A local navigation UI for your project workspaces, shared documents, pictures, a
 
 To see what the pages described here look like before configuring anything, there is a
 read-only copy over a fictional workspace at
-**[project-hub.ai-automation-tools.dev](https://project-hub.ai-automation-tools.dev)** —
+**[project-hub-demo.ai-automation-tools.dev](https://project-hub-demo.ai-automation-tools.dev)** —
 the real interface and real scan output, minus the two things that need a local server
 (live updates and opening files). [How it is built](../Demo/README.md).
 

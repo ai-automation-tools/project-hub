@@ -1,7 +1,7 @@
 name: Demo site
 
 # Builds Demo/site by running the real hub against the fixture workspace, then publishes
-# it to GitHub Pages at project-hub.ai-automation-tools.dev.
+# it to GitHub Pages at project-hub-demo.ai-automation-tools.dev.
 on:
   push:
     branches: [main]

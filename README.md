@@ -16,14 +16,15 @@
 </p>
 
 <p align="center">
-  <a href="https://project-hub.ai-automation-tools.dev">Live demo</a> ·
+  <a href="https://project-hub.ai-automation-tools.dev">Homepage</a> ·
+  <a href="https://project-hub-demo.ai-automation-tools.dev">Live demo</a> ·
   <a href="#-screenshots">Screenshots</a> ·
   <a href="#-setup">Quick start</a> ·
   <a href="Skills/project-hub-scaffold/SKILL.md">Scaffold skill</a>
 </p>
 
 <p align="center">
-  <a href="https://project-hub.ai-automation-tools.dev"><img src="https://img.shields.io/badge/live-demo-5fd6a1?style=for-the-badge" alt="Live demo"></a>
+  <a href="https://project-hub-demo.ai-automation-tools.dev"><img src="https://img.shields.io/badge/live-demo-5fd6a1?style=for-the-badge" alt="Live demo"></a>
   <a href="Project-Hub/README.md"><img src="https://img.shields.io/badge/runs-locally-0078D4?style=for-the-badge" alt="Runs locally"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea44f?style=for-the-badge" alt="MIT license"></a>
   <a href="Docs/ROADMAP.md"><img src="https://img.shields.io/badge/plan-roadmap-8B5CF6?style=for-the-badge" alt="Project roadmap"></a>
@@ -50,7 +51,7 @@ One local server handles all your workspaces. No build step or runtime dependenc
 
 ## 🌐 Try it
 
-**[project-hub.ai-automation-tools.dev](https://project-hub.ai-automation-tools.dev)** — a
+**[project-hub-demo.ai-automation-tools.dev](https://project-hub-demo.ai-automation-tools.dev)** — a
 hosted, read-only hub over a fictional workspace. It is the real interface and the real
 scan output, captured from an actual hub run against fixture content, so what you click
 through is what the tool does. Live updates and file-opening need the local server, and

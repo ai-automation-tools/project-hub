@@ -1,13 +1,13 @@
 # Demo site
 
 <p>
-  <a href="https://project-hub.ai-automation-tools.dev"><img src="https://img.shields.io/badge/live-project--hub.ai--automation--tools.dev-5fd6a1?style=for-the-badge" alt="Live demo"></a>
+  <a href="https://project-hub-demo.ai-automation-tools.dev"><img src="https://img.shields.io/badge/live-project--hub.ai--automation--tools.dev-5fd6a1?style=for-the-badge" alt="Live demo"></a>
   <img src="https://img.shields.io/badge/hosting-GitHub%20Pages-0078D4?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Pages">
   <img src="https://img.shields.io/badge/build-no%20dependencies-6B7280?style=for-the-badge" alt="No build dependencies">
 </p>
 
 A hosted, read-only Project Hub over a **fictional** workspace, at
-**[project-hub.ai-automation-tools.dev](https://project-hub.ai-automation-tools.dev)**.
+**[project-hub-demo.ai-automation-tools.dev](https://project-hub-demo.ai-automation-tools.dev)**.
 
 Project Hub reads a real filesystem on loopback, so it cannot simply be put on a server.
 This is the next closest thing, and the distinction matters: the build stands the **actual

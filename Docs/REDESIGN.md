@@ -5,7 +5,7 @@
 <p align="center"><em>Shipped 2026-10-05. The explorer restyled in the landing page's idiom, as a new default scheme the other eight share their shapes with.</em></p>
 
 <p align="center">
-  <a href="https://project-hub.ai-automation-tools.dev"><img src="https://img.shields.io/badge/see_it-project--hub.ai--automation--tools.dev-38bdf8?style=for-the-badge" alt="Live demo"></a>
+  <a href="https://project-hub-demo.ai-automation-tools.dev"><img src="https://img.shields.io/badge/see_it-project--hub.ai--automation--tools.dev-38bdf8?style=for-the-badge" alt="Live demo"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/↩-Documentation-6B7280?style=for-the-badge" alt="Back to Documentation"></a>
 </p>
 

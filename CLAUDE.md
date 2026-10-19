@@ -16,7 +16,7 @@ committed here, this file included, is published.
 | `Hub/Start-Hub.ps1`, `Watch-Hubs.ps1`, `run-watchdog-hidden.vbs` | Launcher, health watchdog, hidden-window wrapper for its scheduled task |
 | `Project-Hub/` | Server config folder + launcher shim. Real `hub.config.json` is gitignored |
 | `Projects/<Name>/hub.config.json` | One per mounted workspace. Only `Projects/_example/` is tracked |
-| `Demo/` | Fixture workspace + `build-demo.mjs` → static capture published to project-hub.ai-automation-tools.dev |
+| `Demo/` | Fixture workspace + `build-demo.mjs` → static capture published to project-hub-demo.ai-automation-tools.dev |
 | `Skills/project-hub-scaffold/` | **Travel copy** of the scaffold skill — canonical in `agent-skills`, keep byte-identical |
 | `Docs/` | `ROADMAP.md` (P9 is the live work queue), `CHANGELOG.md`, user/engine docs |
 

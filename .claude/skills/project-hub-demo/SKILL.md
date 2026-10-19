@@ -1,7 +1,7 @@
 ---
 name: project-hub-demo
 description: >-
-  Work on Project Hub's hosted demo at project-hub.ai-automation-tools.dev — the capture
+  Work on Project Hub's hosted demo at project-hub-demo.ai-automation-tools.dev — the capture
   build in `Demo/build-demo.mjs` that stands the real hub up against the `Demo/Workspace`
   fixture, crawls every response and writes flat files into `Demo/site`, plus the
   `Demo/static/demo.js` fetch shim, the `sub()` literal assertions against `Hub/index.html`,

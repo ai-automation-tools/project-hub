@@ -1,191 +1,137 @@
 <a id="roadmap-top"></a>
 
-<h1 align="center">🗺️ Project Hub Roadmap</h1>
+<h1 align="center">🗺️ Roadmap</h1>
 
 <p align="center">
-  <em>What the hub gets wrong, what it's missing, and the order to fix it in.</em>
+  <em>What the hub gets wrong, what it's missing, and the order to fix it in: from the 2026-08-31 audit fixes to the weekly P9 backlog.</em>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/reviewed-2026--10--05-2ea44f?style=for-the-badge" alt="Reviewed 2026-10-05">
-  <img src="https://img.shields.io/badge/open-36_items-F59E0B?style=for-the-badge" alt="36 items remaining">
-  <img src="https://img.shields.io/badge/phases_0--4-shipped-2ea44f?style=for-the-badge" alt="Phases 0 to 4 shipped">
-  <img src="https://img.shields.io/badge/P5-9_of_10_fixed-2ea44f?style=for-the-badge" alt="P5: 9 of 10 items fixed 2026-09-03">
-  <img src="https://img.shields.io/badge/P6-merged_to_1_process-2ea44f?style=for-the-badge" alt="P6: merged to one process 2026-09-07">
-  <img src="https://img.shields.io/badge/P7--01–16-all_shipped-2ea44f?style=for-the-badge" alt="P7-01 to P7-16 all shipped">
-  <img src="https://img.shields.io/badge/P8-Links_root_%2B_README_landing_%2B_8_themes-2ea44f?style=for-the-badge" alt="P8: Links root, README-first landing views, and eight color schemes">
-  <img src="https://img.shields.io/badge/SVG_sandbox-regression_fixed-e0a458?style=for-the-badge" alt="SVG sandbox regression fixed">
-  <img src="https://img.shields.io/badge/P7--14-shipped_2026--10--03-2ea44f?style=for-the-badge" alt="P7-14 narrow-pane layout shipped 2026-10-03">
-  <img src="https://img.shields.io/badge/tests-92_passing-8B5CF6?style=for-the-badge" alt="92 tests passing">
-  <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
+  <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
+  <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
+  <img src="https://img.shields.io/badge/tests-93_passing-8B5CF6?style=for-the-badge" alt="93 tests passing">
+  <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
 ---
+
+The Project-Hub Weekly Roadmap routine (`project-hub-roadmap`, Tuesday 21:00) works this file
+top to bottom, one item per run: it takes the first open item that isn't `🔒 Needs Mike`,
+builds it, opens a `roadmap/auto-<date>` pull request, and the Sunday PR sweep merges it.
+**Every item above `## After public release` is a release gate.** The repo and its demo are
+already public, so the open gates are catch-up work. Ticking an item adds its line to the
+[changelog](CHANGELOG.md), tagged *(roadmap: P9-NN)*, and updates any doc it made stale, in
+the same commit. Item ids (`P9-06`, `P7-15`, `#36`) name the older item each one continues;
+grep for that id to find its diagnosis in [the record](#the-record) at the end of this file.
+
+Markers: `- [ ]` open, `- [-]` claimed by a run in progress, `- [x]` done, `- [!]` blocked
+(the reason follows on the line). `small` marks an item a check verifies; `🔒 Needs Mike`
+marks one only Mike can do.
 
 > [!NOTE]
-> **All five phases shipped 2026-08-31.** Every P0 defect is closed, the three hubs are one
-> codebase plus a config file each, the UI is keyboard-navigable with real URLs, and the
-> hubs report their own health. A second, independent audit on 2026-09-03 found four more
-> defects — all fixed same day — plus six enhancement ideas, five of which are also now
-> fixed ([P5](#p5--2026-09-03-antigravity-audit)). On 2026-09-07 the three hubs became one
-> ([P6](#p6--2026-09-07-one-process-not-three)). Everything below this summary is the
-> record of why things were built the way they were.
->
-> **Where the work queue lives.** A weekly roadmap routine works [the remaining list](#remaining)
-> — the unchecked items below, in order, one item per run — since 2026-09-22. The completed
-> items roll up in [the shipped list](#shipped); the full history stays in
-> [P9](#p9) and the phase sections beneath it.
+> **Where we are, 2026-10-19.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
+> P7), the merge into one process (P6) and the Links root (P8). Since 2026-09-22 the weekly
+> routine has worked the P9 backlog, the live work queue below the release line.
 
-## ✅ Remaining
+<a id="shipped"></a>
 
-Every open item from the P4–P9 backlog, in the order a weekly run takes them. Items marked
-🔒 need Mike and are skipped by the routine. Once an item is done it moves to [the shipped
-list](#shipped) with a dated note.
+## 🧯 Phases 0–4: the 2026-08-31 audit fixes (done 2026-08-31)
 
-- [ ] **P9-06 · Keyboard-resizable sidebar divider** (P7-15). `role="separator"` with
-  `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the
-  mouse width.
-- [ ] **P9-07 · Settle the `~/.gemini/skills` read errors** that P7-16's status panel
-  surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a
-  directory named like a file, and make the scanner skip it quietly or report it once.
-  Add a test using a fixture that reproduces it.
-- [ ] **P9-08 · Skip git spawns for unchanged repos** (#36). `gitStateCached()` in
-  `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are
-  instant; this replaces the TTL with invalidation on each repo's `.git/index` and
-  `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result
-  when neither has moved. Measure scan time before and after on the demo fixture and record
-  both numbers here.
-- [ ] **P9-09 · Close the testable verification gaps.** Unit tests for malformed or
-  missing heading destinations, and for copy-link output on paths containing spaces.
-  These are two of the gaps listed under
-  [Verification still needed](#verification-still-needed) that don't need a browser.
-- [ ] **P9-25 · Connection-recovery check.** Start a second hub on a spare port with the
-  demo config, open it in Playwright, stop and restart that process, and confirm the
-  connection banner appears, Retry works, and the page recovers without a manual reload.
-  Never stop the live hub on 4273.
-- [ ] **P9-49 · The positive native-launch path.** 🔒 Needs Mike. Rejections are covered by
-  HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been
-  clicked through to a running application. One click per action on this machine, then
-  note the result under [Verification still needed](#verification-still-needed).
-- [ ] **P9-10 · Repo changes detail** (P7-18 / #23). "uncommitted" on a repo card
-  expands into the changed filenames. A read-only diff loads on demand for one file at a
-  time, size-capped.
-- [ ] **P9-11 · On-demand document link check** (P7-19). An endpoint plus a panel listing
-  broken relative links, missing images, and missing heading targets, each linked to its
-  source document. It never runs as part of a routine scan.
-- [ ] **P9-12 · Routine pass/fail, not just run count** (#24). Read the last line of the
-  newest log for each routine and show ok / failed / unknown beside the run count.
-- [ ] **P9-13 · Related report files** (P7-17). Group a report's `.md` / `.html` / `.pdf`
-  / charts into one entry with format buttons, inferred from shared basenames in one
-  folder.
-- [ ] **P9-14 · Copy context for an agent** (P7-21). Multi-select files, then copy a
-  compact list of titles, relative paths, and hub links. Content stays out unless
-  explicitly included, and is capped.
-- [ ] **P9-15 · Saved views** (P7-20). Save a search plus its filters under a name, list
-  saved views above Bookmarks, and give each one a hub link.
-- [ ] **P9-16 · `--init` for a new workspace** (#21). `node hub.mjs --init <dir>` writes a
-  commented `hub.config.json` skeleton for a new workspace and prints the next step. It
-  never overwrites an existing config.
-- [ ] **P9-17 · Roadmap progress on repo cards.** Count `- [ ]` / `- [x]` in each repo's
-  `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos
-  in the lab now carry one, and the routines work them weekly.
-- [ ] **P9-18 · "Changed this week" view.** A landing-page list of documents modified in
-  the last 7 days across every root, newest first, built from data the scan already has.
-- [ ] **P9-19 · Frontmatter tags.** Show a document's frontmatter (tags, dates, status) in
-  a small metadata strip, and let search filter by tag. `frontmatter()` already parses it.
-- [ ] **P9-20 · Scan-time history in the status panel.** Keep the last 20 scan durations
-  in memory and draw a tiny inline sparkline. This makes a slow scan visible before it
-  becomes a complaint.
-- [ ] **P9-21 · Split `hub.mjs`.** Move markdown rendering and sanitizing into
-  `Hub/markdown.mjs`, and the scanner into `Hub/scan.mjs`. Exports stay the same and every
-  existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the
-  largest single thing a weekly run has to read.
-- [ ] **P9-22 · Syntax check in CI.** `node --check` over every `Hub/*.mjs`, plus a
-  check that the inline script in `index.html` parses. No new dependencies.
-- [ ] **P9-23 · Keep the demo showing what shipped.** Add fixture content to
-  `Demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't
-  show them yet: enough documents of each kind that the root and type chips (P9-02) narrow
-  something, and a few near-miss names so the typo fallback (P9-03) has something to find.
-  Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land.
-- [ ] **P9-37 · Repos before Live Sites on a project page.** Eleven Live Sites cards fill the
-  first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list
-  with one row per site (name, domain, status dot).
-- [ ] **P9-38 · Make "N need attention" actionable.** On the Projects landing cards it's plain
-  grey text. Color it orange and link it to the uncommitted repos. Fill a missing card
-  description from the project README's first line so the cards are even.
-- [ ] **P9-39 · A quieter document header.** The filename shows three times (breadcrumb,
-  heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's
-  filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the
-  green `open` button opens. That also brings the header back to one row in a narrow window.
-- [ ] **P9-40 · Rescan feedback and the sidebar footer.** `rescan` gives no sign of the 3–4 s
-  it takes: show a spinner or elapsed time. The footer's `index.html` label is a leftover —
-  show the last scan's duration, or remove it.
-- [ ] **P9-41 · Phone widths (below 640px).** P9-24 was measured at 800px and 700px, with
-  one breakpoint at 1024px and nothing narrower. Measure 390px in
-  Playwright, then decide whether the rail should become an overlay drawer and the header
-  drop to two rows.
-- [ ] **P9-42 · Show which stat tiles are clickable.** Tiles with a jump target only reveal it
-  on hover. Give them a resting affordance (a faint arrow or underline) so they read as links.
-- [ ] **P9-43 · Playwright verification pass.** Close the browser gaps the Chrome extension
-  couldn't reach: every clipboard write (grant `clipboard-read`/`clipboard-write`), and focus
-  and scroll survival across a refresh. Record results under
-  [Verification still needed](#verification-still-needed).
-- [ ] **P9-44 · Document-relative Markdown links** (P7-04's open follow-up). Offer copy-link as
-  a path relative to the current document, alongside the hub link.
-- [ ] **P9-46 · Bring the scaffold reference and the public screenshots up to `obsidian`.**
-  The scaffold skill's `references/design-system.md` still lists IBM Plex, eight schemes,
-  `midnight` as the default, a 42px header and square corners. It is canonical in
-  `agent-skills` (`Skills/Core/Web/project-hub-scaffold/`): update it there from
-  [REDESIGN.md](REDESIGN.md), then copy the travel copy here byte-identical. Then recapture
-  `Images/Public/project-overview.png` and `document-reader.png` from the demo build, per
-  `Images/Public/README.md`, and update its table.
-- [ ] **P9-47 · `#app` height under CSS zoom.** `#app{height:calc(100vh / var(--zoom))}`
-  was written when `100vh` ignored `zoom`; in a current Chromium (headless 140 in the
-  redesign's comparison shots) the page ends about 15% short of the window at the default
-  115%, so the division now happens twice. Confirm in the browsers actually in use, switch
-  to `100vh` if it holds, and update the comment in `index.html` and the design-system
-  reference, which explains the old pattern.
-- [ ] **P9-48 · A skill's own `SKILL.md` in the demo.** The demo build never captures it
-  (the entity node carries no child for the file), so the reader shows "could not read this
-  file" on every skill in the hosted demo. Give the node a child, or have `build-demo.mjs`
-  capture it; add a test either way.
-- [ ] **P9-29 · Keep icons visible on dark themes.** Black favicons (GitHub, Plex) disappear
-  on the dark themes. Give an icon a light backing when its average luminance is low,
-  measured once per icon on a canvas.
-- [ ] **P9-30 · Keep favicons across restarts.** The cache is memory-only, so a restart
-  resolves every origin again. Persist it beside `scan.json` if the first open after a
-  restart feels slow.
-- [ ] **P9-31 · Favorites in the demo.** The demo shows a note in place of favorites.
-  Capture a fixture `favorites.json` and a `Bookmarks` file from `Demo/Home`, and teach
-  `demo.js` to answer `/api/favorites` read-only, so both modes are visible there.
-- [ ] **P9-35 · Keep hub tabs across reloads.** Open tabs vanish on a refresh. Store their
-  URLs and titles, not their contents, and reopen them lazily when first shown.
-- [ ] **P9-36 · Keyboard for favorites and tabs.** Arrow-key navigation in the Favorites
-  list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite
-  without dragging.
+- [x] Phase 0, stop the bleeding: #1 gzip regex, #2 step 1 (CSP header), #3 identity check before kill, plus #7b — done 2026-08-31: [what shipped](#phase-0--what-shipped)
+- [x] Phase 1, one codebase: #7 `hub.config.json`, #9 delete dead code, #8 `package.json` + `node --test` — done 2026-08-31: [what shipped](#phase-1--what-shipped)
+- [x] Phase 2, correctness: #2 step 2 (parse-then-allowlist), #4 signature, #5 drop `raw`, #6 Host/Origin checks — done 2026-08-31: [what shipped](#phase-2--what-shipped)
+- [x] Phase 3, navigation: #10 keyboard + focus, #11 deep links, #12 tree state, #13 search interaction — done 2026-08-31: [what shipped](#phase-3--what-shipped); fuzzy search followed as P9-03
+- [x] Phase 4, scale and ops: #16 payload, #18 rescan cost, #19 health + watchdog, #14/#15 table and actions, plus #20 log rotation — done 2026-08-31: [what shipped](#phase-4--what-shipped); #17 measured and declined
 
-## ✅ Shipped
+## 🔍 P5: the Antigravity audit (done 2026-09-03)
 
-Every closed item, newest last within each group. Details live in [P9](#p9) and the phase
-sections beneath it.
+- [x] P5 · Antigravity audit: four defects (#27–30) and five ideas (#31–35, #37) — done 2026-09-03: [P5](#p5--2026-09-03-antigravity-audit); #36 continues as P9-08
 
-- [x] **P9-45 · The `obsidian` redesign** — 2026-10-05. New default scheme, Inter + JetBrains Mono, rounded surfaces, spotlight cards; the other eight schemes keep their colours. Follow-ups P9-46–48 are in [Remaining](#remaining).
-- [x] **P9-05 · Keyboard access to context menus** — 2026-10-13.
-- [x] **P9-04 · Search: opt-in content search** — 2026-10-06.
-- [x] **P9-03 · Search: typo tolerance** — 2026-10-04.
-- [x] **P9-24 · Narrow-pane layout (P7-14)** — 2026-10-03.
-- [x] **P9-26–28, 32–34 · Sidebar views** (activity bar, browser favorites, import, settings, manual favorites, hub tabs) — 2026-09-29.
-- [x] **P9-02 · Search: root and type filters** — 2026-09-29.
-- [x] **P9-01 · Start `Docs/CHANGELOG.md`** — 2026-09-22.
-- [x] **P8 · Links root, README landing views, eight color schemes** — 2026-09-09.
-- [x] **P7-01 through P7-16** — shipped 2026-09-08 / 2026-09-09 (P7-14 last, 2026-10-03 as P9-24); P7-22 withdrawn.
-- [x] **P6 · One process, not three** — 2026-09-07.
-- [x] **P5 · Antigravity audit** — four defects (#27–30) and five ideas (#31–35, #37) fixed 2026-09-03.
-- [x] **Phases 0–4** — shipped 2026-08-31.
+## 🧩 P6: one process, not three (done 2026-09-07)
 
----
+- [x] P6 · One process, not three — done 2026-09-07: [P6](#p6--2026-09-07-one-process-not-three)
 
-## What was audited
+## 📚 P7: the Codex review (done 2026-10-03)
+
+- [x] P7-01 through P7-16 — done 2026-09-08 / 2026-09-09, P7-14 last on 2026-10-03 as P9-24: [P7](#p7-review); P7-17 to P7-21 continue as P9-13, P9-10, P9-11, P9-15 and P9-14; P7-22 withdrawn
+
+## 🔗 P8: Links root, README landing views, eight color schemes (done 2026-09-09)
+
+- [x] P8 · Links root, README landing views, eight color schemes — done 2026-09-09: [P8](#p8--2026-09-09-the-links-root-readme-landing-views-and-four-more-color-schemes)
+
+## 🚦 Public release
+
+- [x] CI green on push and PR: `test.yml` runs `npm test`, `demo.yml` builds and deploys the demo — done 2026-09-11: "Run the tests in CI"
+- [ ] README usage (quick start, `hub.config.json`, endpoints in `Hub/README.md`) verified against the real code from a clean clone
+- [ ] `SECURITY.md`, and a full-history secret scan that comes back clean
+- [x] Licence chosen and `LICENSE` added — done 2026-09-09: MIT, in the initial commit
+- [x] Live at its URL: the demo at `https://project-hub.ai-automation-tools.dev`, built from the `Demo/Workspace/` fixture by `demo.yml` — done 2026-09-11
+
+## After public release
+
+Nothing below blocks go-live.
+
+<a id="remaining"></a>
+
+### 🗓️ P9: the weekly backlog
+
+The live work queue since 2026-09-22, worked top to bottom. Shipped items keep their full
+dated notes in [the P9 record](#p9).
+
+- [x] P9-01 · Start `Docs/CHANGELOG.md` — done 2026-09-22: seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `Docs/README.md`
+- [x] P9-02 · Search: root and type filters — done 2026-09-29: chips for each root and document type, carried in the search route
+- [x] P9-26–28, 32–34 · Sidebar views (activity bar, browser favorites, import, settings, manual favorites, hub tabs) — done 2026-09-29
+- [x] P9-24 · Narrow-pane layout (P7-14) — done 2026-10-03: below 1024px the sidebar starts on the rail; no overflow at 700px
+- [x] P9-03 · Search: typo tolerance — done 2026-10-04: `rankSearch()` in `navigation.mjs`
+- [x] P9-45 · The `obsidian` redesign — done 2026-10-05: new default scheme, Inter + JetBrains Mono, rounded surfaces, spotlight cards; the other eight schemes keep their colours. Follow-ups are P9-46 to P9-48 below
+- [x] P9-04 · Search: opt-in content search — done 2026-10-06: `/api/content`, 51.5 MB of heap for a 7,752-doc tree
+- [x] P9-05 · Keyboard access to context menus — done 2026-10-13: ContextMenu key and Shift+F10; `isMenuKey()` / `menuStep()` tested
+- [ ] P9-06 · Keyboard-resizable sidebar divider (P7-15). `role="separator"` with `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the mouse width
+- [ ] P9-07 · Settle the `~/.gemini/skills` read errors that P7-16's status panel surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a directory named like a file, and make the scanner skip it quietly or report it once. Add a test using a fixture that reproduces it
+- [ ] P9-08 · Skip git spawns for unchanged repos (#36). `gitStateCached()` in `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are instant; this replaces the TTL with invalidation on each repo's `.git/index` and `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result when neither has moved. Measure scan time before and after on the demo fixture and record both numbers here
+- [ ] P9-09 · Close the testable verification gaps. Unit tests for malformed or missing heading destinations, and for copy-link output on paths containing spaces. These are two of the gaps listed under [Verification still needed](#verification-still-needed) that don't need a browser
+- [ ] P9-25 · Connection-recovery check. Start a second hub on a spare port with the demo config, open it in Playwright, stop and restart that process, and confirm the connection banner appears, Retry works, and the page recovers without a manual reload. Never stop the live hub on 4273
+- [ ] P9-49 · The positive native-launch path. Rejections are covered by HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been clicked through to a running application. One click per action on this machine, then note the result under [Verification still needed](#verification-still-needed) 🔒 Needs Mike
+- [ ] P9-10 · Repo changes detail (P7-18 / #23). "uncommitted" on a repo card expands into the changed filenames. A read-only diff loads on demand for one file at a time, size-capped
+- [ ] P9-11 · On-demand document link check (P7-19). An endpoint plus a panel listing broken relative links, missing images, and missing heading targets, each linked to its source document. It never runs as part of a routine scan
+- [ ] P9-12 · Routine pass/fail, not just run count (#24). Read the last line of the newest log for each routine and show ok / failed / unknown beside the run count
+- [ ] P9-13 · Related report files (P7-17). Group a report's `.md` / `.html` / `.pdf` / charts into one entry with format buttons, inferred from shared basenames in one folder
+- [ ] P9-14 · Copy context for an agent (P7-21). Multi-select files, then copy a compact list of titles, relative paths, and hub links. Content stays out unless explicitly included, and is capped
+- [ ] P9-15 · Saved views (P7-20). Save a search plus its filters under a name, list saved views above Bookmarks, and give each one a hub link
+- [ ] P9-16 · `--init` for a new workspace (#21). `node hub.mjs --init <dir>` writes a commented `hub.config.json` skeleton for a new workspace and prints the next step. It never overwrites an existing config
+- [ ] P9-17 · Roadmap progress on repo cards. Count `- [ ]` / `- [x]` in each repo's `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos in the lab now carry one, and the routines work them weekly
+- [ ] P9-18 · "Changed this week" view. A landing-page list of documents modified in the last 7 days across every root, newest first, built from data the scan already has
+- [ ] P9-19 · Frontmatter tags. Show a document's frontmatter (tags, dates, status) in a small metadata strip, and let search filter by tag. `frontmatter()` already parses it
+- [ ] P9-20 · Scan-time history in the status panel. Keep the last 20 scan durations in memory and draw a tiny inline sparkline. This makes a slow scan visible before it becomes a complaint
+- [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `Hub/markdown.mjs`, and the scanner into `Hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the largest single thing a weekly run has to read
+- [ ] P9-22 · Syntax check in CI. `node --check` over every `Hub/*.mjs`, plus a check that the inline script in `index.html` parses. No new dependencies
+- [ ] P9-23 · Keep the demo showing what shipped. Add fixture content to `Demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't show them yet: enough documents of each kind that the root and type chips (P9-02) narrow something, and a few near-miss names so the typo fallback (P9-03) has something to find. Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land
+- [ ] P9-37 · Repos before Live Sites on a project page. Eleven Live Sites cards fill the first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list with one row per site (name, domain, status dot)
+- [ ] P9-38 · Make "N need attention" actionable. On the Projects landing cards it's plain grey text. Color it orange and link it to the uncommitted repos. Fill a missing card description from the project README's first line so the cards are even
+- [ ] P9-39 · A quieter document header. The filename shows three times (breadcrumb, heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the green `open` button opens. That also brings the header back to one row in a narrow window
+- [ ] P9-40 · Rescan feedback and the sidebar footer. `rescan` gives no sign of the 3–4 s it takes: show a spinner or elapsed time. The footer's `index.html` label is a leftover — show the last scan's duration, or remove it
+- [ ] P9-41 · Phone widths (below 640px). P9-24 was measured at 800px and 700px, with one breakpoint at 1024px and nothing narrower. Measure 390px in Playwright, then decide whether the rail should become an overlay drawer and the header drop to two rows
+- [ ] P9-42 · Show which stat tiles are clickable. Tiles with a jump target only reveal it on hover. Give them a resting affordance (a faint arrow or underline) so they read as links
+- [ ] P9-43 · Playwright verification pass. Close the browser gaps the Chrome extension couldn't reach: every clipboard write (grant `clipboard-read`/`clipboard-write`), and focus and scroll survival across a refresh. Record results under [Verification still needed](#verification-still-needed)
+- [ ] P9-44 · Document-relative Markdown links (P7-04's open follow-up). Offer copy-link as a path relative to the current document, alongside the hub link
+- [ ] P9-46 · Bring the scaffold reference and the public screenshots up to `obsidian`. The scaffold skill's `references/design-system.md` still lists IBM Plex, eight schemes, `midnight` as the default, a 42px header and square corners. It is canonical in `agent-skills` (`Skills/Core/Web/project-hub-scaffold/`): update it there from [REDESIGN.md](REDESIGN.md), then copy the travel copy here byte-identical. Then recapture `Images/Public/project-overview.png` and `document-reader.png` from the demo build, per `Images/Public/README.md`, and update its table
+- [ ] P9-47 · `#app` height under CSS zoom. `#app{height:calc(100vh / var(--zoom))}` was written when `100vh` ignored `zoom`; in a current Chromium (headless 140 in the redesign's comparison shots) the page ends about 15% short of the window at the default 115%, so the division now happens twice. Confirm in the browsers actually in use, switch to `100vh` if it holds, and update the comment in `index.html` and the design-system reference, which explains the old pattern
+- [ ] P9-48 · A skill's own `SKILL.md` in the demo. The demo build never captures it (the entity node carries no child for the file), so the reader shows "could not read this file" on every skill in the hosted demo. Give the node a child, or have `build-demo.mjs` capture it; add a test either way
+- [ ] P9-29 · Keep icons visible on dark themes. Black favicons (GitHub, Plex) disappear on the dark themes. Give an icon a light backing when its average luminance is low, measured once per icon on a canvas
+- [ ] P9-30 · Keep favicons across restarts. The cache is memory-only, so a restart resolves every origin again. Persist it beside `scan.json` if the first open after a restart feels slow
+- [ ] P9-31 · Favorites in the demo. The demo shows a note in place of favorites. Capture a fixture `favorites.json` and a `Bookmarks` file from `Demo/Home`, and teach `demo.js` to answer `/api/favorites` read-only, so both modes are visible there
+- [ ] P9-35 · Keep hub tabs across reloads. Open tabs vanish on a refresh. Store their URLs and titles, not their contents, and reopen them lazily when first shown
+- [ ] P9-36 · Keyboard for favorites and tabs. Arrow-key navigation in the Favorites list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite without dragging
+
+<a id="the-record"></a>
+
+### 📜 The record
+
+Everything from here down is the record of what was audited, what shipped and why, kept
+as the reference the item ids above point into. It holds no open work: every open item is
+in the P9 list above.
+
+### What was audited
 
 All three builds — [`Project-Hub`](../Project-Hub/README.md) (4273), `Project-Hub-IAM`
 (4274), `Project-Hub-Finance` (4275, both retired 2026-09-07 — see
@@ -208,7 +154,7 @@ in each finding so a fix can be checked the same way.
 
 ---
 
-## P0 — Verified defects
+### P0 — Verified defects
 
 **All closed as of 2026-08-31**, across [phase 0](#phase-0--what-shipped) and
 [phase 2](#phase-2--what-shipped). Kept in full because the reproductions are the record
@@ -225,7 +171,7 @@ which fix was cheap and which was not.
 | 6 | No `Host`/`Origin` check on side-effecting GETs | `Hub/hub.mjs` | Any web page can drive `/api/open` | ✅ fixed |
 | 7b | Mangled CSS escape broke the stat-tile arrow | all 3 `index.html` | Hover showed `93` instead of `↓` | ✅ fixed |
 
-### 1. Gzip is computed on every scan and then thrown away
+#### 1. Gzip is computed on every scan and then thrown away
 
 `hub.mjs:807` reads:
 
@@ -266,7 +212,7 @@ encoding token contains the substring. Measured after restart:
 > and running that check during the fix immediately turned up **a second instance**
 > (#7b below), so it is not a one-off.
 
-### 2. The markdown sanitizer is bypassable, and the bypass executes
+#### 2. The markdown sanitizer is bypassable, and the bypass executes
 
 `md2html()` passes block-level HTML through so house-style READMEs keep their logo hero
 and badge rows, running each line through a regex `sanitize()` first. Two defeats,
@@ -308,7 +254,7 @@ URL is now correctly written `&amp;`, and one where a literal `<` inside an attr
 value is now `&lt;`. Browsers decode both back to the original, and the house-style
 headers render unchanged — confirmed in the browser, badges and all.
 
-### 3. `Start-Hub.ps1 -Restart` kills by port, not by identity
+#### 3. `Start-Hub.ps1 -Restart` kills by port, not by identity
 
 ```powershell
 $owner = Get-PortOwner -Port $Port
@@ -332,7 +278,7 @@ Stop it yourself, or start on another port with -Port <n>.
 
 The decoy was still listening afterwards. The old code would have killed it.
 
-### 4. The change-signature ignores content, so doc edits never repaint
+#### 4. The change-signature ignores content, so doc edits never repaint
 
 `sig` is built from every node `id` plus each repo's git state:
 
@@ -360,7 +306,7 @@ every file. Verified end to end: editing this very document changed the signatur
 at all. An edit that preserves the byte count exactly *and* leaves the first sentence
 alone still slips through; the code says where to add an `mtime` if that ever matters.
 
-### 5. `/api/file` returns every document twice
+#### 5. `/api/file` returns every document twice
 
 The endpoint answers `{ html, raw }`. Nothing in `index.html` ever reads `.raw` —
 grepped, zero hits. On the AI Lab root README that is 27,475 unread bytes in a 63,001-byte
@@ -370,7 +316,7 @@ response: **44 % waste on every document view**, on top of finding #1.
 **63,001 → 35,722 bytes, a 43 % cut**, and the response now has one key. A view-source
 toggle, if it is ever wanted, belongs behind `?raw=1` rather than in every reply.
 
-### 6. Any web page can drive the hub
+#### 6. Any web page can drive the hub
 
 The server binds `127.0.0.1` only and `resolveId()` has a sound allow-list plus a
 credential deny-list — that part is well done. What is missing is any check on *who is
@@ -398,7 +344,7 @@ effect outside the browser — a foreign page's `<img src=".../api/open?path=...
 gets a 403 instead of launching a program. Non-browser clients send no such header and
 are unaffected.
 
-### 7b. A second mangled escape, found by the check this audit recommended
+#### 7b. A second mangled escape, found by the check this audit recommended
 
 Scanning for the control bytes behind #1 turned up one more, in all three `index.html`:
 
@@ -420,9 +366,9 @@ argument for #8's control-byte lint being worth the ten lines it costs.
 
 ---
 
-## P1 — Structural
+### P1 — Structural
 
-### 7. Three copies of one program
+#### 7. Three copies of one program
 
 ~6,500 lines across three folders, differing in **four values**: `ROOTS`, the port, the
 repo-table scope, and the page title. The root README already calls this out and says to
@@ -444,7 +390,7 @@ old and new servers showed **0 added, 0 removed**.
 
 Adding a fourth hub is now a folder, a config file, and a copy of the shim.
 
-### 8. No tests, no lint, no `package.json`
+#### 8. No tests, no lint, no `package.json`
 
 Zero test files, zero lint configs, no manifest — so no `engines` field recording the
 Node floor the README claims, and nothing that would have caught #1 or #2.
@@ -468,7 +414,7 @@ Two tests are marked `todo` on purpose: they describe the sanitizer bypass in #2
 CSP already makes inert, and they turn green when the filter is replaced. The suite exits
 0 today, and finishing #2 step 2 is the only thing that clears them.
 
-### 9. Dead code and stale artifacts
+#### 9. Dead code and stale artifacts
 
 **Fixed 2026-08-31**, all three removed.
 
@@ -480,9 +426,9 @@ CSP already makes inert, and they turn green when the filter is replaced. The su
 
 ---
 
-## P2 — Usability
+### P2 — Usability
 
-### 10. The UI is unusable without a mouse
+#### 10. The UI is unusable without a mouse
 
 21 click handlers sit on `div`s. There are **zero** `role`, `aria-*` or `tabindex`
 attributes in the entire client, and no `:focus-visible` styling anywhere. The sidebar
@@ -507,7 +453,7 @@ focusable controls in the main pane, and exactly one tab stop in a 22-row tree. 
 arrow-key walk was driven end to end — expand, step in, step out, collapse, `Home`,
 `End`, `Enter` — and the tab stop stayed at one throughout.
 
-### 11. No deep links, no back button
+#### 11. No deep links, no back button
 
 Selection lives in memory. There is no URL hash, no `pushState`, so a node cannot be
 bookmarked, shared, or returned to with Back — and a reload always lands on the overview.
@@ -520,13 +466,13 @@ Verified in the browser: `history.back()` moved from Edge-Radar to the workspace
 re-rendered, `history.forward()` returned, and a reload on a deep link restored both the
 selection and the page.
 
-### 12. Sidebar expansion state is not persisted
+#### 12. Sidebar expansion state is not persisted
 
 **Fixed 2026-08-31.** `hub.open` in `localStorage`, written from `renderTree()` so every
 path that changes the tree saves through one place. Verified: 63 visible rows and 7 open
 branches before a reload, the same after.
 
-### 13. Search is thinner than the index behind it
+#### 13. Search is thinner than the index behind it
 
 **Mostly fixed 2026-08-31.** Kind scoping (`skill:kalshi`, `repo:edge`, `cmd:deploy` —
 plurals and short forms map too), the matched run wrapped in `<mark>`, and `↑↓` + `Enter`
@@ -538,7 +484,7 @@ kind. Verified live: `skill:kalshi` returned 4 hits, all of kind SKILL; `edge` h
 is a real gap but a different piece of work, and the index is small enough that scoping
 plus prefix matching covers most of it.
 
-### 14. The repo table does not sort or filter
+#### 14. The repo table does not sort or filter
 
 **Fixed 2026-08-31.** Click any of the first four column headers to sort, click again to
 reverse; a chip row filters by group or to **needs attention** (anything not clean). The
@@ -549,7 +495,7 @@ Verified live: chips read `all / needs attention (9) / Live_Apps / Other_Apps / 
 the filter cut 20 rows to 9 (all `dirty` or `ahead`), the heading changed to `9 of 20`,
 and header clicks reordered and reversed the table.
 
-### 15. "Open" only means Explorer
+#### 15. "Open" only means Explorer
 
 **Fixed 2026-08-31.** `/api/open?...&in=code` runs `code -g <path>`, and an **open in VS
 Code** button sits next to *open folder* on every page that has one. `start` stays the
@@ -560,9 +506,9 @@ actually come up yet.
 
 ---
 
-## P3 — Performance and operations
+### P3 — Performance and operations
 
-### 16. The whole tree is re-sent and re-indexed on every scan
+#### 16. The whole tree is re-sent and re-indexed on every scan
 
 30,042 nodes, 10.7 MB, rebuilt into a 30k-entry `Map` client-side each time the watcher
 fires. Fixing #1 addresses the wire cost; the parse and re-index cost stays.
@@ -592,7 +538,7 @@ from the server, four added to the client:
 A test asserts the payload literal has no `index` again, because this is the kind of win
 that gets quietly undone.
 
-### 17. The scan blocks the event loop
+#### 17. The scan blocks the event loop
 
 **Not done, and now better understood.** Measured scan times from `/api/health`:
 
@@ -615,7 +561,7 @@ the real lever — if this ever becomes annoying — is git: a longer TTL, or in
 > `describe()` only reads the ~2,270 doc-named ones, and warm that costs 466 ms. The fix
 > in #18 is still worth having, but it is not what the first number implied.
 
-### 18. Any change triggers a full re-walk
+#### 18. Any change triggers a full re-walk
 
 **Partly fixed 2026-08-31.** `describe()` is memoised on `path|mtime|size`, so a rescan
 re-reads only files that actually changed: **466 ms → 25 ms**, a 95 % cut on that
@@ -625,7 +571,7 @@ caused the descriptor leak in the first place.
 The tree is still re-walked in full. That walk is 471 ms, so subtree invalidation would
 buy less than the complexity costs; see #17 for where the time actually goes.
 
-### 19. Nothing notices when a hub dies
+#### 19. Nothing notices when a hub dies
 
 The 2026-08-31 `EMFILE` death was found by a human hitting a dead tab, hours later. There
 is no `/api/health`, no version endpoint, no restart-on-exit.
@@ -669,14 +615,14 @@ same event in August took hours to notice.
 One consequence worth stating: a hub stopped on purpose now comes back within 15 minutes.
 Disable the task first if that is not wanted.
 
-### 20. Logs are never rotated
+#### 20. Logs are never rotated
 
 **Fixed 2026-08-31.** `Start-Hub.ps1` moves either log to `.1` when it passes 1 MB before
 starting, so one previous copy is kept and each run begins clean.
 
 ---
 
-## P4 — Ideas worth considering
+### P4 — Ideas worth considering
 
 | # | Idea | Why |
 |:--:|:---|:---|
@@ -691,7 +637,7 @@ half shipped as P9-24, and the phone half is P9-41.
 
 ---
 
-## Suggested sequence
+### Suggested sequence
 
 | Phase | Contents | Rough size |
 |:---|:---|:---|
@@ -703,7 +649,7 @@ half shipped as P9-24, and the phone half is P9-41.
 
 Everything sequenced above is done.
 
-## Still open
+### Still open
 
 Every item that was left open here now lives in [the remaining list](#remaining): fuzzy
 search (#13) is P9-03 (done), the git-mtime cache (#36) is P9-08, and the P4 ideas are
@@ -714,7 +660,7 @@ loop, was measured and declined** — the ~2 s stall is git, not the walk, and a
 move it without shortening it. The fixed items (#26, #31, #34, #35) are written up where they
 landed.
 
-### 26. The watcher is woken by directory events it cannot interpret
+#### 26. The watcher is woken by directory events it cannot interpret
 
 Found while checking that the new `watchdog.log` was not creating a feedback loop. It was
 not — but something else is. Twenty seconds of a completely idle machine, watching the
@@ -767,7 +713,7 @@ The watchdog is now registered and running — see [#19](#19-nothing-notices-whe
 
 ---
 
-## P5 — 2026-09-03 Antigravity audit
+### P5 — 2026-09-03 Antigravity audit
 
 A second pass over the shared `Hub/` engine, run by Antigravity rather than Claude, against
 the AI Lab hub at `127.0.0.1:4273`. Full writeup:
@@ -777,7 +723,7 @@ the AI Lab hub at `127.0.0.1:4273`. Full writeup:
 locations — not independently re-derived by a third audit). Of the six ideas, five are
 also fixed (#31, #32, #33, #34, #35); #36 is queued as P9-08.
 
-### New defects — fixed
+#### New defects — fixed
 
 | # | Defect | Where | Impact | Status |
 |:--:|:---|:---|:---|:---|
@@ -786,7 +732,7 @@ also fixed (#31, #32, #33, #34, #35); #36 is queued as P9-08.
 | 29 | `href="#anchor"` links inside rendered markdown called `preventDefault()` and stopped, with no scroll-to-target handler — and headings had no `id` to scroll to even if it had | `Hub/hub.mjs` `md2html()`, `Hub/index.html` `loadDoc()` | Every in-page table of contents (this file's included) was dead | ✅ fixed |
 | 30 | Antigravity had no entry in `USER_RUNTIMES`, unlike Claude/Codex/Gemini/OpenCode | `Hub/hub.mjs` `USER_RUNTIMES` | User-scope Antigravity config (`~/.gemini/antigravity-cli`) never appeared in the hub | ✅ fixed |
 
-### 27. `blurb()` returned the wrong app's description for the workspace root
+#### 27. `blurb()` returned the wrong app's description for the workspace root
 
 Fixed by making the `<`-prefixed branch strip tags and use what's left, instead of
 unconditionally skipping the line — an `<h1>`/`<h2>`…`<h6>` tag is still skipped (that
@@ -803,7 +749,7 @@ wrapper tags`) pins the exact shape that broke it.
 > own `<h1>` says "AI Document Library"), not a hub bug. Left alone; worth a one-line edit
 > to that file separately.
 
-### 28. `rootDocs` featured Claude's instruction file on every hub, not the shared contract
+#### 28. `rootDocs` featured Claude's instruction file on every hub, not the shared contract
 
 Fixed by locating `Agents/README.md` under the hub's own project root (`ROOTS[0].dir`)
 instead of regex-matching `/Agents/Claude/CLAUDE\.md$/` across every node. Degrades to "no
@@ -811,7 +757,7 @@ instead of regex-matching `/Agents/Claude/CLAUDE\.md$/` across every node. Degra
 either wrongly matching something on that hub or silently finding nothing. Verified: the
 overview's 4th featured doc is now `Projects/Example_Workspace/Agents/README.md`.
 
-### 29. In-document anchor links were dead — and had nowhere to land anyway
+#### 29. In-document anchor links were dead — and had nowhere to land anyway
 
 Two bugs stacked: the click handler suppressed the `#` navigation with no scroll logic,
 *and* `md2html()` never gave headings an `id` in the first place, so a fix to the handler
@@ -833,7 +779,7 @@ it produced 38 heading ids, including `phase-0--what-shipped` and the new
 `p5--2026-09-03-antigravity-audit-new-unverified` section below — both used by real links
 in this document.
 
-### 30. Antigravity was invisible at user scope
+#### 30. Antigravity was invisible at user scope
 
 `~/.gemini/antigravity-cli` is mostly session state — `brain/`, `conversations/`,
 `presence/`, `cache/`, `log/` — the same shape `~/.claude.json` was already excluded for.
@@ -855,7 +801,7 @@ skills and 4 MCP servers (`playwright`, `github`, `serper`, plus one more) count
 Test suite: **27 tests, 27 passing** (2 new: the blurb wrapper-tag fix, the heading-slug /
 duplicate-id behaviour).
 
-### New ideas
+#### New ideas
 
 | # | Idea | Why | Status |
 |:--:|:---|:---|:---|
@@ -867,7 +813,7 @@ duplicate-id behaviour).
 | 36 | Skip the `git status`/`git log` spawns entirely when a repo's `.git/index` and `.git/refs/heads` mtimes haven't moved since the last scan | Extends [#17](#17-the-scan-blocks-the-event-loop) / [#18](#18-any-change-triggers-a-full-re-walk) rather than replacing them — the reported 8.5–23.7s scans line up with the same git-spawn cost already identified there | open |
 | 37 | In-page `‹`/`›` Back/Forward buttons in the header, next to the sidebar toggle | #11 already wired `history.back()`/`forward()` up to real work via the hash trail, but nothing on the page exposed it — a user hopping README → linked README had only the browser's own chrome to fall back on, invisible in embeds like VS Code's Simple Browser tab | ✅ fixed |
 
-### 31. Dual-mode `.html` viewer + Artifacts shelf
+#### 31. Dual-mode `.html` viewer + Artifacts shelf
 
 Two changes, one in the scanner and one in the UI, because the scanner was hiding the
 files before the UI ever got a chance to render them.
@@ -915,7 +861,7 @@ exactly the "goes unrendered" this item names. All five appeared on the restarte
 hub's new Artifacts shelf and the catalog page rendered live with working internal links.
 `npm test`: 28/28 both before and after.
 
-### 34. Draft Initiatives card cluster
+#### 34. Draft Initiatives card cluster
 
 `Repos/Private/Draft/` is pre-repo R&D by the workspace's own convention (its `CLAUDE.md`: "most
 are not git repos... an initiative graduates by getting its own remote and moving into
@@ -953,7 +899,7 @@ active on a draft's subtree, not just inherited in name. `npm test`: 28/28 befor
 after; IAM and Finance (neither has a `Repos/Private/Draft/`, so the new branch's condition never
 matches there) restarted clean with `drafts: []`.
 
-### 32. Multi-hub workspace switcher
+#### 32. Multi-hub workspace switcher
 
 A browser fetch to another hub's port would be blocked outright by this page's CSP
 (`connect-src 'self'`), so the check happens server-side instead: `discoverHubs()` walks
@@ -967,7 +913,7 @@ Verified live across all three: `/api/hubs` hit on each of 4273/4274/4275 correc
 reports itself as `self: true` and the other two as `ok: true`, discovered without any
 hub knowing the others' names in advance.
 
-### 33. Live Sites & Deployments dashboard
+#### 33. Live Sites & Deployments dashboard
 
 Rather than a second, hand-maintained list (which is exactly how `docs/LINKS.md` and the
 root README's own table were found to disagree with each other during this pass —
@@ -983,7 +929,7 @@ a new tab.
 Test suite: **28 tests, 28 passing** (2 more: `parseLiveSites`'s column-mapping and
 missing-section cases).
 
-### 37. In-page Back/Forward buttons
+#### 37. In-page Back/Forward buttons
 
 `history.back()`/`forward()` already worked with no button at all once #11 put a hash on
 the address bar — but a `Codex` → linked `Claude` doc hop had nothing on the page that
@@ -997,7 +943,7 @@ already writes is what both buttons walk.
 Verified in the browser: select `Agents` → `Codex`, click `‹` → hash reverts to `Agents`
 and the page re-renders it, click `›` → back to `Codex`.
 
-### 35. Alert callouts + light code highlighting
+#### 35. Alert callouts + light code highlighting
 
 Two independent changes to `md2html()`, both scoped to what the item asked for — no new
 markdown syntax invented, no per-language grammar.
@@ -1029,7 +975,7 @@ classes appear. `npm test`: **30/30**, 2 new.
 
 ---
 
-## P6 — 2026-09-07: one process, not three
+### P6 — 2026-09-07: one process, not three
 
 Not a defect audit — a structural request: stop running `Project-Hub`, `Project-Hub-IAM`
 and `Project-Hub-Finance` as three separate processes on three ports (4273/4274/4275),
@@ -1038,7 +984,7 @@ each independently re-scanning the identical `Documents`/`My Custom Skills`/`Pic
 roots — the same mechanism that already let `Documents` and `Pictures` sit next to the
 project root in the tree — plus a combined **Portfolio** view as the new landing page.
 
-### What changed
+#### What changed
 
 | Area | Before | After |
 |:---|:---|:---|
@@ -1050,7 +996,7 @@ project root in the tree — plus a combined **Portfolio** view as the new landi
 | Cross-hub switcher | `<select id="hubswitch">`, `/api/hubs`, `discoverHubs()` — pinged sibling ports' `/api/health` | Removed entirely — dead once there's one process to be in |
 | VS Code workspaces | Each ran its own hub, own port | All three ensure the same shared server, and deep-link via `#Projects/<Name>` instead of landing on Portfolio |
 
-### Two bugs this surfaced that a single-project hub could never trigger
+#### Two bugs this surfaced that a single-project hub could never trigger
 
 1. **`ROOTS[0]`-only reads.** `agentsReadme` (the featured 4th root doc) and `liveSites`
    (the "Live Sites" cards) both only ever read the *first* root's `Agents/README.md` and
@@ -1066,7 +1012,7 @@ project root in the tree — plus a combined **Portfolio** view as the new landi
    repos match that filter" and only its own README, where it previously showed all 25
    repos across every project.
 
-### Repo-scoping order, and why it's now load-bearing
+#### Repo-scoping order, and why it's now load-bearing
 
 `scopeRepos(repos, projects)` filters each project's own dir-prefix *before* applying that
 project's `repoScope` — not after. With three projects' repos sharing one flat pool, doing
@@ -1076,7 +1022,7 @@ Finance_Workspace both default their flat repos to a group literally named `Repo
 a regression test (`scopeRepos filters each project to its own dir before applying its
 repoScope`) using two fixture projects that intentionally share a group name.
 
-### Search and the "only <project>" toggle
+#### Search and the "only <project>" toggle
 
 Search was already global (one client-side index over the whole tree) — the "combined
 across all three projects" half needed no new code. Added: a "this project only" toggle,
@@ -1085,7 +1031,7 @@ shown only when the current selection is inside a project, filtering the same in
 `Finance_Workspace` showed 200 combined matches; toggling narrowed it to 90, every one under
 `Projects/Finance_Workspace/`.
 
-### Verified
+#### Verified
 
 - `npm test`: **34/34** (4 new: split config validation, the `scopeRepos` collision test).
 - Live scan against the merged config: 3 project roots + 4 shared roots + Portfolio node,
@@ -1104,7 +1050,7 @@ shown only when the current selection is inside a project, filtering the same in
   instead of three, and the nested `Projects/*/hub.config.json` files are correctly
   invisible to it.
 
-### Not done
+#### Not done
 
 Project-scoped stats/repos are computed **client-side** by filtering the full payload
 (`topAncestorOf`), not server-side per-project blocks. Simpler, and the payload was never
@@ -1113,7 +1059,7 @@ whole combined payload to render one scoped view becomes the cost center, that's
 place to look. Left alone deliberately, same reasoning as [#17](#17-the-scan-blocks-the-event-loop):
 solve it when it's measured, not before.
 
-### Same-day follow-up: nest under a Projects folder, and stop force-expanding the tree
+#### Same-day follow-up: nest under a Projects folder, and stop force-expanding the tree
 
 Two refinements, requested right after the merge landed.
 
@@ -1158,7 +1104,7 @@ collapsed; the search "only Example_Workspace" toggle still resolves correctly t
 fixed `topAncestorOf()`. `npm test`: 34/34 unchanged (no test asserted the old flat
 sibling-root shape or the removed persistence).
 
-### Second same-day follow-up: report deliverables weren't visible either
+#### Second same-day follow-up: report deliverables weren't visible either
 
 Found by using it: a `PortfolioPilot` report folder (`Reports/My-Reports/Weekly-Household-Review/2026-09-06/`)
 held a rendered `.html`, a `.pdf` export, a `charts/` folder of `.png` chart images, and
@@ -1208,11 +1154,11 @@ already existed, it just never had a chance to run on a plain report folder befo
 
 <a id="p7-review"></a>
 
-## P7 — 2026-09-08 Codex review: document browsing and scale
+### P7 — 2026-09-08 Codex review: document browsing and scale
 
 **Status: P7-01 through P7-16 have all shipped.** The report/reliability and Pictures passes landed 2026-09-08 along with the browser verification pass (see [Browser verification pass](#browser-verification-pass--2026-09-08)); the daily-usability half — P7-09, P7-10, P7-12, P7-13, P7-15 and P7-16 — landed 2026-09-09, and P7-13 uncovered and fixed a P7-06 regression on the way. P7-14 shipped 2026-10-03 as P9-24. **What is left** is queued in [the remaining list](#remaining): the rest of P7-07 and P7-15, and the optional P7-17–21. This section incorporates all 21 recommendations from the September 8 suggestions document. P7-01–21 are scoped identifiers so the original audit's #1–37 retain their meanings. The implementation sequence below is the current recommendation; earlier phase sequences remain the historical record.
 
-### Current implementation status — September 9
+#### Current implementation status — September 9
 
 Every one of P7-01 through P7-16 has shipped; P7-14 last, on 2026-10-03. P7-17–21 remain
 optional and are queued in [the remaining list](#remaining).
@@ -1238,7 +1184,7 @@ optional and are queued in [the remaining list](#remaining).
 | P7-17–21 | **Optional; queued** | Related report files, repo-changes drilldown, document link checking, saved views, and copy-context-for-an-agent — P9-13, P9-10, P9-11, P9-15 and P9-14. |
 | P7-22 | **Withdrawn** | The large-folder tab stall was a measurement artifact of a hidden tab, not a defect. Kept as a record so the same wrong conclusion is not reached twice. |
 
-### Browser verification pass — 2026-09-08
+#### Browser verification pass — 2026-09-08
 
 **The browser pass that the three previous passes could not run has now been run.** Every earlier
 September 8 entry recorded "browser discovery returned no available browser"; this session drove the
@@ -1247,7 +1193,7 @@ confirmed as real defects rather than source-derived guesses. A tenth finding �
 large-folder tab freeze — was filed as P7-22, then **re-measured and withdrawn**; that entry now
 records why the original evidence was wrong.
 
-#### Confirmed working
+##### Confirmed working
 
 | Item | What was checked in the browser | Result |
 |:---|:---|:---|
@@ -1261,7 +1207,7 @@ records why the original evidence was wrong.
 | P7-08 | Context menus | Right-clicking the synthetic **Projects** node opens **no menu at all**, which is the intended behavior. Right-clicking a real node offers Copy Hub Link, Copy Path, Copy Relative Path, Copy as Markdown Link, Open, **Reveal in Explorer**, and Open in VS Code. |
 | #10 / P7-15 | Keyboard-only search | Focus the search field, type, arrow down, Enter — the document opens and the sidebar expands to the selected path. The end-to-end path works with no mouse. |
 
-#### P7-22. A large image folder stalls the browser tab — **investigated and withdrawn 2026-09-08**
+##### P7-22. A large image folder stalls the browser tab — **investigated and withdrawn 2026-09-08**
 
 **Not a defect. This entry is kept as a record so the same wrong conclusion is not reached twice.**
 
@@ -1302,7 +1248,7 @@ by this entry.**
 cannot produce. If large folders ever feel slow in normal use, re-measure with the tab in the
 foreground before changing any code.
 
-#### Confirmed still broken
+##### Confirmed still broken
 
 - ~~**P7-11 — reading and search context is lost.**~~ **Fixed 2026-09-08, see below.** Browser-confirmed
   before the fix: opening a result from a "readme" search and pressing Back landed on `#@projects`
@@ -1313,7 +1259,7 @@ foreground before changing any code.
   a screen reader was never told which result was highlighted. Exactly one `aria-live` region
   existed, which is the announced-toast work that had already shipped.
 
-#### P7-15's combobox fixed — one sync point, not four
+##### P7-15's combobox fixed — one sync point, not four
 
 **Shipped 2026-09-09.** The rows were already `role="option"` inside a `role="listbox"`; what was
 missing was every piece of state that connects them to the input. The input is now
@@ -1352,7 +1298,7 @@ that test pins the wiring rather than the behaviour; the table above is the beha
 **Still open in P7-15:** ~~keyboard focus entry and return for context menus~~ (shipped
 2026-10-13 as P9-05), and keyboard resizing for the mouse-only sidebar divider. The `⌘K`/`Ctrl+K` half was already shipped.
 
-#### Still unverified after this pass
+##### Still unverified after this pass
 
 - **P7-14, narrow panes.** `resize_window` reported success but `innerWidth` stayed at 1549, so no
   genuine 640–1024px viewport was ever reached. **No claim is made about narrow-pane layout.** At the
@@ -1363,7 +1309,7 @@ that test pins the wiring rather than the behaviour; the table above is the beha
 - **The positive native-launch path.** Rejections were covered by the earlier HTTP checks and the
   menu wiring is confirmed, but no action was clicked through to a running application.
 
-#### P7-11 fixed — a search is now a route
+##### P7-11 fixed — a search is now a route
 
 **Shipped 2026-09-08.** Root cause: a search was the one view with no address of its own. `S.query`
 lived only in memory, and `go()` cleared it before pushing the document's hash, so the results were
@@ -1407,7 +1353,7 @@ Method note: the probe file used for the P7-03 test was created inside the exist
 `Agents/Codex/temp/p7-smoke/` fixture folder and deleted afterward. No user documents or pictures
 were modified.
 
-### Pictures performance pass — shipped September 8
+#### Pictures performance pass — shipped September 8
 
 Pictures no longer participates in the normal project scan. Its initial tree row is metadata only; opening a folder fetches its immediate children, and a deep link fetches the selected file plus its ancestor path. Loaded folders survive ordinary project refreshes. A separate server-side metadata index is built only when a search needs Pictures; results appear in a labeled Pictures section with independent totals and 200-result paging. Project-only and incompatible kind searches do not trigger that index.
 
@@ -1435,7 +1381,7 @@ Evidence is saved under `D:\Work\Projects\Example_Workspace\Agents\Codex\temp\`:
 
 **Remaining limits:** the first Pictures search after startup or a real change rebuilds the metadata index. Extremely active photo writes can require retrying a search; one automatic conflict retry and a visible Retry action are provided. A single very large folder still returns its immediate children as one list. Full-content search, thumbnail galleries, and virtualized rows remain separate work. The depth limit matches the former scan rather than silently expanding the indexed photo library.
 
-### First report/reliability pass — what shipped and how it was checked
+#### First report/reliability pass — what shipped and how it was checked
 
 Changed `Hub/hub.mjs`, `Hub/index.html`, and the test command in `Hub/package.json`. Added `Hub/reports.mjs` (report delivery), `Hub/navigation.mjs` (route/link helpers), `Hub/open-native.mjs` (native launch requests), and `Hub/reports.test.mjs`. No dependencies or build step were added. The launcher restarted the identified hub process on port **4273**, and live health returned **ready**. Reload an already-open hub tab to load the updated interface.
 
@@ -1451,7 +1397,7 @@ Live check output is saved at `D:\Work\Projects\Example_Workspace\Agents\Codex\t
 
 The detailed findings below retain the original review's evidence and acceptance criteria. Use this status table for current delivery state rather than interpreting the original descriptions as unfixed in their entirety.
 
-### Relationship to the existing backlog
+#### Relationship to the existing backlog
 
 | Existing item | September 8 follow-up | How to track it |
 |:---|:---|:---|
@@ -1470,7 +1416,7 @@ Other open ideas, including #24 routine pass/fail, remain open. The September 7 
 
 The strongest next step is to make this a faster, more complete document and artifact browser. Keep the current project overview, restrained visual style, and Markdown-first storage model. Prioritize finding and reading files, preserving your place, and explaining freshness before adding more dashboard sections.
 
-### Review coverage
+#### Review coverage
 
 - Read the project documentation, existing roadmap, frontend, and relevant scanner/server code.
 - Checked the running home page, `/api/health`, and `/api/scan` through HTTP. The home page returned 200 with template placeholders substituted; health reported `ready`.
@@ -1480,7 +1426,7 @@ The strongest next step is to make this a faster, more complete document and art
 
 Evidence references below use paths relative to the project folder and line numbers from the September 8 source snapshot; those line numbers may move as fixes land.
 
-### What is already working in the design
+#### What is already working in the design
 
 Preserve these existing capabilities rather than rebuilding them:
 
@@ -1491,7 +1437,7 @@ Preserve these existing capabilities rather than rebuilding them:
 - Four themes, adjustable/collapsible sidebar, rendered Markdown, HTML preview/source switching, and image previews.
 - Existing sanitizer, response security headers, watchdog, scan compression, and automated tests.
 
-### Live measurements change the priorities
+#### Live measurements change the priorities
 
 One health snapshot reported:
 
@@ -1517,11 +1463,11 @@ A following scan payload contained 118,194 tree nodes, showing normal small chan
 
 **Pictures accounts for about 66% of the tree.** The roadmap's earlier measurements of roughly two-second common scans and a 471 ms directory walk should not determine today's priorities. These new measurements do not establish which phase is slow, prove a memory leak, or measure browser rendering time; they establish that profiling is worth doing again.
 
-### First fixes and improvements
+#### First fixes and improvements
 
 Priority labels here are independent of the historical P0–P7 section names. **Next** = next implementation pass; **Following** = following usability pass; **Optional** = optional expansion. Effort is relative: S = localized, M = several connected changes, L = architectural work.
 
-#### P7-01. Profile the current scan and load Pictures on demand
+##### P7-01. Profile the current scan and load Pictures on demand
 
 **Next · M–L · Live evidence**
 
@@ -1533,7 +1479,7 @@ Start with cached root summaries and children fetched when a folder is opened. K
 
 Evidence: live measurements above; `Hub/index.html:441` (`reindex`), `Hub/hub.mjs:571` (`scanTree`). Extends existing roadmap #16–18 with current evidence.
 
-#### P7-02. Make PDF and HTML deliverables searchable, and give PDFs a real viewer
+##### P7-02. Make PDF and HTML deliverables searchable, and give PDFs a real viewer
 
 **Next · M · Source-confirmed gap**
 
@@ -1545,7 +1491,7 @@ PDFs also fall into the generic text viewer: `/api/file` reads them as UTF-8, an
 
 Evidence: `Hub/hub.mjs:563`, `Hub/index.html:441`, `Hub/index.html:1661`, `Hub/hub.mjs:1578` onward.
 
-#### P7-03. Make live refresh notice same-size edits and preserve readable content
+##### P7-03. Make live refresh notice same-size edits and preserve readable content
 
 **Next · M · Source-confirmed gap**
 
@@ -1557,7 +1503,7 @@ Separately, a failed background scan calls `showFatal()`, clearing the current d
 
 Evidence: `Hub/hub.mjs:1119`, `Hub/index.html:497`, `Hub/index.html:535`, initialization near `Hub/index.html:1880`. Same-size freshness extends roadmap #4.
 
-#### P7-04. Support links to headings in other documents
+##### P7-04. Support links to headings in other documents
 
 **Next · S–M · Source-confirmed gap**
 
@@ -1569,7 +1515,7 @@ Add **Copy Hub Link** beside Copy Path. Offer document-relative Markdown links w
 
 Evidence: `Hub/index.html:1729` (`loadDoc`), `Hub/index.html:715` (`showCtxMenu`).
 
-#### P7-05. Resolve supporting assets in HTML report previews
+##### P7-05. Resolve supporting assets in HTML report previews
 
 **Next · M · Source-derived behavior; browser verification needed**
 
@@ -1581,7 +1527,7 @@ Provide a contained artifact route that preserves the report directory structure
 
 Evidence: `Hub/index.html:1690`, `Hub/hub.mjs:1593`; the roadmap's September 7 report-deliverables example makes this a relevant workflow.
 
-#### P7-06. Enforce HTML preview isolation on the response as well as the iframe
+##### P7-06. Enforce HTML preview isolation on the response as well as the iframe
 
 **Next · M · Source-confirmed boundary gap; no exploit attempted**
 
@@ -1593,7 +1539,7 @@ Use a response-level CSP sandbox or a separate preview origin with suitably rest
 
 Evidence: `Hub/hub.mjs:1607–1617`, `Hub/index.html:1693–1698`. This finding is about the current HTML route, not a claim that the previously fixed Markdown sanitizer defect has returned.
 
-#### P7-07. Make search results accurate and easier to narrow
+##### P7-07. Make search results accurate and easier to narrow
 
 **Next · M · Source-confirmed gap plus enhancement**
 
@@ -1605,7 +1551,7 @@ Add visible filters for root/project and type, including PDF, HTML, and image. K
 
 Evidence: `Hub/index.html:1800–1864`. Fuzzy matching is already an open roadmap item (#13).
 
-#### P7-08. Make native actions report what happened
+##### P7-08. Make native actions report what happened
 
 **Next · S–M · Source-confirmed gap**
 
@@ -1615,7 +1561,7 @@ Disable filesystem actions for the synthetic Projects node: its regular page cor
 
 Evidence: `Hub/index.html:715`, `Hub/index.html:945`, `/api/open` in `Hub/hub.mjs:1623` onward.
 
-### Everyday browsing improvements
+#### Everyday browsing improvements
 
 | # | Priority / effort | Suggestion | Concrete benefit and scope |
 |---|---|---|---|
@@ -1628,7 +1574,7 @@ Evidence: `Hub/index.html:715`, `Hub/index.html:945`, `/api/open` in `Hub/hub.mj
 | P7-15 | Following / S | **Finish keyboard and status accessibility** — *combobox ARIA fixed 2026-09-09* | Keep the existing tree work. ~~Search arrows update a visual class; connect the active option with appropriate ARIA state.~~ Done, see [P7-15's combobox fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). ~~Announced toast/status messages~~ and ~~`Ctrl+K` on Windows~~ also shipped. **Remaining:** keyboard focus entry/return for context menus, and keyboard resizing for the mouse-only divider. |
 | P7-16 | **Shipped 2026-09-09** | ~~**Explain freshness and indexing**~~ | Built — see [P7-16 shipped](#p7-16-shipped--the-number-and-then-the-paths-behind-it). The status line opens a detail panel, read errors now carry their paths, and the understated indexing text is replaced and linked to the explanation. |
 
-#### P7-10. Bookmarks, favorites and recent documents
+##### P7-10. Bookmarks, favorites and recent documents
 
 **Following · S–M · Requested 2026-09-08**
 
@@ -1680,7 +1626,7 @@ still collapsed with both lists closed.
 **Test:** one regression covering add/remove/reorder round-tripping through `localStorage`, Recent's
 20-item cap and deduplication, and an unresolved entry surviving a scan in which its path is absent.
 
-#### P7-10 shipped — two lists above the tree
+##### P7-10 shipped — two lists above the tree
 
 **Shipped 2026-09-09.** Built to the spec above. `#pins` sits between the Explorer header and
 the tree, holding **Bookmarks** (manual, drag-ordered, renameable) and **Recent** (automatic,
@@ -1767,7 +1713,7 @@ Method note: the relink and deleted-file cases used two throwaway probe files cr
 folder is empty again. Test bookmarks and recents were cleared from the browser at the end. No user
 documents were modified.
 
-#### P7-09 shipped — a list that does not cost a payload
+##### P7-09 shipped — a list that does not cost a payload
 
 **Shipped 2026-09-09.** `viewFolder()` now renders either cards or a four-column list — **name,
 type, modified, size** — chosen by a toggle in the folder header and remembered per browser in
@@ -1819,7 +1765,7 @@ Method note: the hub process was restarted once to load the new endpoint, since 
 process start while `index.html` is read per request. No user documents were modified, and the test
 `hub.folderview` preference was cleared from the browser afterwards.
 
-#### P7-12 shipped — five small things that make a file a document
+##### P7-12 shipped — five small things that make a file a document
 
 **Shipped 2026-09-09.** All five parts of the item, in `viewFile()`. Four live in the panel header
 next to the document name; **print** is a document-level action, so it sits with the header buttons
@@ -1878,7 +1824,7 @@ Method note: the hub was restarted once for the `raw=1` change, since `hub.mjs` 
 start. The test `hub.reader` and `hub.folderview` preferences were cleared from the browser
 afterwards. No user documents were modified.
 
-#### P7-16 shipped — the number, and then the paths behind it
+##### P7-16 shipped — the number, and then the paths behind it
 
 **Shipped 2026-09-09.** This item had a confirmed defect inside it rather than only an enhancement:
 `/api/health` reported nineteen read errors while the footer showed a green `● scanned 09:25`, and
@@ -1945,7 +1891,7 @@ correct for a dismissible floating layer. Everything above was verified through 
 Method note: the hub was restarted once to load the read-error tracking. No user documents were
 modified, and nothing was written to the browser's storage by this change.
 
-#### P7-13 shipped — thumbnails, a real viewer, and the SVG bug it uncovered
+##### P7-13 shipped — thumbnails, a real viewer, and the SVG bug it uncovered
 
 **Shipped 2026-09-09.** Both halves of the item, plus a defect this work exposed that had nothing
 to do with it.
@@ -1974,7 +1920,7 @@ neither the tree nor a text field has focus — both already own the arrow keys 
 stays Back/Forward. All four cases are pinned by a regression, because a shortcut that quietly
 steals a key from an existing control is the kind of thing nobody reports and everyone works around.
 
-#### The SVG sandbox — a P7-06 defect this surfaced
+##### The SVG sandbox — a P7-06 defect this surfaced
 
 **Not part of P7-13, found by it, fixed here.** The first thumbnail pass rendered 1,250 blank
 frames. The cause was a day old: [P7-06](#p7-06-enforce-html-preview-isolation-on-the-response-as-well-as-the-iframe)
@@ -2020,13 +1966,13 @@ Method note: the hub was restarted once for the SVG fix. Two blank screenshots d
 the hidden-tab paint artifact from P7-22, not a rendering failure — the DOM measurement taken
 immediately afterwards showed the images loaded. No user documents were modified.
 
-### Optional enhancements worth keeping on the backlog
+#### Optional enhancements worth keeping on the backlog
 
 P7-17 to P7-21 moved to [P9](#p9) with the same scope: related report files (P9-13), repo
 changes detail (P9-10), document link checks (P9-11), saved views (P9-15) and copy context for
 an agent (P9-14). All five are still open, now in [the remaining list](#remaining).
 
-### Suggested implementation sequence
+#### Suggested implementation sequence
 
 **Superseded by events — kept as the record of the order it was actually done in.** Fifteen of the
 sixteen numbered items shipped across two days, in roughly the order recommended below.
@@ -2046,7 +1992,7 @@ still-open rest now sits in [the remaining list](#remaining).
 
 Keep the existing no-build architecture unless a particular change earns extra tooling. A framework rewrite, editable filesystem operations, and a general AI assistant are not prerequisites for these improvements.
 
-### Verification still needed
+#### Verification still needed
 
 The suite grew with the work: 35 tests at the original review, 42 after the report/reliability pass
 plus 11 live HTTP checks, 50 after the Pictures pass plus 10 live checks, then 52 (P7-11), 53
@@ -2090,11 +2036,11 @@ failures.
 
 ---
 
-## P8 — 2026-09-09: the Links root, README landing views, and four more color schemes
+### P8 — 2026-09-09: the Links root, README landing views, and four more color schemes
 
 Three small additions, all requested directly rather than found by an audit.
 
-### A fifth shared root: `Links`
+#### A fifth shared root: `Links`
 
 `D:/Work/Documents/Links` is now mounted as its own top-level root
 (`SHARED_ROOTS`, tinted purple) rather than being reached three clicks deep inside
@@ -2114,7 +2060,7 @@ Verified on a scratch instance before restarting the live hub: `Links` appears o
 as a top-level node with its six children, and no longer appears among the
 `Documents` children.
 
-### Every folder that documents itself lands on its README
+#### Every folder that documents itself lands on its README
 
 Clicking `Documents`, `Links`, `Automations`, or `My Custom Skills` in the sidebar used
 to land on whatever their `kind` dispatched to — a stats overview built for a project
@@ -2162,7 +2108,7 @@ page despite having a README; `Agents/Claude/temp`, which has none, still render
 and `Example_Workspace` still shows its stats strip and 20-repo table with no README button
 anywhere.
 
-### Eight color schemes, up from four
+#### Eight color schemes, up from four
 
 Four schemes were added to the picker beside **rescan** — the sheet's own
 "copy a block, change the values, add an `<option>`" contract held, with the name
@@ -2183,7 +2129,7 @@ recolored the tree for free.
 
 <a id="p9"></a>
 
-## P9 — 2026-09-22: the weekly backlog
+### P9 — 2026-09-22: the weekly backlog
 
 The weekly routine started here in 2026-09-22, working one item per run. The **open** items
 have since moved up to [the remaining checklist](#remaining), which is the live work queue;
@@ -2194,13 +2140,13 @@ How items are marked: `- [x]` done, with a dated note · `- [ ]` open (see
 [Remaining](#remaining)) · `🔒 Needs Mike` means only a person can do it, so the routine
 skips it.
 
-### Finish what's open
+#### Finish what's open
 
-- [x] **P9-01 · Start `Docs/CHANGELOG.md`.** *(done 2026-09-22: [`CHANGELOG.md`](CHANGELOG.md) seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `Docs/README.md`.)* Newest first, seeded from merged PRs #1–#5
+- ✅ **P9-01 · Start `Docs/CHANGELOG.md`.** *(done 2026-09-22: [`CHANGELOG.md`](CHANGELOG.md) seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `Docs/README.md`.)* Newest first, seeded from merged PRs #1–#5
   and the phases recorded above, one line per meaningful change. Link it from
   `Docs/README.md`. From here on, every checked item below gets a changelog line in the
   same commit.
-- [x] **P9-02 · Search: root and type filters** (the first third of P7-07's remainder).
+- ✅ **P9-02 · Search: root and type filters** (the first third of P7-07's remainder).
   *(done 2026-09-29: chips for each top-level root and for DOC / HTML / PDF / IMAGE under the
   result count, carried as `root=` / `type=` in the search route. `filterSearchPool()` in
   `navigation.mjs` is the tested core; Pictures is asked only when no other root is chosen.
@@ -2208,7 +2154,7 @@ skips it.
   chip clears it and keeps focus, and Back from an opened result restores the type chip.)*
   Filter chips for each shared root and for document kind (md / html / pdf / image), kept
   in the search route so Back restores them.
-- [x] **P9-03 · Search: typo tolerance** (P7-07, and #13's fuzzy search). *(done 2026-10-04: `rankSearch()` in
+- ✅ **P9-03 · Search: typo tolerance** (P7-07, and #13's fuzzy search). *(done 2026-10-04: `rankSearch()` in
   `navigation.mjs` returns the substring pass untouched when it finds anything; otherwise an
   optimal-string-alignment distance (budget 0 under 4 chars, 1 up to 7, 2 from 8) against name, stem
   and each word. `score()`/`KIND_WEIGHT` moved there from `index.html` so the test covers the real
@@ -2217,7 +2163,7 @@ skips it.
   substring-only.)* A bounded edit
   distance on titles and filenames that only runs when the exact and prefix passes return
   nothing, so ranking for real matches doesn't change. Tested against a fixed index.
-- [x] **P9-04 · Search: opt-in content search** (the last third of P7-07). *(done 2026-10-06: an
+- ✅ **P9-04 · Search: opt-in content search** (the last third of P7-07). *(done 2026-10-06: an
   **inside documents** chip beside the result count, off for every fresh query, carried as
   `content=1` in the route. `/api/content` answers from an index of `.md .mdx .markdown .txt .rst
   .adoc` files that the first such query builds, never a scan, and that rebuilds only files whose
@@ -2232,7 +2178,7 @@ skips it.
   answers 501 with a message, since it has no server.)* Off by default,
   toggled per query, with a bounded index: markdown and text only, capped per file and in
   total, built lazily on first use. Record the memory cost in this file.
-- [x] **P9-05 · Keyboard access to context menus** (P7-15). *(done 2026-10-13: both keys open the
+- ✅ **P9-05 · Keyboard access to context menus** (P7-15). *(done 2026-10-13: both keys open the
   menu on a focused tree, bookmark or recent row, anchored under the row's name, with focus on the
   first enabled item. The menu is `role="menu"` with `menuitem` buttons; ↑/↓ wrap and skip disabled
   items, Home/End jump, Tab closes, Escape closes and refocuses the row, and so does choosing an item
@@ -2242,7 +2188,7 @@ skips it.
   item, Escape back to the row, Enter on Add Bookmark, then Shift+F10 → Rename on the bookmark row
   landing in the rename field; right-click still opens the menu without moving focus.)* The ContextMenu key and
   Shift+F10 open the sidebar menu on the focused row. Escape returns focus to that row.
-- [x] **P9-24 · Narrow-pane layout (P7-14).** *(done 2026-10-03: Playwright's `browser_resize` reached a
+- ✅ **P9-24 · Narrow-pane layout (P7-14).** *(done 2026-10-03: Playwright's `browser_resize` reached a
   real 800px and 700px viewport. Below 1024px the sidebar starts on the rail without overwriting the
   stored choice, the search field shrinks, breadcrumb ancestors ellipsize, and the document toolbar
   wraps. Measured: no horizontal overflow in `header`, `#view`, `#crumbs` or the panel header at 700px.)*
@@ -2251,41 +2197,41 @@ skips it.
 P9-17 through P9-23, P9-25, P9-29 through P9-31, P9-35 through P9-44 and P9-46 through
 P9-49 — now live in [the remaining checklist](#remaining).*
 
-### Shipped by group
+#### Shipped by group
 
-- [x] **P9-45 · The `obsidian` redesign.** Proposed on the demo and adopted the same day:
+- ✅ **P9-45 · The `obsidian` redesign.** Proposed on the demo and adopted the same day:
   a new default scheme in the landing page's idiom, Inter + JetBrains Mono, rounded surfaces,
   spotlight cards, and `--ok` split from the accent for clean / live state. The other eight
   schemes keep their colours. Record in [REDESIGN.md](REDESIGN.md). What it left open is
   queued above as P9-46 (docs and screenshots), P9-47 (the `100vh` / zoom gap) and P9-48
   (a skill's `SKILL.md` in the demo).
-- [x] **P9-26 · VS Code-style activity bar.** *(done 2026-09-29: Explorer, Bookmarks and
+- ✅ **P9-26 · VS Code-style activity bar.** *(done 2026-09-29: Explorer, Bookmarks and
   Recent became separate sidebar views behind an icon row, with a bookmark count badge. The
   active view persists in `hub.side`, clicking the active icon folds the sidebar to the rail,
   and on the rail the icons stack vertically.)*
-- [x] **P9-27 · Browser favorites view.** *(done 2026-09-29: `Hub/webmarks.mjs` reads the
+- ✅ **P9-27 · Browser favorites view.** *(done 2026-09-29: `Hub/webmarks.mjs` reads the
   Edge, Chrome and Brave `Bookmarks` JSON live, with `/api/webmarks` and `/api/favicon`.
   Favicons come from a server-side lookup with a browser-direct fallback. 5 tests in
   `webmarks.test.mjs`, and it was checked against real profiles: 3 found, about 6,250
   favorites, all but 8 of the icons on screen resolved.)*
-- [x] **P9-28 · Import a bookmarks HTML file.** *(done 2026-09-29: Settings → Import bookmarks
+- ✅ **P9-28 · Import a bookmarks HTML file.** *(done 2026-09-29: Settings → Import bookmarks
   file…, parsed by `parseBookmarksHtml()` in `favorites.mjs` into the manual list. The favicons
   come from `/api/favicon` like the rest, so `ICON=` data URIs are not stored.)*
-- [x] **P9-32 · Settings view.** *(done 2026-09-29: a gear at the end of the activity bar,
+- ✅ **P9-32 · Settings view.** *(done 2026-09-29: a gear at the end of the activity bar,
   with the color scheme moved out of the header, interface size (`hub.zoom`, applied before
   first paint), the hub-tabs and favorites-sync switches, import and export, clear recent, and
   reset width.)*
-- [x] **P9-33 · Manual favorites by default.** *(done 2026-09-29: `/api/favorites` over a
+- ✅ **P9-33 · Manual favorites by default.** *(done 2026-09-29: `/api/favorites` over a
   gitignored `favorites.json`, validated by `cleanTree()` and written atomically. Add, edit,
   delete, drag to move or file, drop a link in, and one-step undo. Browser sync is a switch in
   Settings. Checked by importing a real Edge profile of about 6,250 favorites.)*
-- [x] **P9-34 · Hub tabs.** *(done 2026-09-29: sandboxed iframes without top navigation,
+- ✅ **P9-34 · Hub tabs.** *(done 2026-09-29: sandboxed iframes without top navigation,
   kept alive across switches, and a `/api/frameable` check that sends sites refusing to be
   framed to a browser tab. Checked live: Wikipedia opens in a hub tab and GitHub falls back.)*
 
 ---
 
-## Phase 0 — what shipped
+### Phase 0 — what shipped
 
 Applied to all three hubs on **2026-08-31** and verified against the running servers.
 
@@ -2302,7 +2248,7 @@ once at process start.
 
 ---
 
-## Phase 1 — what shipped
+### Phase 1 — what shipped
 
 Applied **2026-08-31**. The three hub folders now hold a config file, a launcher shim,
 their logs and their README — nothing else.
@@ -2332,7 +2278,7 @@ process holds the port rather than only whether it is this exact script.
 
 ---
 
-## Phase 2 — what shipped
+### Phase 2 — what shipped
 
 Applied **2026-08-31**, once each, in the shared source.
 
@@ -2353,7 +2299,7 @@ one regex away from it.
 
 ---
 
-## Phase 3 — what shipped
+### Phase 3 — what shipped
 
 Applied **2026-08-31** to `Hub/index.html` — one file, which is what phase 1 bought.
 
@@ -2374,7 +2320,7 @@ substring hit, so a typo finds nothing.
 
 ---
 
-## Phase 4 — what shipped
+### Phase 4 — what shipped
 
 Applied **2026-08-31**. Measured before deciding, which changed two of the four plans.
 
@@ -2398,10 +2344,10 @@ the payload and a check that the health fields the watchdog reads still exist.
 ---
 
 <p align="center">
-  <a href="../README.md">← Project Hub</a> ·
-  <a href="ChatGPT-HTML-Design.md">ChatGPT HTML Design</a> ·
+  <a href="README.md">← Docs home</a> ·
+  <a href="CHANGELOG.md">Changelog →</a> ·
   <a href="../Hub/README.md">Hub source</a> ·
-  <a href="../Project-Hub/README.md">Project Hub →</a>
+  <a href="../Project-Hub/README.md">Project Hub</a>
 </p>
 
 <p align="right"><sub><a href="#roadmap-top">back to top</a></sub></p>

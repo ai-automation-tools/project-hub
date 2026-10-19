@@ -11,8 +11,12 @@
 ---
 
 Why each change was made, and how it was measured, lives in the [roadmap](ROADMAP.md).
-This file is the short version. Every item ticked in [P9](ROADMAP.md#p9) adds a line here
+This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
+
+## 2026-10-19
+
+- **Docs**: Move `Docs/ROADMAP.md` onto the lab roadmap standard. Phases 0–4 and P5–P8 are done phases at the top, then a `## 🚦 Public release` gate phase (CI, MIT licence and the live demo ticked; a README check from a clean clone and `SECURITY.md` with a secret scan open), then `## After public release` with the P9 backlog as one checklist, shipped items first and every open item on one line. The audit and shipping record stays at the end of the file under *The record*, one heading level down, so every existing anchor still resolves; its P9 entries are plain ✅ bullets now, so each item is counted once. No items added or dropped beyond the two release gates.
 
 ## 2026-10-13
 

@@ -193,7 +193,45 @@ export function parseList(raw) {
       path: e.path,
       label: typeof e.label === 'string' && e.label ? e.label : e.path.split('/').pop(),
       addedAt: Number.isFinite(e.addedAt) ? e.addedAt : 0,
+      ...(cleanGroup(e.group) ? { group: cleanGroup(e.group) } : {}),
     }));
+}
+
+// ── bookmark groups ──
+// A group is just a name on its bookmarks, so it exists while something is in it and an
+// emptied group simply disappears. The one exception is a group made with "+ new group",
+// which the page lists separately until its first bookmark arrives.
+const cleanGroup = (g) => (typeof g === 'string' ? g.trim().slice(0, 60) : '');
+const withGroup = (e, g) => {
+  const { group: _drop, ...rest } = e;
+  return cleanGroup(g) ? { ...rest, group: cleanGroup(g) } : rest;
+};
+
+/** '' (or whitespace) takes the bookmark out of its group. */
+export function setBookmarkGroup(list, path, group) {
+  return list.map((e) => (e.path === path ? withGroup(e, group) : e));
+}
+
+/** Renaming onto an existing name merges the two; renaming to '' ungroups every member. */
+export function renameBookmarkGroup(list, from, to) {
+  return list.map((e) => (e.group === from ? withGroup(e, to) : e));
+}
+
+/**
+ * Ungrouped first, then each group in the order its first bookmark appears, then any
+ * `empty` (created, not yet filled) names that no bookmark carries.
+ */
+export function groupBookmarks(list, empty = []) {
+  const groups = new Map([['', []]]);
+  for (const e of list) {
+    const g = e.group || '';
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(e);
+  }
+  for (const name of empty) {
+    if (cleanGroup(name) && !groups.has(cleanGroup(name))) groups.set(cleanGroup(name), []);
+  }
+  return [...groups].map(([name, entries]) => ({ name, entries }));
 }
 
 export function isBookmarked(list, path) {

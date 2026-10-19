@@ -124,6 +124,7 @@ Per-viewer preferences are localStorage, never the scan payload:
 | `hub.side` `hub.websrc` | active activity-bar view, chosen browser profile for Favorites |
 | `hub.zoom` `hub.links` `hub.favsource` | interface size (also read by the pre-paint script), hub tabs on/off, manual or synced favorites |
 | `hub.bookmarks` `hub.recent` | paths only — via `navigation.mjs`, which is where the list logic is tested |
+| `hub.bmgroups` | `{closed, empty}` bookmark-group names: which are folded, which were created empty |
 
 Every read and write is wrapped in `try/catch`. Private windows throw on access, and a
 throwing preference read must not take the page down.

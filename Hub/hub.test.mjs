@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
+  setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -647,6 +648,28 @@ test('bookmarks round-trip through storage and survive junk written by anything 
   assert.equal(parseList('[{"path":"a"},{"path":"a"}]').length, 1);
 });
 
+test('bookmark groups are a name on each bookmark and vanish when emptied', () => {
+  let list = parseList(JSON.stringify([{ path: 'a' }, { path: 'b' }, { path: 'c' }, { path: 'd', group: 7 }]));
+  assert.equal(list[3].group, undefined, 'a non-string group is dropped');
+  list = setBookmarkGroup(list, 'b', '  GitHub org ');
+  list = setBookmarkGroup(list, 'd', 'GitHub org');
+  list = setBookmarkGroup(list, 'c', 'Printer');
+  // Survives storage, ungrouped first, then groups in first-appearance order.
+  list = parseList(JSON.stringify(list));
+  assert.deepEqual(groupBookmarks(list).map((g) => [g.name, g.entries.map((e) => e.path)]),
+    [['', ['a']], ['GitHub org', ['b', 'd']], ['Printer', ['c']]]);
+  // Rename merges onto an existing name; renaming to '' ungroups.
+  assert.deepEqual(groupBookmarks(renameBookmarkGroup(list, 'Printer', 'GitHub org')).map((g) => g.name), ['', 'GitHub org']);
+  assert.deepEqual(groupBookmarks(renameBookmarkGroup(list, 'GitHub org', '')).map((g) => g.entries.length), [3, 1]);
+  // Removing the last member removes the group, and the ungrouped entry loses the key entirely.
+  list = setBookmarkGroup(list, 'c', '');
+  assert.ok(!('group' in list[2]));
+  assert.deepEqual(groupBookmarks(list).map((g) => g.name), ['', 'GitHub org']);
+  // A created-but-empty group is listed last; one that already has members isn't doubled.
+  assert.deepEqual(groupBookmarks(list, ['Printer', 'GitHub org', ' ', 7]).map((g) => [g.name, g.entries.length]),
+    [['', 2], ['GitHub org', 2], ['Printer', 0]]);
+});
+
 test('recents are newest-first, deduplicated by path, and capped', () => {
   let recent = [];
   for (const name of ['one', 'two', 'three']) recent = pushRecent(recent, 'Docs/' + name, name);
@@ -699,7 +722,7 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.favsource'", "'hub.zoom'"].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'"].includes(key),
       `unexpected localStorage key ${key}`);
   }
 });

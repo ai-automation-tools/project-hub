@@ -9,7 +9,7 @@ way by those rather than by line number, which moves.
 | `<style>` | `:root` radii, easing and derived tokens, nine `data-theme` variable blocks, then explorer, then main. Nothing else defines a colour |
 | helpers | `$`, `el`, `activate`, `mark`, `tintOf`, `fmtSize`, `fmtAgo`, `toast` |
 | data | `reindex`, `load`/`doLoad`, `showFatal` |
-| bookmarks | `pins`, `savePins`, `togglePin`, `pinSection`, `renderPins` — list logic in `navigation.mjs` |
+| bookmarks | `pins`, `savePins`, `togglePin`, `pinSection`, `renderPins`; groups: `closedGroups`, `emptyGroups`, `groupHeader`, `moveToGroup`, `inlineEdit` — list logic in `navigation.mjs` |
 | activity bar | `SIDE_VIEWS`, `sideView`, `setSideView` — `#app[data-side]` picks Explorer (`#tree`), Bookmarks / Recent (`#pins`), Favorites (`#webmarks`) or Settings (`#settings`) |
 | settings | `prefs`, `renderSettings`, the `#set-*` handlers, import/export via `favorites.mjs` |
 | favorites | `web` (sync), `fav` (manual), `loadWebmarks`, `ensureFavorites`, `saveFavoriteList`, `renderWebmarks`, `editable`, `favForm`, `favIcon` + `iconFallback`, `followLink` — tree logic in `favorites.mjs` |
@@ -73,7 +73,8 @@ Only a plain ES module the Node suite imports directly:
 
 - `navigation.mjs` — `routeHash`/`parseRoute`, `searchHash`/`parseSearch`, `filterSearchPool` (the root and type chips), `documentTarget`,
   `markdownLink`, `includeInSearch`, `absolutePath`, and the bookmark/recent list logic
-  (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `pushRecent`,
+  (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `setBookmarkGroup`,
+  `renameBookmarkGroup`, `groupBookmarks`, `pushRecent`,
   `resolveBookmarks`, `RECENT_MAX`).
 - `pictures-client.mjs` — `PictureNodes`, the async Pictures branch.
 - `reports.mjs` — server-side, but the other half of the framing contract above.

@@ -105,6 +105,7 @@ Right-click any row in the tree — folder or file — for copy and launch actio
 |:---|:---|
 | Add / Remove Bookmark | Pins the row, or unpins it. The label reflects the current state; same action as the header's `☆ bookmark` button and `Ctrl+D`. See [Bookmarks and recents](#bookmarks-and-recents). |
 | Rename Bookmark | Bookmark rows only. Opens the same in-place editor as double-clicking the label, which is otherwise undiscoverable. |
+| Move to ‹group› / Move to New Group… / Remove from Group | Bookmark rows only. Files the bookmark under a group header in the Bookmarks view; see [Bookmarks and recents](#bookmarks-and-recents). |
 | Copy Path | Absolute Windows path, backslashes. |
 | Copy Relative Path | The tree id itself (drive-relative, `~/...` for user scope). |
 | Copy Hub Link | Stable Hub URL for this item. The document header also preserves the current heading. |
@@ -164,11 +165,13 @@ The sidebar has five views, and `#activity`, a VS Code-style icon row above the 
 
 Below 1024px, measured with `matchMedia` so root zoom doesn't shift it, the sidebar starts on the rail without overwriting the stored `hub.rail`. `setRail(on, persist)` keeps the viewer's own choice in `railPref`, and widening the window restores it. The same breakpoint lets the search field shrink to a 150px floor, ellipsizes breadcrumb ancestors before the current page, and wraps the document toolbar.
 
-The list logic is pure and lives in `navigation.mjs` (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `pushRecent`, `resolveBookmarks`) so it is tested without a DOM; `index.html` owns the sidebar and the wiring. Three entry points — the document header's star button, the tree context menu, and `Ctrl+D` — all route through one `togglePin()`, so the button's `aria-pressed`, the menu label, and the sidebar cannot disagree. `Ctrl+D` prefers the tree's keyboard cursor over the open document.
+The list logic is pure and lives in `navigation.mjs` (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `setBookmarkGroup`, `renameBookmarkGroup`, `groupBookmarks`, `pushRecent`, `resolveBookmarks`) so it is tested without a DOM; `index.html` owns the sidebar and the wiring. Three entry points — the document header's star button, the tree context menu, and `Ctrl+D` — all route through one `togglePin()`, so the button's `aria-pressed`, the menu label, and the sidebar cannot disagree. `Ctrl+D` prefers the tree's keyboard cursor over the open document.
 
 `#pins` has its own `contextmenu` listener reusing `showCtxMenu()`, so pinned rows offer the same actions as tree rows. Rename dispatches a `dblclick` at the row's label rather than growing a second editor.
 
-Storage is `localStorage`, two keys, `{path, label, addedAt}` and nothing else — no server component, no per-user server state, and no document contents. `parseList()` distrusts what it reads: a corrupted or older-format value returns an empty list rather than throwing, and duplicate paths collapse to one row.
+Bookmark groups are an optional `group` name on each bookmark, so a group exists while it has a member and the stored list stays one flat array; `groupBookmarks()` splits it into ungrouped rows followed by each group in first-appearance order, and `pinSection()` renders each part under a `.pingrp` header. A bookmark row's menu adds **Move to ‹group›**, **Move to New Group…** and **Remove from Group**; dragging carries the path rather than an index, and a drop on a row or header also sets the group. The sticky **+ new group** row at the bottom of `#pins` creates a group before it has members — those names, and which groups are folded, live in `hub.bmgroups` (`{closed, empty}`), and `savePins()` drops a name from `empty` as soon as a bookmark carries it. Every rename — bookmark or group — goes through one `inlineEdit()`.
+
+Storage is `localStorage`: two lists of `{path, label, addedAt, group?}` plus the `hub.bmgroups` display state, and nothing else — no server component, no per-user server state, and no document contents. `parseList()` distrusts what it reads: a corrupted or older-format value returns an empty list rather than throwing, and duplicate paths collapse to one row.
 
 Every scan re-resolves bookmarks against `S.byId`. A missing path is dimmed and kept, never dropped, because a temporarily unreadable folder must not silently eat pins; where exactly one node in the same root shares the basename, a single relink offer appears, and nothing is repointed automatically. `pinExists()` also asks `pictureNodes.owns()`, so a bookmarked photo that is legitimately unloaded is not called a dead link, and nothing is marked missing before the first scan lands.
 

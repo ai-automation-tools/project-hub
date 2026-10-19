@@ -675,6 +675,13 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .pingrp .tw{font-size:10px;color:var(--dimmer);width:10px}
 .pingrp.drop{box-shadow:inset 0 0 0 1px var(--green)}
 .pingrp + .pinlist .pin{margin-left:22px}
+.pingrp + .pinempty{padding-left:34px}
+/* "+ new group": stuck to the bottom of the sidebar however long the list gets */
+#pins{display:flex;flex-direction:column}
+#app[data-side="bookmarks"] #pins{padding-bottom:0}
+.pinadd{position:sticky;bottom:0;margin-top:auto;flex:0 0 auto;display:flex;align-items:center;height:32px;
+  padding:0 16px;background:var(--panel);border-top:1px solid var(--line-a)}
+.pinadd input{flex:1;min-width:0;font-family:var(--mono);font-size:11.5px}
 .pin.drop{box-shadow:0 -2px 0 var(--green)}
 .pin.dragging{opacity:.4}
 .pinnote{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);padding:2px 10px 5px 14px}
@@ -1103,12 +1110,14 @@ try {
   pins.bookmarks = parseList(localStorage.getItem(BOOKMARKS_KEY));
   pins.recent = parseList(localStorage.getItem(RECENT_KEY));
 } catch {}
-// Which bookmark groups are folded. Display state only, so a stale name is harmless.
-let closedGroups = new Set();
-try { closedGroups = new Set(JSON.parse(localStorage.getItem('hub.bmgroups')) || []); } catch {}
-function saveClosedGroups() {
-  try { localStorage.setItem('hub.bmgroups', JSON.stringify([...closedGroups])); } catch {}
-}
+// Which bookmark groups are folded, and which were made with "+ new group" and have no
+// bookmark yet. Names only; a stale one is harmless.
+let closedGroups = new Set(), emptyGroups = [];
+try {
+  const g = JSON.parse(localStorage.getItem('hub.bmgroups'));
+  closedGroups = new Set(Array.isArray(g?.closed) ? g.closed : []);
+  emptyGroups = Array.isArray(g?.empty) ? g.empty.filter((n) => typeof n === 'string' && n) : [];
+} catch {}
 
 // Both lists are at most a few dozen short rows, so writing both on any change beats
 // threading a key through every call site. Paths and labels only -- never contents.
@@ -1117,6 +1126,10 @@ function savePins() {
     localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(pins.bookmarks));
     localStorage.setItem(RECENT_KEY, JSON.stringify(pins.recent));
   } catch {}
+  // An empty group stops being one the moment a bookmark lands in it.
+  const used = new Set(pins.bookmarks.map((b) => b.group).filter(Boolean));
+  emptyGroups = [...new Set(emptyGroups)].filter((n) => n && !used.has(n));
+  try { localStorage.setItem('hub.bmgroups', JSON.stringify({ closed: [...closedGroups], empty: emptyGroups })); } catch {}
 }
 
 /** Recents are documents, not containers: a folder you passed through is not a read. */
@@ -1292,7 +1305,7 @@ function inlineEdit(host, target, value, placeholder, save) {
 
 /** Put a bookmark in a group ('' = none), unfolding the group so it stays in view. */
 function moveToGroup(path, group) {
-  closedGroups.delete(group); saveClosedGroups();
+  closedGroups.delete(group);
   pins.bookmarks = setBookmarkGroup(pins.bookmarks, path, group);
 }
 
@@ -1309,16 +1322,20 @@ function groupHeader(name, count) {
   activate(x, (ev) => {
     ev?.stopPropagation?.();
     pins.bookmarks = renameBookmarkGroup(pins.bookmarks, name, '');
+    emptyGroups = emptyGroups.filter((n) => n !== name);
     savePins(); renderPins();
   });
   head.append(el('span', 'tw', open ? '▾' : '▸'), label, el('span', 'ctx', String(count)), x);
   activate(head, () => {
     if (open) closedGroups.add(name); else closedGroups.delete(name);
-    saveClosedGroups(); renderPins();
+    savePins(); renderPins();
   });
   label.addEventListener('dblclick', (e) => {
     e.stopPropagation();
-    inlineEdit(head, label, name, 'group name', (v) => { pins.bookmarks = renameBookmarkGroup(pins.bookmarks, name, v); });
+    inlineEdit(head, label, name, 'group name', (v) => {
+      pins.bookmarks = renameBookmarkGroup(pins.bookmarks, name, v);
+      emptyGroups = emptyGroups.map((n) => (n === name ? v : n));
+    });
   });
   head.addEventListener('dragover', (e) => { e.preventDefault(); head.classList.add('drop'); });
   head.addEventListener('dragleave', () => head.classList.remove('drop'));
@@ -1344,12 +1361,23 @@ function renderPins() {
   const marked = S.data
     ? resolveBookmarks(pins.bookmarks, pinExists, relinkSuggester())
     : pins.bookmarks.map((e) => ({ ...e, unresolved: false, suggestion: '' }));
-  const [loose, ...groups] = groupBookmarks(marked);
+  const [loose, ...groups] = groupBookmarks(marked, emptyGroups);
   if (loose.entries.length || !groups.length) host.append(pinSection('bookmarks', loose.entries, true));
   for (const g of groups) {
     host.append(groupHeader(g.name, g.entries.length));
-    if (!closedGroups.has(g.name)) host.append(pinSection('bookmarks', g.entries, true));
+    if (closedGroups.has(g.name)) continue;
+    host.append(g.entries.length ? pinSection('bookmarks', g.entries, true)
+      : el('div', 'pinempty', 'empty — drag a bookmark here, or right-click one → Move to ' + g.name));
   }
+  // Pinned to the bottom of the sidebar so grouping is discoverable without a right-click.
+  const foot = el('div', 'pinadd');
+  const add = el('span', 'ex-act', '+ new group');
+  add.title = 'Create a bookmark group';
+  activate(add, () => inlineEdit(foot, add, '', 'group name', (v) => {
+    if (v) { emptyGroups.push(v); closedGroups.delete(v); }
+  }));
+  foot.append(add);
+  host.append(foot);
 }
 
 // Activity bar. Clicking the view that is already showing folds the sidebar to the rail,
@@ -2365,7 +2393,7 @@ function pinRowMenu(row, x, y, opts) {
   const bookmark = row.dataset.renameable === 'true';
   const current = row.dataset.group || '';
   const move = (g) => { moveToGroup(path, g); savePins(); renderPins(); };
-  const others = groupBookmarks(pins.bookmarks).map((g) => g.name).filter((g) => g && g !== current);
+  const others = groupBookmarks(pins.bookmarks, emptyGroups).map((g) => g.name).filter((g) => g && g !== current);
   showCtxMenu(x, y, n, {
     ...opts,
     groupItems: bookmark ? [

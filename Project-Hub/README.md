@@ -521,7 +521,7 @@ whatever you last chose.
 
 | | |
 | :--- | :--- |
-| **Bookmarks** | Pinned by hand. Drag to reorder, double-click a label to rename, `×` to remove. Right-click → **Move to New Group…** to file related bookmarks under a foldable group header. Any row the tree can select qualifies — a document, a folder, a repo, a whole project. |
+| **Bookmarks** | Pinned by hand. Drag to reorder, double-click a label to rename, `×` to remove. Group related bookmarks under a foldable header: **+ new group** at the bottom of the sidebar, or right-click → **Move to New Group…**. Any row the tree can select qualifies — a document, a folder, a repo, a whole project. |
 | **Recent** | The last 20 documents you opened, newest first, deduplicated. Automatic; folders you pass through don't count. |
 
 Pin something three ways, whichever is nearest: the `☆ bookmark` button beside `copy Hub

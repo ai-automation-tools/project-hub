@@ -665,6 +665,9 @@ test('bookmark groups are a name on each bookmark and vanish when emptied', () =
   list = setBookmarkGroup(list, 'c', '');
   assert.ok(!('group' in list[2]));
   assert.deepEqual(groupBookmarks(list).map((g) => g.name), ['', 'GitHub org']);
+  // A created-but-empty group is listed last; one that already has members isn't doubled.
+  assert.deepEqual(groupBookmarks(list, ['Printer', 'GitHub org', ' ', 7]).map((g) => [g.name, g.entries.length]),
+    [['', 2], ['GitHub org', 2], ['Printer', 0]]);
 });
 
 test('recents are newest-first, deduplicated by path, and capped', () => {

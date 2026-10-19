@@ -22,7 +22,7 @@ two lists behind the sidebar's activity-bar icons are the shortcut.
 
 | | |
 | :--- | :--- |
-| **Bookmarks** | Things you pinned by hand. Ordered how you drag them, renameable, kept until you remove them. |
+| **Bookmarks** | Things you pinned by hand. Ordered how you drag them, renameable, optionally filed into groups, kept until you remove them. |
 | **Recent** | The last 20 documents you opened, newest first. Maintained for you — there is nothing to configure. |
 
 Each is a sidebar view of its own. The row of icons at the top of the sidebar switches between
@@ -65,7 +65,7 @@ Pinning something bumps the count on the Bookmarks icon. It doesn't switch you a
 | :--- | :--- |
 | **Reorder** | Drag a bookmark onto another one. Recent has no manual order — it is always newest first. |
 | **Rename** | Double-click a bookmark's label, or right-click → **Rename Bookmark**. `Enter` commits, `Escape` cancels. |
-| **Group** | Right-click a bookmark → **Move to New Group…** (type a name), **Move to ‹group›**, or **Remove from Group**. Dragging a bookmark onto a group header or onto a row in a group also moves it there. Click a header to fold it, double-click to rename it (renaming onto an existing name merges the two), `×` to ungroup — the bookmarks stay. A group exists while it has a member. Folded state is kept in `hub.bmgroups`. |
+| **Group** | Right-click a bookmark → **Move to New Group…** (type a name), **Move to ‹group›**, or **Remove from Group**. Dragging a bookmark onto a group header or onto a row in a group also moves it there. Click a header to fold it, double-click to rename it (renaming onto an existing name merges the two), `×` to ungroup — the bookmarks stay. Or click **+ new group** at the bottom of the Bookmarks sidebar, type a name and press `Enter`: the group appears empty, ready for bookmarks to be dragged or moved in. An empty group is kept until you `×` it; a group that had bookmarks disappears once its last one leaves. |
 | **Remove** | Hover a row and click the `×` on the right — it removes the row without opening it. Right-click → **Remove Bookmark** does the same. |
 
 Renaming changes only what you see. The path underneath is untouched, so a bookmark renamed
@@ -140,8 +140,8 @@ dead links.
 - They are **per-browser and per-machine**. Chrome and Edge do not share them, and neither
   does another PC. There is no sync and no account — the hub has no per-user server state,
   and this feature deliberately did not introduce any.
-- Only **paths and labels** are stored. No document contents, ever.
-- Clearing site data for `127.0.0.1:4273` clears both lists.
+- Only **paths, labels and group names** are stored. No document contents, ever.
+- Clearing site data for `127.0.0.1:4273` clears both lists and the groups.
 
 Recent is capped at 20 and deduplicated by path, so reopening a document moves it to the top
 rather than adding a second row. Opening a *folder* does not count as reading a document, so
@@ -155,7 +155,7 @@ folders you pass through on the way somewhere do not fill the list up.
 
 ## What this deliberately does not do
 
-No sync, no server component, no export or import, no folders inside bookmarks, no tags, and
+No sync, no server component, no export or import, one level of groups (no groups inside groups), no tags, and
 no settings. Saved views — a named combination of search, filter and scope — are a separate
 backlog item ([P7-20](./ROADMAP.md#p7-review)), not something bookmarks will grow into.
 

@@ -65,6 +65,7 @@ Pinning something bumps the count on the Bookmarks icon. It doesn't switch you a
 | :--- | :--- |
 | **Reorder** | Drag a bookmark onto another one. Recent has no manual order — it is always newest first. |
 | **Rename** | Double-click a bookmark's label, or right-click → **Rename Bookmark**. `Enter` commits, `Escape` cancels. |
+| **Group** | Right-click a bookmark → **Move to New Group…** (type a name), **Move to ‹group›**, or **Remove from Group**. Dragging a bookmark onto a group header or onto a row in a group also moves it there. Click a header to fold it, double-click to rename it (renaming onto an existing name merges the two), `×` to ungroup — the bookmarks stay. A group exists while it has a member. Folded state is kept in `hub.bmgroups`. |
 | **Remove** | Hover a row and click the `×` on the right — it removes the row without opening it. Right-click → **Remove Bookmark** does the same. |
 
 Renaming changes only what you see. The path underneath is untouched, so a bookmark renamed

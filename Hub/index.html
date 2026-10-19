@@ -657,18 +657,24 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .webrow .ctx{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ext{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);border:1px solid var(--line-a);padding:0 4px;border-radius:4px;white-space:nowrap;flex:0 0 auto}
 .card .hd .ext{margin-left:auto}
-.pin{display:flex;align-items:center;gap:6px;height:26px;margin:0 6px;padding:0 8px 0 10px;cursor:pointer;
+.pin,.pingrp{display:flex;align-items:center;gap:6px;height:26px;margin:0 6px;padding:0 8px 0 10px;cursor:pointer;
   border-radius:var(--r-sm);user-select:none}
-.pin:hover{background:var(--surface-2)}
+.pin:hover,.pingrp:hover{background:var(--surface-2)}
 .pin.sel{background:color-mix(in srgb,var(--green) 13%,transparent)}
-.pin .nm{font-family:var(--mono);font-size:11.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
-.pin .ctx{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);flex:0 1 auto;min-width:0;
+.pin .nm,.pingrp .nm{font-family:var(--mono);font-size:11.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.pin .ctx,.pingrp .ctx{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);flex:0 1 auto;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%}
 .pin.gone .ctx{opacity:.6}
 .pin.gone .nm{color:var(--dimmer);text-decoration:line-through}
-.pin .x{font-family:var(--mono);font-size:11.5px;color:var(--dimmer);padding:0 3px;visibility:hidden}
-.pin:hover .x,.pin:focus-within .x{visibility:visible}
-.pin .x:hover{color:var(--red)}
+.pin .x,.pingrp .x{font-family:var(--mono);font-size:11.5px;color:var(--dimmer);padding:0 3px;visibility:hidden}
+.pin:hover .x,.pin:focus-within .x,.pingrp:hover .x,.pingrp:focus-within .x{visibility:visible}
+.pin .x:hover,.pingrp .x:hover{color:var(--red)}
+/* bookmark groups: a header row, its members indented under it */
+.pingrp{margin-top:4px;padding-left:6px}
+.pingrp .nm{font-weight:600}
+.pingrp .tw{font-size:10px;color:var(--dimmer);width:10px}
+.pingrp.drop{box-shadow:inset 0 0 0 1px var(--green)}
+.pingrp + .pinlist .pin{margin-left:22px}
 .pin.drop{box-shadow:0 -2px 0 var(--green)}
 .pin.dragging{opacity:.4}
 .pinnote{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);padding:2px 10px 5px 14px}
@@ -817,6 +823,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
+  setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   pushRecent, resolveBookmarks, absolutePath, isMenuKey, menuStep } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
@@ -1096,6 +1103,12 @@ try {
   pins.bookmarks = parseList(localStorage.getItem(BOOKMARKS_KEY));
   pins.recent = parseList(localStorage.getItem(RECENT_KEY));
 } catch {}
+// Which bookmark groups are folded. Display state only, so a stale name is harmless.
+let closedGroups = new Set();
+try { closedGroups = new Set(JSON.parse(localStorage.getItem('hub.bmgroups')) || []); } catch {}
+function saveClosedGroups() {
+  try { localStorage.setItem('hub.bmgroups', JSON.stringify([...closedGroups])); } catch {}
+}
 
 // Both lists are at most a few dozen short rows, so writing both on any change beats
 // threading a key through every call site. Paths and labels only -- never contents.
@@ -1200,6 +1213,7 @@ function pinSection(key, entries, drag) {
     row.dataset.path = entry.path;
     row.dataset.missing = String(!!entry.unresolved);
     row.dataset.renameable = String(!!drag);   // only bookmarks carry a custom label
+    row.dataset.group = entry.group || '';
     const name = el('span', 'nm', display(entry));
     name.title = entry.path + (entry.unresolved ? ' — not found in the last scan' : '');
     const x = el('span', 'x', '×');
@@ -1222,33 +1236,22 @@ function pinSection(key, entries, drag) {
     if (drag) {
       // Native drag-and-drop: manual ordering with no library and no pointer maths.
       row.draggable = true;
-      row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(i)); row.classList.add('dragging'); });
+      // Carries the path, not the index: groups split the list across sections. Dropping
+      // onto a row also moves the bookmark into that row's group.
+      row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', entry.path); row.classList.add('dragging'); });
       row.addEventListener('dragend', () => row.classList.remove('dragging'));
       row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drop'); });
       row.addEventListener('dragleave', () => row.classList.remove('drop'));
       row.addEventListener('drop', (e) => {
         e.preventDefault(); row.classList.remove('drop');
-        pins.bookmarks = moveBookmark(pins.bookmarks, parseInt(e.dataTransfer.getData('text/plain'), 10), i);
+        const dragged = e.dataTransfer.getData('text/plain');
+        const at = (p) => pins.bookmarks.findIndex((b) => b.path === p);
+        pins.bookmarks = setBookmarkGroup(moveBookmark(pins.bookmarks, at(dragged), at(entry.path)), dragged, entry.group);
         savePins(); renderPins();
       });
-      // Double-click renames in place. No dialog: prompt() blocks the whole page.
       name.addEventListener('dblclick', (e) => {
         e.stopPropagation();
-        const input = el('input', 'nm'); input.value = entry.label;
-        const commit = (save) => {
-          if (input.parentNode !== row) return;
-          if (save) { pins.bookmarks = renameBookmark(pins.bookmarks, entry.path, input.value.trim()); savePins(); }
-          renderPins();
-        };
-        input.onkeydown = (ev) => {
-          if (ev.key === 'Enter') { ev.preventDefault(); commit(true); }
-          else if (ev.key === 'Escape') { ev.preventDefault(); commit(false); }
-          ev.stopPropagation();
-        };
-        input.onblur = () => commit(true);
-        input.onclick = (ev) => ev.stopPropagation();
-        row.replaceChild(input, name);
-        input.focus(); input.select();
+        inlineEdit(row, name, entry.label, '', (v) => { pins.bookmarks = renameBookmark(pins.bookmarks, entry.path, v); });
       });
     }
 
@@ -1267,6 +1270,66 @@ function pinSection(key, entries, drag) {
   return list;
 }
 
+// Renames in place. No dialog: prompt() blocks the whole page. `save` gets the trimmed
+// value on Enter or blur; Escape abandons.
+function inlineEdit(host, target, value, placeholder, save) {
+  const input = el('input', 'nm'); input.value = value; input.placeholder = placeholder;
+  const commit = (ok) => {
+    if (input.parentNode !== host) return;
+    if (ok) { save(input.value.trim()); savePins(); }
+    renderPins();
+  };
+  input.onkeydown = (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); commit(true); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); commit(false); }
+    ev.stopPropagation();
+  };
+  input.onblur = () => commit(true);
+  input.onclick = (ev) => ev.stopPropagation();
+  host.replaceChild(input, target);
+  input.focus(); input.select();
+}
+
+/** Put a bookmark in a group ('' = none), unfolding the group so it stays in view. */
+function moveToGroup(path, group) {
+  closedGroups.delete(group); saveClosedGroups();
+  pins.bookmarks = setBookmarkGroup(pins.bookmarks, path, group);
+}
+
+// A group header: click folds it, double-click renames it, × ungroups (the bookmarks
+// stay), and a bookmark dropped on it joins the group.
+function groupHeader(name, count) {
+  const open = !closedGroups.has(name);
+  const head = el('div', 'pingrp');
+  head.setAttribute('aria-expanded', String(open));
+  const label = el('span', 'nm', name);
+  const x = el('span', 'x', '×');
+  x.title = 'Ungroup — the bookmarks stay';
+  x.setAttribute('aria-label', 'Ungroup ' + name);
+  activate(x, (ev) => {
+    ev?.stopPropagation?.();
+    pins.bookmarks = renameBookmarkGroup(pins.bookmarks, name, '');
+    savePins(); renderPins();
+  });
+  head.append(el('span', 'tw', open ? '▾' : '▸'), label, el('span', 'ctx', String(count)), x);
+  activate(head, () => {
+    if (open) closedGroups.add(name); else closedGroups.delete(name);
+    saveClosedGroups(); renderPins();
+  });
+  label.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    inlineEdit(head, label, name, 'group name', (v) => { pins.bookmarks = renameBookmarkGroup(pins.bookmarks, name, v); });
+  });
+  head.addEventListener('dragover', (e) => { e.preventDefault(); head.classList.add('drop'); });
+  head.addEventListener('dragleave', () => head.classList.remove('drop'));
+  head.addEventListener('drop', (e) => {
+    e.preventDefault();
+    moveToGroup(e.dataTransfer.getData('text/plain'), name);
+    savePins(); renderPins();
+  });
+  return head;
+}
+
 function renderPins() {
   const host = $('#pins');
   host.textContent = '';
@@ -1281,7 +1344,12 @@ function renderPins() {
   const marked = S.data
     ? resolveBookmarks(pins.bookmarks, pinExists, relinkSuggester())
     : pins.bookmarks.map((e) => ({ ...e, unresolved: false, suggestion: '' }));
-  host.append(pinSection('bookmarks', marked, true));
+  const [loose, ...groups] = groupBookmarks(marked);
+  if (loose.entries.length || !groups.length) host.append(pinSection('bookmarks', loose.entries, true));
+  for (const g of groups) {
+    host.append(groupHeader(g.name, g.entries.length));
+    if (!closedGroups.has(g.name)) host.append(pinSection('bookmarks', g.entries, true));
+  }
 }
 
 // Activity bar. Clicking the view that is already showing folds the sidebar to the rail,
@@ -2132,6 +2200,7 @@ function showCtxMenu(x, y, n, opts = {}) {
   menu.append(
     ctxItem(isBookmarked(pins.bookmarks, n.id) ? 'Remove Bookmark' : 'Add Bookmark', () => togglePin(n.id, n.name)),
     ...(opts.rename ? [ctxItem('Rename Bookmark', opts.rename)] : []),
+    ...(opts.groupItems || []),
     el('hr'),
     ctxItem('Copy Hub Link', () => copy(hubLink(n.id))),
     ctxItem('Copy Path', () => copy(winPath(n.id)), virtual),
@@ -2293,8 +2362,17 @@ function treeRowMenu(row, x, y, opts) {
 function pinRowMenu(row, x, y, opts) {
   const path = row.dataset.path;
   const n = S.byId.get(path) || { id: path, name: row.querySelector('.nm').textContent, kind: 'file' };
+  const bookmark = row.dataset.renameable === 'true';
+  const current = row.dataset.group || '';
+  const move = (g) => { moveToGroup(path, g); savePins(); renderPins(); };
+  const others = groupBookmarks(pins.bookmarks).map((g) => g.name).filter((g) => g && g !== current);
   showCtxMenu(x, y, n, {
     ...opts,
+    groupItems: bookmark ? [
+      ...others.map((g) => ctxItem('Move to ' + g, () => move(g))),
+      ctxItem('Move to New Group…', () => inlineEdit(row, row.querySelector('.nm'), '', 'group name', (g) => moveToGroup(path, g))),
+      ...(current ? [ctxItem('Remove from Group', () => move(''))] : []),
+    ] : [],
     missing: row.dataset.missing === 'true',
     rename: row.dataset.renameable === 'true'
       ? () => row.querySelector('.nm')?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))

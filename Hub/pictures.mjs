@@ -13,7 +13,7 @@ const inside = (root, file) => {
 export const ignorePictureEvent = (event, directory) => event === 'change' && directory;
 
 export class PictureLibrary {
-  constructor({ dir, id, classify, allow = () => true, maxDepth = 7 }) {
+  constructor({ dir, id, classify, allow = () => true, maxDepth = 10 }) {
     this.maxDepth = maxDepth; this.depthLimited = 0;
     this.dir = path.resolve(dir); this.id = id; this.classify = classify; this.allow = allow;
     this.epoch = crypto.randomBytes(8).toString('hex'); this.generation = 0;

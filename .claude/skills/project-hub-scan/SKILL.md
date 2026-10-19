@@ -41,8 +41,8 @@ deliverables, not source.** The comment above `DOC_FILE` measures the alternativ
 folder's `more` badge, so the fix for "my `.py` is missing" is almost never widening
 `DOC_FILE` — it is `open folder`.
 
-`MAX_DEPTH` is 7. `NOISE_FILE` hides the hub's own `hub.log` / `scan.json` so a log write
-does not read as a library change.
+`MAX_DEPTH` is 10 (configurable per workspace via `maxDepth`, 1–32). `NOISE_FILE` hides the
+hub's own `hub.log` / `scan.json` so a log write does not read as a library change.
 
 > [!WARNING]
 > **Adding an extension to `DOC_FILE` is not free and not local.** `Demo/build-demo.mjs`

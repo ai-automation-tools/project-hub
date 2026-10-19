@@ -13,13 +13,78 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   resolveBookmarks, RECENT_MAX, absolutePath } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
 const HUB_DIRS = ['Project-Hub'];
+
+test('workspace scan depth can include deep images without widening other roots', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-repo-depth-'));
+  const write = (rel) => {
+    const full = path.join(root, rel);
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.writeFileSync(full, 'fixture');
+    return full.replace(/\\/g, '/');
+  };
+  try {
+    for (const prefix of ['Repos/model', 'Repos/Owner/Live_Apps/model', 'Repos/Owner/Draft/model']) {
+      if (!prefix.includes('/Draft/')) fs.mkdirSync(path.join(root, prefix, '.git'), { recursive: true });
+      const renders = `${prefix}/design/projects/live/stadiums/example-field/renders`;
+      const image = write(`${renders}/hero.png`);
+      write(`${renders}/model.py`);
+      write(`${renders}/secrets/private.txt`);
+      write(`${renders}/node_modules/package/README.md`);
+      const atLimit = write(`${renders}/details/closeup.png`);
+      const beyondLimit = write(`${renders}/details/deeper/hidden.png`);
+      const { flat } = scanTree({ projects: [{ name: 'Example', dir: root, maxDepth: prefix.split('/').length + 7 }], sharedRoots: [], userRuntimes: [] });
+      const folder = flat.find((n) => n.abs === path.dirname(image).replace(/\\/g, '/'));
+      assert.equal(folder?.kind, 'folder', prefix);
+      assert.ok(folder.children.some((n) => n.abs === image && n.kind === 'image'), prefix);
+      assert.equal(folder.more, 1, 'source files remain filtered and counted');
+      assert.ok(flat.some((n) => n.abs === atLimit), 'seven repo-relative levels are readable');
+      assert.ok(!flat.some((n) => n.abs === beyondLimit), 'repo traversal remains bounded');
+      assert.ok(!flat.some((n) => n.abs.includes('/secrets/') || n.abs.includes('/node_modules/')),
+        'deeper traversal retains credential and dependency filters');
+    }
+    write('a/b/c/d/e/f/g/h/i/j/at-ten.png');
+    write('a/b/c/d/e/f/g/h/i/j/k/beyond-ten.png');
+    const library = scanTree({ projects: [], sharedRoots: [{ name: 'Library', dir: root }], userRuntimes: [] });
+    assert.ok(library.flat.some((n) => n.name === 'at-ten.png'));
+    assert.ok(!library.flat.some((n) => n.name === 'beyond-ten.png'));
+    const defaults = scanTree({ projects: [{ name: 'Example', dir: root }], sharedRoots: [], userRuntimes: [] });
+    assert.ok(defaults.flat.some((n) => n.name === 'at-ten.png'), 'the default is ten levels');
+    assert.ok(!defaults.flat.some((n) => n.name === 'beyond-ten.png'), 'the default is still bounded');
+    const config = path.join(root, 'config.json');
+    for (const maxDepth of [0, -1, 33, 1.5, '9', null]) {
+      fs.writeFileSync(config, JSON.stringify({ name: 'Example', dir: root, maxDepth }));
+      assert.throws(() => loadProjectConfig(config), /maxDepth/);
+    }
+    fs.writeFileSync(config, JSON.stringify({ name: 'Example', dir: root, maxDepth: 9 }));
+    assert.equal(loadProjectConfig(config).maxDepth, 9);
+    writeScanDepth(config, 12);
+    assert.equal(loadProjectConfig(config).maxDepth, 12);
+    assert.equal(loadProjectConfig(config).name, 'Example');
+    writeScanDepth(config, null);
+    assert.equal(loadProjectConfig(config).maxDepth, null, 'reset inherits the hub default');
+    assert.ok(!Object.hasOwn(JSON.parse(fs.readFileSync(config, 'utf8')), 'maxDepth'));
+    assert.throws(() => writeScanDepth(config, 33), /maxDepth/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('scan settings writes are local-only and use discovered config paths', () => {
+  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const route = src.slice(src.indexOf("url.pathname === '/api/scan-settings'"), src.indexOf("url.pathname === '/api/roots'"));
+  assert.match(route, /!sameOrigin\(req\) \|\| !LOCAL_HOSTS\.has/);
+  assert.match(route, /PROJECTS\.find/);
+  assert.match(route, /validateScanDepth\(input.maxDepth\)/);
+  assert.match(route, /writeScanDepth\(project \? project.configFile : CONFIG_FILE/);
+  assert.match(route, /if \(scanning\) await scanning/);
+});
 
 /** Mirrors hub.mjs's own discoverProjects() so the test can't drift from runtime behavior. */
 function projectConfigDirs() {

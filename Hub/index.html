@@ -752,6 +752,12 @@ details[open]>summary .fchev{transform:rotate(90deg)}
           <button class="btn" id="fav-export">Export bookmarks file</button>
         </div>
       </section>
+      <section class="set" id="set-scan">
+        <h3>Scan depth</h3>
+        <p class="sethelp">Choose how many folder levels to index (1–32). The default is 10. Larger values include deeper files and take longer to scan. Saved on this computer for all browsers using this hub.</p>
+        <div id="scan-settings"></div>
+        <p class="sethelp" id="scan-settings-status" role="status"></p>
+      </section>
       <section class="set" id="set-roots">
         <h3>Folders</h3>
         <p class="sethelp">Folders shown in the Explorer next to Projects. Adding or removing one updates hub.config.json and the sidebar at once; nothing on disk is moved or deleted.</p>
@@ -1316,6 +1322,62 @@ function renderSettings() {
   $('#set-favtools').hidden = prefs.favSync;
   if (!prefs.favSync) loadImportSources();
   renderRoots();
+  loadScanSettings();
+}
+
+let scanSettingsLoading = false;
+async function loadScanSettings() {
+  if (scanSettingsLoading) return;
+  scanSettingsLoading = true;
+  try {
+    if (!LOCAL_PAGE) {
+      $('#scan-settings-status').textContent = 'Open Settings on the computer running the hub to change scan depth.';
+      return;
+    }
+    const response = await fetch('/api/scan-settings');
+    if (!response.ok) throw new Error('Could not load scan settings.');
+    renderScanSettings(await response.json());
+  } catch (e) { $('#scan-settings-status').textContent = e.message; }
+  finally { scanSettingsLoading = false; }
+}
+
+function renderScanSettings(settings) {
+  const host = $('#scan-settings');
+  host.textContent = '';
+  const rows = [{ name: 'Default for this hub', value: settings.defaultDepth },
+    ...settings.workspaces.map((w) => ({ name: w.name, workspace: w.name, value: w.maxDepth }))];
+  for (const item of rows) {
+    const form = el('form', 'rootform');
+    const label = el('label', 'setrow');
+    const select = el('select');
+    select.setAttribute('aria-label', `${item.name} scan depth`);
+    if (item.workspace) {
+      const option = el('option', '', `Use default (${settings.defaultDepth})`);
+      option.value = ''; select.append(option);
+    }
+    for (let depth = 1; depth <= 32; depth++) {
+      const option = el('option', '', String(depth)); option.value = String(depth); select.append(option);
+    }
+    select.value = item.value == null ? '' : String(item.value);
+    label.append(el('span', '', item.name), select);
+    const save = el('button', 'btn', 'Save'); save.type = 'submit';
+    form.append(label, save);
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+      const status = $('#scan-settings-status');
+      save.disabled = true; select.disabled = true;
+      status.textContent = 'Saving…';
+      try {
+        const response = await fetch('/api/scan-settings', { method: 'PUT', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ...(item.workspace ? { workspace: item.workspace } : {}), maxDepth: select.value === '' ? null : Number(select.value) }) });
+        if (!response.ok) throw new Error(await response.text() || 'Could not save scan depth.');
+        renderScanSettings(await response.json());
+        status.textContent = 'Saved. The library is refreshing; no restart is needed.';
+      } catch (e) { status.textContent = e.message; }
+      finally { save.disabled = false; select.disabled = false; }
+    };
+    host.append(form);
+  }
 }
 
 $('#set-links').onchange = (e) => {
@@ -2211,7 +2273,7 @@ async function showStatusPanel(anchor) {
     + 'hold more than the tree shows — "open folder" always shows everything.'));
   panel.append(el('p', '', 'Credential directories and credential-looking filenames are pruned by '
     + 'name and are never readable through the hub. Pictures is browsed on demand and searched to '
-    + (pics.maxSearchDepth || 7) + ' levels; deeper folders stay browsable.'));
+    + (pics.maxSearchDepth || 10) + ' levels; deeper folders stay browsable.'));
 
   place();
 }

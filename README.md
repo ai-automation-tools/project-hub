@@ -117,6 +117,7 @@ server. Run tests with `npm test` from `Hub/`.
 | [**🚀 Project-Hub**](Project-Hub/README.md) | Launcher, configuration, and user manual |
 | [**📁 Projects**](Projects/_example/hub.config.json.example) | Example workspace config |
 | [**📚 Docs**](Docs/README.md) | Guides, roadmap, and design research |
+| [**🧭 Diagrams**](Docs/diagrams/README.md) | The architecture shown on the [homepage](https://project-hub.ai-automation-tools.dev/#architecture), interactive and linked to the code, plus how it stays in step with it |
 | [**🌐 Demo**](Demo/README.md) | Fixture workspace and the build behind the hosted demo |
 | [**🧩 Scaffold skill**](Skills/project-hub-scaffold/SKILL.md) | Add workspaces or create a portable installation |
 | [**🖼️ Images**](Images/README.md) | Public screenshots and local design references |

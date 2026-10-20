@@ -47,6 +47,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # Warns, never fails: rebuilding needs Chrome + Archify, which CI doesn't have, and the
+      # homepage copies live in project-hub-site, which CI has no clone of (--no-site). A
+      # warning means code cited by Docs/diagrams/hub-architecture.json changed since its
+      # pinned commit; Docs/diagrams/README.md says how to update it.
+      - name: Diagram drift
+        run: node scripts/build-diagram.mjs --hook --no-site | sed 's/^ISSUE:/::warning title=Diagram drift::ISSUE:/'
       - run: node Demo/build-demo.mjs
       # A capture that suddenly holds nothing is the failure this would otherwise miss:
       # the build is happy to write an empty site if the fixture stops being found.

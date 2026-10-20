@@ -19,6 +19,7 @@ committed here, this file included, is published.
 | `Demo/` | Fixture workspace + `build-demo.mjs` → static capture published to project-hub-demo.ai-automation-tools.dev |
 | `Skills/project-hub-scaffold/` | **Travel copy** of the scaffold skill — canonical in `agent-skills`, keep byte-identical |
 | `Docs/` | `ROADMAP.md` (P9 is the live work queue), `CHANGELOG.md`, user/engine docs |
+| `Docs/diagrams/` + `scripts/build-diagram.mjs` | Code-pinned Archify architecture diagram, embedded on the homepage (`project-hub-site`). Edit only the `.json`; rebuild with `node scripts/build-diagram.mjs --pin-head`, `--check` reports drift. Procedure: `Docs/diagrams/README.md` |
 
 Deep reference: `Hub/README.md` (engine, endpoints, config), `Project-Hub/README.md` (user manual),
 `Demo/README.md` (demo build).

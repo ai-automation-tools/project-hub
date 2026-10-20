@@ -1,0 +1,515 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Project Hub: one Node process on loopback",
+    "output": "Docs/diagrams/hub-architecture.html",
+    "quality_profile": "showcase",
+    "locale": "en",
+    "repository": {
+      "url": "https://github.com/ai-automation-tools/project-hub.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "9db5aa61f2ab56f32ba8d449f96d5b2df2030cdb"
+    }
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "You",
+      "sublabel": "any browser tab",
+      "icon": "person",
+      "pos": [
+        40,
+        220
+      ],
+      "size": [
+        140,
+        72
+      ]
+    },
+    {
+      "id": "explorer",
+      "type": "frontend",
+      "label": "Explorer UI",
+      "sublabel": "one file, no build",
+      "tag": "Hub/index.html",
+      "pos": [
+        240,
+        220
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/index.html",
+          "line": 990,
+          "end_line": 998,
+          "label": "load the tree from /api/scan"
+        },
+        {
+          "path": "Hub/index.html",
+          "line": 3898,
+          "end_line": 3903,
+          "label": "open a document via /api/file"
+        },
+        {
+          "path": "Hub/index.html",
+          "line": 4221,
+          "end_line": 4231,
+          "label": "EventSource on /api/events"
+        }
+      ]
+    },
+    {
+      "id": "server",
+      "type": "backend",
+      "label": "HTTP server",
+      "sublabel": "Host check, CSP on every reply",
+      "tag": "127.0.0.1:4273",
+      "pos": [
+        480,
+        220
+      ],
+      "size": [
+        180,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/hub.mjs",
+          "line": 1765,
+          "end_line": 1802,
+          "label": "Host allowlist and CSP nonce"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 2114,
+          "end_line": 2128,
+          "label": "index.html placeholders per request"
+        }
+      ]
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "Scan payload",
+      "sublabel": "JSON, gzipped once",
+      "pos": [
+        480,
+        40
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "sources": [
+        {
+          "path": "Hub/hub.mjs",
+          "line": 1643,
+          "end_line": 1666,
+          "label": "rescan: serialize and gzip"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 1809,
+          "end_line": 1817,
+          "label": "/api/scan serves the cache"
+        }
+      ]
+    },
+    {
+      "id": "scanner",
+      "type": "backend",
+      "label": "Scanner",
+      "sublabel": "tree walk + git status",
+      "pos": [
+        740,
+        40
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "Hub/hub.mjs",
+          "line": 680,
+          "end_line": 700,
+          "label": "scanTree walk"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 1220,
+          "end_line": 1228,
+          "label": "scan: walk, then git per repo"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 1159,
+          "end_line": 1190,
+          "label": "cached git state"
+        }
+      ]
+    },
+    {
+      "id": "resolve",
+      "type": "security",
+      "label": "resolveId() gate",
+      "sublabel": "roots only, no secrets",
+      "pos": [
+        740,
+        220
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/hub.mjs",
+          "line": 365,
+          "end_line": 383,
+          "label": "SERVE_DIRS and the deny list"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 2042,
+          "end_line": 2059,
+          "label": "/api/file renders through it"
+        }
+      ]
+    },
+    {
+      "id": "workspaces",
+      "type": "database",
+      "label": "Workspace folders",
+      "sublabel": "projects + shared roots",
+      "pos": [
+        1260,
+        220
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/hub.mjs",
+          "line": 205,
+          "end_line": 222,
+          "label": "PROJECTS and ROOTS"
+        }
+      ]
+    },
+    {
+      "id": "config",
+      "type": "backend",
+      "label": "Config loader",
+      "sublabel": "hub + Projects/*/ configs",
+      "pos": [
+        740,
+        400
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/hub.mjs",
+          "line": 80,
+          "end_line": 104,
+          "label": "loadConfig validates port, base, hosts"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 190,
+          "end_line": 205,
+          "label": "discoverProjects"
+        }
+      ]
+    },
+    {
+      "id": "watcher",
+      "type": "backend",
+      "label": "Watcher",
+      "sublabel": "debounced 2.5 s",
+      "pos": [
+        1000,
+        400
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/hub.mjs",
+          "line": 2151,
+          "end_line": 2172,
+          "label": "noise filter, then rescan + SSE"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 2174,
+          "end_line": 2210,
+          "label": "fs.watch per root"
+        }
+      ]
+    },
+    {
+      "id": "launch",
+      "type": "backend",
+      "label": "Native launch",
+      "sublabel": "PowerShell, path as env",
+      "pos": [
+        480,
+        400
+      ],
+      "size": [
+        180,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/open-native.mjs",
+          "line": 4,
+          "end_line": 19,
+          "label": "launchNative"
+        },
+        {
+          "path": "Hub/hub.mjs",
+          "line": 2087,
+          "end_line": 2102,
+          "label": "/api/open, same-origin only"
+        }
+      ]
+    },
+    {
+      "id": "watchdog",
+      "type": "external",
+      "label": "Watchdog",
+      "sublabel": "every 15 min",
+      "tag": "Watch-Hubs.ps1",
+      "pos": [
+        240,
+        400
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Hub/Watch-Hubs.ps1",
+          "line": 77,
+          "end_line": 125,
+          "label": "ping /api/health, restart via Start-Hub"
+        }
+      ]
+    },
+    {
+      "id": "demo",
+      "type": "backend",
+      "label": "Demo build",
+      "sublabel": "real hub on a fixture",
+      "tag": "build-demo.mjs",
+      "pos": [
+        240,
+        580
+      ],
+      "size": [
+        170,
+        72
+      ],
+      "sources": [
+        {
+          "path": "Demo/build-demo.mjs",
+          "line": 1,
+          "end_line": 13,
+          "label": "crawl the real hub, write flat files"
+        },
+        {
+          "path": "Demo/build-demo.mjs",
+          "line": 175,
+          "end_line": 197,
+          "label": "spawn hub.mjs on the fixture"
+        },
+        {
+          "path": "Demo/build-demo.mjs",
+          "line": 283,
+          "end_line": 300,
+          "label": "manifest and the unmodified UI"
+        }
+      ]
+    },
+    {
+      "id": "pages",
+      "type": "cloud",
+      "label": "Demo site",
+      "sublabel": "GitHub Pages",
+      "tag": "project-hub-demo.",
+      "pos": [
+        480,
+        580
+      ],
+      "size": [
+        180,
+        72
+      ],
+      "sources": [
+        {
+          "path": ".github/workflows/demo.yml",
+          "line": 1,
+          "end_line": 40,
+          "label": "build and deploy on push to main"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "hub.mjs, one Node process",
+      "wraps": [
+        "server",
+        "cache",
+        "scanner",
+        "resolve",
+        "config",
+        "watcher",
+        "launch"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-explorer",
+      "from": "user",
+      "to": "explorer",
+      "label": "browses",
+      "variant": "emphasis"
+    },
+    {
+      "id": "explorer-server",
+      "from": "explorer",
+      "to": "server",
+      "label": "/api/* + SSE"
+    },
+    {
+      "id": "server-cache",
+      "from": "server",
+      "to": "cache",
+      "label": "/api/scan"
+    },
+    {
+      "id": "scanner-cache",
+      "from": "scanner",
+      "to": "cache",
+      "label": "builds"
+    },
+    {
+      "id": "scanner-workspaces",
+      "from": "scanner",
+      "to": "workspaces",
+      "label": "walks"
+    },
+    {
+      "id": "server-resolve",
+      "from": "server",
+      "to": "resolve",
+      "label": "path ids",
+      "variant": "security"
+    },
+    {
+      "id": "resolve-workspaces",
+      "from": "resolve",
+      "to": "workspaces",
+      "label": "reads"
+    },
+    {
+      "id": "config-resolve",
+      "from": "config",
+      "to": "resolve",
+      "label": "roots"
+    },
+    {
+      "id": "config-watcher",
+      "from": "config",
+      "to": "watcher",
+      "label": "watch list"
+    },
+    {
+      "id": "workspaces-watcher",
+      "from": "workspaces",
+      "to": "watcher",
+      "label": "fs events"
+    },
+    {
+      "id": "watcher-scanner",
+      "from": "watcher",
+      "to": "scanner",
+      "label": "rescan"
+    },
+    {
+      "id": "server-launch",
+      "from": "server",
+      "to": "launch",
+      "label": "/api/open"
+    },
+    {
+      "id": "watchdog-server",
+      "from": "watchdog",
+      "to": "server",
+      "label": "/api/health"
+    },
+    {
+      "id": "demo-pages",
+      "from": "demo",
+      "to": "pages",
+      "label": "Demo/site"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "What the server refuses",
+      "items": [
+        "Any Host header other than loopback or a listed allowedHosts name gets a 403, which stops DNS rebinding",
+        "resolveId() admits only paths under a mounted root, and never a secrets folder or a key or certificate file",
+        "/api/open, favorites and webmarks are same-origin only; mounting a root also needs a loopback Host"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "How the tree stays fresh",
+      "items": [
+        "One synchronous walk plus git per repo builds the payload, gzipped once and served to every tab",
+        "The watcher drops build output, git internals, the hub's own logs and bare directory events",
+        "After a settled burst it rescans first, then sends one change event, so no tab fetches a stale copy"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Built only when asked",
+      "items": [
+        "Pictures loads one folder at a time; its search index is built on the first query that needs it",
+        "Search inside documents builds its index on the first such query, never during a scan",
+        "HTML reports open through signed directory routes with a sandbox on every response"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Outside the process",
+      "items": [
+        "Watch-Hubs.ps1 runs every 15 minutes and restarts an unhealthy hub through Start-Hub.ps1",
+        "The demo build runs the real hub against Demo/Workspace and captures every API response as a file",
+        "The hosted demo has no server, so launching files and searching inside documents are unavailable there"
+      ]
+    }
+  ]
+}

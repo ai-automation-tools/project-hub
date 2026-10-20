@@ -1,0 +1,11 @@
+{
+  "revision": "9db5aa61f2ab56f32ba8d449f96d5b2df2030cdb",
+  "files": {
+    ".github/workflows/demo.yml": "94bb2b208307ad12eece20e9f2d6a9d8c25db24e",
+    "Demo/build-demo.mjs": "99a050774dea4e6b27c71222549355dc37e84519",
+    "Hub/Watch-Hubs.ps1": "a2465916054442702fc14d13104c3d00cfc8b7cb",
+    "Hub/hub.mjs": "fd8bd0279bfba4a966ba4c46c8d2452b4eb412ab",
+    "Hub/index.html": "98620bff1b2e465d153adeebf125c39c9b3faf93",
+    "Hub/open-native.mjs": "a34160f09941f3c4d616ea6236cc6cf061a396b2"
+  }
+}

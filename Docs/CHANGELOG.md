@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-10-19
 
+- **Docs**: Add a code-pinned [architecture diagram](diagrams/README.md) (Archify): server, scan payload, scanner, `resolveId()` gate, config loader, watcher, native launch, watchdog and demo build, each linked to the lines it describes. `scripts/build-diagram.mjs` builds it, copies it to `project-hub-site` for the homepage's new Architecture section, and `--check` reports drift; CI warns on it.
 - Group bookmarks: **+ new group** at the bottom of the Bookmarks sidebar creates one (it stays, empty, until you fill it), or right-click a bookmark → **Move to New Group…** / **Move to ‹group›** / **Remove from Group**, or drag it onto a group. Group headers fold, rename on double-click and ungroup with `×`. A group is an optional `group` name on each stored bookmark, so existing bookmarks load unchanged.
 - Fix **Reveal in Explorer** opening Explorer's default folder instead of the row's own: hub paths use forward slashes, which `explorer /select,` ignores, so native launches now get a backslashed Windows path.
 - **Docs**: The live demo moves to `project-hub-demo.ai-automation-tools.dev`; `project-hub.ai-automation-tools.dev` is now the project homepage (served from `project-hub-site`). Old demo deep links redirect.

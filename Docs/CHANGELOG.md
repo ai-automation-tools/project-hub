@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-20
+
+- **Docs**: Verify the README quick start from a clean clone, and document what it turned up missing: the `/api/scan-settings` endpoint, the server config's `maxDepth`, and that `npm test` checks that a copied workspace config's `dir` exists. Test counts brought to 96 *(roadmap: Public release)*
+
 ## 2026-10-19
 
 - **Docs**: Add a code-pinned [architecture diagram](diagrams/README.md) (Archify): server, scan payload, scanner, `resolveId()` gate, config loader, watcher, native launch, watchdog and demo build, each linked to the lines it describes. `scripts/build-diagram.mjs` builds it, copies it to `project-hub-site` for the homepage's new Architecture section, and `--check` reports drift; CI warns on it.

@@ -17,7 +17,7 @@ committed here, this file included, is published.
 | `Project-Hub/` | Server config folder + launcher shim. Real `hub.config.json` is gitignored |
 | `Projects/<Name>/hub.config.json` | One per mounted workspace. Only `Projects/_example/` is tracked |
 | `Demo/` | Fixture workspace + `build-demo.mjs` → static capture published to project-hub-demo.ai-automation-tools.dev |
-| `Skills/project-hub-scaffold/` | **Travel copy** of the scaffold skill — canonical in `agent-skills`, keep byte-identical |
+| `Skills/project-hub-scaffold/` | **Travel copy** of the scaffold skill — canonical in `agent-skills`; CI's `scaffold copy` job fails if it drifts, so edit there first and copy here |
 | `docs/` | `ROADMAP.md` (P9 is the live work queue), `CHANGELOG.md`, user/engine docs |
 | `docs/diagrams/` + `scripts/build-diagram.mjs` | Code-pinned Archify architecture diagram, embedded on the homepage (`project-hub-site`). Edit only the `.json`; rebuild with `node scripts/build-diagram.mjs --pin-head`, `--check` reports drift. Procedure: `docs/diagrams/README.md` |
 

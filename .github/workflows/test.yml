@@ -63,3 +63,20 @@ jobs:
           captured=$(node -p "Object.keys(require('./Demo/site/api/manifest.json')).length")
           echo "captured $captured API responses"
           test "$captured" -gt 100
+
+  scaffold-copy:
+    # Skills/project-hub-scaffold/ is a travel copy; agent-skills' main is canonical. A
+    # feature PR here that updates only this copy used to drift silently (P2-12), so the
+    # copy must match canonical exactly, line endings aside. On a failure, make the same
+    # edit in agent-skills/Skills/Core/Web/project-hub-scaffold/ and copy it back here.
+    name: scaffold copy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ai-automation-tools/agent-skills
+          ref: main
+          path: _agent-skills
+          sparse-checkout: Skills/Core/Web/project-hub-scaffold
+      - run: diff -r --strip-trailing-cr _agent-skills/Skills/Core/Web/project-hub-scaffold Skills/project-hub-scaffold

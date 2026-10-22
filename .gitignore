@@ -71,10 +71,10 @@ desktop.ini
 !/Demo/**/.codex/config.toml
 
 # Machine-specific runbooks (tailnet names, device IPs).
-/Docs/Local/
+/docs/Local/
 
 # Local Claude Code scratch (screenshots, notes) - never published.
 .claude/temp/
 
 # Archify build receipts and screenshots (scripts/build-diagram.mjs)
-Docs/diagrams/.build/
+docs/diagrams/.build/

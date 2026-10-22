@@ -29,7 +29,7 @@ the static demo. Below the map, four cards cover what the server refuses, how th
 what is built only when asked, and what runs outside the process.
 
 **See it on the [homepage](https://project-hub.ai-automation-tools.dev/#architecture)**, or open the interactive version: [`hub-architecture.html`](hub-architecture.html) in a browser
-from a clone, or [render it from GitHub](https://raw.githack.com/ai-automation-tools/project-hub/main/Docs/diagrams/hub-architecture.html).
+from a clone, or [render it from GitHub](https://raw.githack.com/ai-automation-tools/project-hub/main/docs/diagrams/hub-architecture.html).
 Each component links to the exact lines it describes at the pinned commit, and the viewer adds route
 tracing, search, light/dark, and SVG/PNG export.
 
@@ -81,7 +81,7 @@ To bring it up to date:
 Building needs Node 18+, Chrome, and the [Archify](https://github.com/tt-a1i/archify) skill
 (default path `~/.claude/skills/archify/bin/archify.mjs`; pass `--archify <path>` to point
 elsewhere). The check needs only git. A failed build exits 1 and leaves the last good HTML and
-PNG in place; the reason is in `Docs/diagrams/.build/hub-architecture.finalize-summary.json`.
+PNG in place; the reason is in `docs/diagrams/.build/hub-architecture.finalize-summary.json`.
 
 ---
 

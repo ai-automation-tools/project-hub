@@ -78,7 +78,7 @@ Nothing below blocks go-live.
 The live work queue since 2026-09-22, worked top to bottom. Shipped items keep their full
 dated notes in [the P9 record](#p9).
 
-- [x] P9-01 · Start `Docs/CHANGELOG.md` — done 2026-09-22: seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `Docs/README.md`
+- [x] P9-01 · Start `docs/CHANGELOG.md` — done 2026-09-22: seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `docs/README.md`
 - [x] P9-02 · Search: root and type filters — done 2026-09-29: chips for each root and document type, carried in the search route
 - [x] P9-26–28, 32–34 · Sidebar views (activity bar, browser favorites, import, settings, manual favorites, hub tabs) — done 2026-09-29
 - [x] P9-24 · Narrow-pane layout (P7-14) — done 2026-10-03: below 1024px the sidebar starts on the rail; no overflow at 700px
@@ -2142,9 +2142,9 @@ skips it.
 
 #### Finish what's open
 
-- ✅ **P9-01 · Start `Docs/CHANGELOG.md`.** *(done 2026-09-22: [`CHANGELOG.md`](CHANGELOG.md) seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `Docs/README.md`.)* Newest first, seeded from merged PRs #1–#5
+- ✅ **P9-01 · Start `docs/CHANGELOG.md`.** *(done 2026-09-22: [`CHANGELOG.md`](CHANGELOG.md) seeded from PRs #1–#5, Phases 0–4 and P5–P8, and linked from `docs/README.md`.)* Newest first, seeded from merged PRs #1–#5
   and the phases recorded above, one line per meaningful change. Link it from
-  `Docs/README.md`. From here on, every checked item below gets a changelog line in the
+  `docs/README.md`. From here on, every checked item below gets a changelog line in the
   same commit.
 - ✅ **P9-02 · Search: root and type filters** (the first third of P7-07's remainder).
   *(done 2026-09-29: chips for each top-level root and for DOC / HTML / PDF / IMAGE under the

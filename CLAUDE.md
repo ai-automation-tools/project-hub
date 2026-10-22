@@ -18,8 +18,8 @@ committed here, this file included, is published.
 | `Projects/<Name>/hub.config.json` | One per mounted workspace. Only `Projects/_example/` is tracked |
 | `Demo/` | Fixture workspace + `build-demo.mjs` → static capture published to project-hub-demo.ai-automation-tools.dev |
 | `Skills/project-hub-scaffold/` | **Travel copy** of the scaffold skill — canonical in `agent-skills`, keep byte-identical |
-| `Docs/` | `ROADMAP.md` (P9 is the live work queue), `CHANGELOG.md`, user/engine docs |
-| `Docs/diagrams/` + `scripts/build-diagram.mjs` | Code-pinned Archify architecture diagram, embedded on the homepage (`project-hub-site`). Edit only the `.json`; rebuild with `node scripts/build-diagram.mjs --pin-head`, `--check` reports drift. Procedure: `Docs/diagrams/README.md` |
+| `docs/` | `ROADMAP.md` (P9 is the live work queue), `CHANGELOG.md`, user/engine docs |
+| `docs/diagrams/` + `scripts/build-diagram.mjs` | Code-pinned Archify architecture diagram, embedded on the homepage (`project-hub-site`). Edit only the `.json`; rebuild with `node scripts/build-diagram.mjs --pin-head`, `--check` reports drift. Procedure: `docs/diagrams/README.md` |
 
 Deep reference: `Hub/README.md` (engine, endpoints, config), `Project-Hub/README.md` (user manual),
 `Demo/README.md` (demo build).
@@ -59,7 +59,7 @@ with a >100-captured-responses check. `demo.yml` deploys the demo on push to `ma
 
 - **Single branch `main`** — no `mike_desktop`. Small direct commits are fine; roadmap-routine work arrives as PRs.
 - Imperative-mood subjects, no Conventional Commits prefix (match `git log`).
-- Ticking a P9 roadmap item adds a line to `Docs/CHANGELOG.md` tagged *(roadmap: P9-NN)* in the same commit.
+- Ticking a P9 roadmap item adds a line to `docs/CHANGELOG.md` tagged *(roadmap: P9-NN)* in the same commit.
 - `hub.mjs` changes need a hub restart to take effect; `index.html` changes need only a browser refresh.
 - The watchdog restarts a stopped hub within 15 minutes — disable its task first if you mean to keep it down.
 

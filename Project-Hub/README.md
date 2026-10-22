@@ -21,7 +21,7 @@ under one **Projects** folder in the tree — click a project to see it scoped o
 or click **Projects** itself (the default landing page) for the combined picture across
 all mounted workspaces. The sidebar opens collapsed except the path to whatever you're currently
 looking at. See [Changing what this hub scans](#changing-what-this-hub-scans) for how a
-project is configured now, and [`../Docs/ROADMAP.md`](../Docs/ROADMAP.md) for the merge
+project is configured now, and [`../docs/ROADMAP.md`](../docs/ROADMAP.md) for the merge
 itself.
 
 Since the 2026-08-23 consolidation most of the generic skills and sub-agents live in
@@ -79,9 +79,9 @@ Change that single value to scale everything together. (`#app` divides it back o
 of its `100vh`; Chrome doesn't shrink the containing block to match a root `zoom`,
 so without that the page would run 15% past the bottom of the screen.)
 
-**Pictures performance update:** Pictures now loads one folder at a time, with deep links resolved on demand and a separate, paginated metadata-search section. Ordinary project scans never walk the photo tree. The initial scan payload is about 45% smaller over the wire; see [P7 measurements](../Docs/ROADMAP.md#p7-review). Picture search retains the previous depth limit, while deeper folders remain browsable. Reload this tab to use the updated interface.
+**Pictures performance update:** Pictures now loads one folder at a time, with deep links resolved on demand and a separate, paginated metadata-search section. Ordinary project scans never walk the photo tree. The initial scan payload is about 45% smaller over the wire; see [P7 measurements](../docs/ROADMAP.md#p7-review). Picture search retains the previous depth limit, while deeper folders remain browsable. Reload this tab to use the updated interface.
 
-**September 8 update:** PDF and HTML reports now appear in filename search (`pdf:` / `html:`), with accurate total counts and Load 200 More. HTML companion assets resolve within the report directory, and previews have response-level isolation. Document links preserve heading destinations; **Copy Hub Link** captures a reopenable URL. Failed refreshes keep the current page visible with Retry. A browser pass later that day confirmed all of this in Chrome and fixed the one defect it found: Back from a search result now returns to the results. Reload an existing tab to load these changes. See [P7 status and verification](../Docs/ROADMAP.md#p7-review) for delivered work and what is still unverified.
+**September 8 update:** PDF and HTML reports now appear in filename search (`pdf:` / `html:`), with accurate total counts and Load 200 More. HTML companion assets resolve within the report directory, and previews have response-level isolation. Document links preserve heading destinations; **Copy Hub Link** captures a reopenable URL. Failed refreshes keep the current page visible with Retry. A browser pass later that day confirmed all of this in Chrome and fixed the one defect it found: Back from a search result now returns to the results. Reload an existing tab to load these changes. See [P7 status and verification](../docs/ROADMAP.md#p7-review) for delivered work and what is still unverified.
 
 Markdown renders with the repo's own HTML header blocks intact (logo heroes, badge
 rows, centred titles), relative images resolved through the server, and relative links
@@ -275,7 +275,7 @@ folder."* — and **see what's indexed** opens the
 [scan status panel](#what-the-scan-is-doing), which lists the types that do make it in.
 
 An `.html` file used to need a parent folder literally named `artifacts`, `dashboards`,
-or `prototypes` to survive this filter at all (see [#31](../Docs/ROADMAP.md#31-dual-mode-html-viewer--artifacts-shelf)).
+or `prototypes` to survive this filter at all (see [#31](../docs/ROADMAP.md#31-dual-mode-html-viewer--artifacts-shelf)).
 That folder-name check still decides whether an `.html` file *additionally* gets
 collected onto the overview's Artifacts shelf — a curated surface for interactive
 dashboards specifically — but no longer decides whether it's visible in the tree at all.
@@ -546,7 +546,7 @@ copy actions stay live — the last known path is what you want when you go look
 
 Both lists live in `localStorage` in this browser, hold **paths and labels only**, and
 survive restarting the browser and the hub. They do not sync between browsers or machines —
-copy a Hub link for that. Full how-to: [`../Docs/BOOKMARKS.md`](../Docs/BOOKMARKS.md).
+copy a Hub link for that. Full how-to: [`../docs/BOOKMARKS.md`](../docs/BOOKMARKS.md).
 
 ## Settings
 

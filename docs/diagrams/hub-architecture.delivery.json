@@ -4,10 +4,10 @@
   "status": "current",
   "command": "deliver",
   "type": "architecture",
-  "input": "Docs/diagrams/hub-architecture.json",
-  "output": "Docs/diagrams/hub-architecture.html",
+  "input": "docs/diagrams/hub-architecture.json",
+  "output": "docs/diagrams/hub-architecture.html",
   "specification": {
-    "sha256": "a8843d84ec39dc4e7f395d404671ecfe19204cedf18152ea290521533e597a18",
+    "sha256": "e0f569729bc5a8deda8594fbf1caf66754f419bcc54abcc2e2d58989107f8498",
     "bytes": 11366
   },
   "artifact": {

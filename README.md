@@ -2,7 +2,7 @@
 <a id="html-design-top"></a>
 
 <p align="center">
-  <a href="Docs/README.md">
+  <a href="docs/README.md">
     <img src="Images/Public/project-hub-header.svg" alt="Project Hub brings workspaces, documents, and AI tools into one local browser." width="720">
   </a>
 </p>
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="Docs/README.md"><strong>Explore the docs »</strong></a>
+  <a href="docs/README.md"><strong>Explore the docs »</strong></a>
 </p>
 
 <p align="center">
@@ -27,7 +27,7 @@
   <a href="https://project-hub-demo.ai-automation-tools.dev"><img src="https://img.shields.io/badge/live-demo-5fd6a1?style=for-the-badge" alt="Live demo"></a>
   <a href="Project-Hub/README.md"><img src="https://img.shields.io/badge/runs-locally-0078D4?style=for-the-badge" alt="Runs locally"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2ea44f?style=for-the-badge" alt="MIT license"></a>
-  <a href="Docs/ROADMAP.md"><img src="https://img.shields.io/badge/plan-roadmap-8B5CF6?style=for-the-badge" alt="Project roadmap"></a>
+  <a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/plan-roadmap-8B5CF6?style=for-the-badge" alt="Project roadmap"></a>
   <a href="https://github.com/ai-automation-tools"><img src="https://img.shields.io/badge/org-ai--automation--tools-0078D4?style=for-the-badge&logo=github&logoColor=white" alt="ai-automation-tools"></a>
 </p>
 
@@ -116,8 +116,8 @@ server. Run tests with `npm test` from `Hub/`.
 | [**⚙️ Hub**](Hub/README.md) | Server, scanner, interface, and tests |
 | [**🚀 Project-Hub**](Project-Hub/README.md) | Launcher, configuration, and user manual |
 | [**📁 Projects**](Projects/_example/hub.config.json.example) | Example workspace config |
-| [**📚 Docs**](Docs/README.md) | Guides, roadmap, and design research |
-| [**🧭 Diagrams**](Docs/diagrams/README.md) | The architecture shown on the [homepage](https://project-hub.ai-automation-tools.dev/#architecture), interactive and linked to the code, plus how it stays in step with it |
+| [**📚 Docs**](docs/README.md) | Guides, roadmap, and design research |
+| [**🧭 Diagrams**](docs/diagrams/README.md) | The architecture shown on the [homepage](https://project-hub.ai-automation-tools.dev/#architecture), interactive and linked to the code, plus how it stays in step with it |
 | [**🌐 Demo**](Demo/README.md) | Fixture workspace and the build behind the hosted demo |
 | [**🧩 Scaffold skill**](Skills/project-hub-scaffold/SKILL.md) | Add workspaces or create a portable installation |
 | [**🖼️ Images**](Images/README.md) | Public screenshots and local design references |
@@ -156,7 +156,7 @@ Browser favorites sync, when switched on, reads the Edge, Chrome or Brave profil
 The published files carry no personal paths, hostnames or credentials — every example uses
 generic placeholders. **The commit history is a different question**, and one worth stating
 plainly rather than leaving to be discovered: earlier commits predate that cleanup and were
-never rewritten. See [public release notes](Docs/PUBLIC-RELEASE.md) for what that covers and
+never rewritten. See [public release notes](docs/PUBLIC-RELEASE.md) for what that covers and
 what it does not.
 
 ## 🔗 Related repositories
@@ -175,7 +175,7 @@ Part of the [**ai-automation-tools**](https://github.com/ai-automation-tools) or
   Built with Node.js and vanilla JavaScript · <a href="LICENSE">MIT license</a><br>
   <a href="Project-Hub/README.md">User manual</a> ·
   <a href="Skills/project-hub-scaffold/SKILL.md">Scaffold skill</a> ·
-  <a href="Docs/ROADMAP.md">Roadmap</a>
+  <a href="docs/ROADMAP.md">Roadmap</a>
 </p>
 
 <p align="right"><sub><a href="#readme-top">back to top</a></sub></p>

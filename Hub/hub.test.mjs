@@ -3,7 +3,7 @@
 // Deliberately small. It covers the two things that actually broke in production:
 // bytes that look fine in an editor but are not (the 2026-08-31 gzip and arrow bugs),
 // and the markdown renderer, which is the only place untrusted-ish input is parsed.
-// See ../Docs/ROADMAP.md for what is still open.
+// See ../docs/ROADMAP.md for what is still open.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';

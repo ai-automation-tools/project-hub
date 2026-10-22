@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Build and drift-check the hub architecture diagram (Docs/diagrams/).
+ * Build and drift-check the hub architecture diagram (docs/diagrams/).
  *
- * Docs/diagrams/hub-architecture.json is the only file to edit. Every component
+ * docs/diagrams/hub-architecture.json is the only file to edit. Every component
  * cites the code it describes (path + line range) at the commit pinned in
  * `meta.repository.revision`. A build renders it with Archify
  * (https://github.com/tt-a1i/archify) into hub-architecture.html (interactive;
@@ -37,7 +37,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const DIAGRAMS = join(ROOT, 'Docs', 'diagrams');
+const DIAGRAMS = join(ROOT, 'docs', 'diagrams');
 const STEM = 'hub-architecture';
 const KIND = 'architecture';
 const NAME = 'project-hub-diagram';

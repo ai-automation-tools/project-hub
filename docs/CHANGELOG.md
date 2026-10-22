@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-22
+
+- **Docs**: Rename the top-level `Docs/` folder to `docs/`, the org layout standard. GitHub paths are case-sensitive, so links written as `docs/...` used to 404. Links in the READMEs and `CLAUDE.md`, the `.gitignore` rules, the CI comments, `scripts/build-diagram.mjs` and the diagram's spec and receipt now point at `docs/`. Mentions of `Docs` folders in scanned workspaces, test fixtures and the demo are unchanged.
+
 ## 2026-10-19
 
 - **Docs**: Add a code-pinned [architecture diagram](diagrams/README.md) (Archify): server, scan payload, scanner, `resolveId()` gate, config loader, watcher, native launch, watchdog and demo build, each linked to the lines it describes. `scripts/build-diagram.mjs` builds it, copies it to `project-hub-site` for the homepage's new Architecture section, and `--check` reports drift; CI warns on it.

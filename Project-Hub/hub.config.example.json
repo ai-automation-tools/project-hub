@@ -8,7 +8,7 @@
   "//base": "Workspace drive root. Every id in the tree is a path relative to this.",
   "base": "D:/Work",
 
-  "//allowedHosts": "Optional. Extra Host names to answer to besides loopback, e.g. a tailscale serve MagicDNS name. See Docs/REMOTE-ACCESS.md.",
+  "//allowedHosts": "Optional. Extra Host names to answer to besides loopback, e.g. a tailscale serve MagicDNS name. See docs/REMOTE-ACCESS.md.",
   "allowedHosts": [],
 
   "favicon": { "glyph": "/", "ink": "#5fe3a1", "line": "#2f6b52" },

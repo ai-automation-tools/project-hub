@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Project Hub: one Node process on loopback",
-    "output": "Docs/diagrams/hub-architecture.html",
+    "output": "docs/diagrams/hub-architecture.html",
     "quality_profile": "showcase",
     "locale": "en",
     "repository": {

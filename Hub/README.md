@@ -67,7 +67,7 @@ node hub.mjs --config ..\Project-Hub\hub.config.json --scan   # writes scan.json
 | `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Pictures is a metadata-only root. Gzipped. |
 | `/api/stat` | Modification times for one folder's immediate children, keyed by name. On demand, for the list view. |
 | `/api/file?raw=1` | The same document as escaped source instead of rendered markdown — the view-source toggle. |
-| `/api/health` | Adds `readErrorPaths` — the last twelve failing paths and their errno, for the status panel. |
+| `/api/health` | Uptime, scan history, `readErrors`, `state`, and `readErrorPaths` — the last twelve failing paths and their errno, for the status panel. 503 when unwell. |
 | `/api/pictures?path=` | Immediate children of a Pictures folder, or a file and its ancestor path. |
 | `/api/pictures?action=search&q=&kind=&offset=&limit=` | Separate cached metadata search, up to 200 hits per page. Built only when requested. |
 | `/api/pictures?action=status` | Pictures cache/index version and read/build metrics. |
@@ -83,6 +83,7 @@ node hub.mjs --config ..\Project-Hub\hub.config.json --scan   # writes scan.json
 | `/api/roots` | `POST {dir, name, tint?}` mounts a folder as a shared root, `DELETE {name}` unmounts one. Applied live (scan lists, `resolveId()` gate, watcher) and written back to `sharedRoots` in the config. Same-origin **and** a loopback `Host` — an `allowedHosts` name is refused, so a tailnet device can browse but not widen what is served. Refuses drive roots, deny-listed folders, duplicates and the Pictures root. |
 | `/api/favorites` | `GET` the manual favorites, `PUT` `{roots}` to replace them. Same-origin only, JSON only, 5 MB cap, and the tree is rebuilt by `cleanTree()`. |
 | `/api/frameable?url=` | `{frameable}`, which says whether the site's headers allow a hub tab to frame it. Cached per URL, same-origin only. |
+| `/api/scan-settings` | `GET` the hub's default `maxDepth` and each workspace's own and effective depth. `PUT {maxDepth}` sets the default, `PUT {workspace, maxDepth}` one workspace (`null` clears it back to the default). Written to that config file and rescanned live. Same-origin **and** a loopback `Host`, like `/api/roots`; a workspace is named, never a path. |
 
 The watcher ignores three kinds of noise, all of which were measured driving real
 rescans: build output and git internals, the hub's own logs (`hub.log`, `watchdog.log`,
@@ -92,7 +93,6 @@ file event has not already said. That last one alone had the hub rescanning ever
 seconds forever, because one repo rewrites a state file twice a second. The rule lives in
 `ignoreWatchEvent()` and is covered by tests. Its one cost: a newly created *empty*
 directory does not appear until something else triggers a scan.
-| `/api/health` | Uptime, scan history, `readErrors`, `state`. 503 when unwell. |
 
 Every response carries a Content-Security-Policy and is refused unless the `Host` header
 is loopback or a name listed in `allowedHosts` ([remote access](../docs/REMOTE-ACCESS.md)).
@@ -338,6 +338,7 @@ favicon: there's only one process now) and one small config per project it mount
 | `favicon` | | `{ glyph, ink, line }` — one or two characters and two hex colors. The SVG is built server-side. There is exactly one favicon per process; it is not per-project. |
 | `allowedHosts` | | Exact hostnames the hub answers to besides loopback, e.g. a tailnet's MagicDNS name behind `tailscale serve`. Lowercase, no port, no wildcard. The bind stays `127.0.0.1`. See [remote access](../docs/REMOTE-ACCESS.md). |
 | `sharedRoots` | | `[{ name, dir, tint }]` — folders mounted next to every project. `tint` is any theme colour var and defaults to `var(--dimmer)`. A root named **`Pictures`** additionally turns on the picture library; without one those endpoints are inert. Also editable from **Settings → Folders** (see `/api/roots`), which rewrites only this key. |
+| `maxDepth` | | Default directory recursion for every workspace that sets none of its own, and for the shared roots: integer 1–32, default 10. Also editable from **Settings** (see `/api/scan-settings`). |
 
 > [!NOTE]
 > **`base` and `sharedRoots` are the only machine-specific values in the codebase.** They
@@ -456,10 +457,10 @@ almost always the right move instead.
 ## Tests
 
 ```powershell
-npm test          # node --test hub.test.mjs reports.test.mjs pictures.test.mjs
+npm test          # node --test hub.test.mjs reports.test.mjs pictures.test.mjs webmarks.test.mjs favorites.test.mjs
 ```
 
-Eighty-two tests, no framework or dependencies to install. Report and stat tests create and clean isolated temporary fixtures, including a junction-escape check.
+Ninety-six tests, no framework or dependencies to install. In a fresh clone they run against the example configs; once you copy a real `hub.config.json`, they also check that each workspace's `dir` exists, so an unedited workspace copy fails until it points somewhere real. Report and stat tests create and clean isolated temporary fixtures, including a junction-escape check.
 
 The September 9 additions are mostly of two shapes. **Pure logic**, testable with no DOM: the bookmark list (storage round-trips with junk and duplicate input, Recent's ordering, deduplication and cap, an unresolved entry surviving a scan and recovering when its file returns) and `folderStamps` (names not ids, immediate children only, `null` for a non-directory). **Wiring checks over `index.html` and `hub.mjs`**, which catch the thing a unit test cannot: that `/api/stat` still goes through `resolveId`, that a new scan still invalidates the timestamp cache, that `readErrors++` still has exactly one call site, that source view is still gated behind an explicit `raw=1`, that thumbnails are still lazy, that the arrow keys still yield to the tree and to text fields, and that no `localStorage` key outside the known set is ever written. Plus one HTTP test covering the SVG sandbox across all six fetch destinations.
 

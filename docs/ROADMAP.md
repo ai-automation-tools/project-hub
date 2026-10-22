@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-93_passing-8B5CF6?style=for-the-badge" alt="93 tests passing">
+  <img src="https://img.shields.io/badge/tests-96_passing-8B5CF6?style=for-the-badge" alt="96 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
@@ -62,8 +62,8 @@ marks one only Mike can do.
 ## 🚦 Public release
 
 - [x] CI green on push and PR: `test.yml` runs `npm test`, `demo.yml` builds and deploys the demo — done 2026-09-11: "Run the tests in CI"
-- [ ] README usage (quick start, `hub.config.json`, endpoints in `Hub/README.md`) verified against the real code from a clean clone
-- [ ] `SECURITY.md`, and a full-history secret scan that comes back clean
+- [x] README usage (quick start, `hub.config.json`, endpoints in `Hub/README.md`) verified against the real code from a clean clone — done 2026-10-20: fresh clone of `main` at `2d95461`, setup followed as written; 96/96 tests, `--scan`, `Start-Hub.ps1` and 13 endpoints answered as documented (403 on traversal and a foreign `Host`). Fixed the gaps it found: `/api/scan-settings` and the server-level `maxDepth` were undocumented, a stray `/api/health` row sat below the endpoint table, and the test counts had drifted
+- [ ] `SECURITY.md`, and a full-history secret scan that finds no credentials (decided 2026-10-22: personal references in early commits are the accepted caveat in `PUBLIC-RELEASE.md`, see [OPEN-QUESTIONS](OPEN-QUESTIONS.md))
 - [x] Licence chosen and `LICENSE` added — done 2026-09-09: MIT, in the initial commit
 - [x] Live at its URL: the demo at `https://project-hub.ai-automation-tools.dev`, built from the `Demo/Workspace/` fixture by `demo.yml` — done 2026-09-11
 

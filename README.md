@@ -107,7 +107,8 @@ Open `http://127.0.0.1:4273`, or the port you configured. Native file-opening ac
 are Windows-specific.
 
 To add a workspace, create another `Projects/<Name>/hub.config.json` and restart the
-server. Run tests with `npm test` from `Hub/`.
+server. Run tests with `npm test` from `Hub/`; once you have copied the configs, they also
+check that each workspace `dir` exists.
 
 ## 📂 Explore the project
 

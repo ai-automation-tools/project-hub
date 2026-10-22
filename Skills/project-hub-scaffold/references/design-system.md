@@ -245,7 +245,7 @@ product.
 
 The 2026-10-05 restyle (`obsidian`) changed shapes, type and the default scheme, not
 layout or behaviour; see Typography, Shapes and Color schemes above, and the
-`project-hub` repo's `Docs/REDESIGN.md` for the full record. The accent and the state
+`project-hub` repo's `docs/REDESIGN.md` for the full record. The accent and the state
 colour are separate tokens since then. The hub moves every viewer onto `obsidian` once on
 first load after the change (`hub.design` in `localStorage`); any scheme picked after that
 stands.

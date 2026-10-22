@@ -33,7 +33,7 @@ A search that includes Pictures gets a separate results section. Its metadata in
 
 The Pictures watcher invalidates only Pictures and emits a `pictures` SSE event. Directory metadata `change` notifications are ignored; file changes and directory `rename` events invalidate the cache, so new empty folders appear too. `/api/health` reports `pictures.state`, version, cache counts, read errors, and search build duration. The main scan's node count now excludes the lazy subtree; Pictures counts live in the separate status data once indexed.
 
-Measured on September 8: the ordinary payload fell from 118,220 to 40,191 nodes and from 1,675,465 to 921,701 gzip bytes. Fresh-scan directory walks fell from about 6.1 to 2.0 seconds; total scan time still varied with Git. The first image search on the final build took 1.384 seconds, with no image content read. See P7 measurements and limits (see the source checkout Docs/). Refresh an existing browser tab to load this client change.
+Measured on September 8: the ordinary payload fell from 118,220 to 40,191 nodes and from 1,675,465 to 921,701 gzip bytes. Fresh-scan directory walks fell from about 6.1 to 2.0 seconds; total scan time still varied with Git. The first image search on the final build took 1.384 seconds, with no image content read. See P7 measurements and limits (see the source checkout docs/). Refresh an existing browser tab to load this client change.
 
 ## Report browsing and recovery
 
@@ -53,11 +53,11 @@ share or bookmark.
 
 A failed refresh leaves the current page visible with a stale-data message and Retry. SSE reconnects also retry after a startup failure. File modification times now participate in the change signature, including same-size edits. `/api/health` exposes walk/Git/assembly/serialization/gzip timing fields under `lastScan.timings`.
 
-The September 8 work passed 52 tests plus 11 live HTTP checks and a browser verification pass that confirmed nine acceptance criteria in Chrome. Narrow-pane layout and connection recovery are still unverified. See the P7 shipping record (see the source checkout Docs/) for exact coverage and remaining work.
+The September 8 work passed 52 tests plus 11 live HTTP checks and a browser verification pass that confirmed nine acceptance criteria in Chrome. Narrow-pane layout and connection recovery are still unverified. See the P7 shipping record (see the source checkout docs/) for exact coverage and remaining work.
 
 ## Bookmarks and recents
 
-**How to use them: `../Docs/BOOKMARKS.md` (see the source checkout Docs/).** What follows is how they work.
+**How to use them: `../docs/BOOKMARKS.md` (see the source checkout docs/).** What follows is how they work.
 
 The sidebar has five views, and `#activity`, a VS Code-style icon row above the header, picks one of them: **Explorer** (`#tree`), **Bookmarks** (pinned by hand), **Recent** (automatic, 20 items), **Favorites** (`#webmarks`; see [Favorites](#favorites)) and **Settings** (`#settings`; see [Settings](#settings)). `setSideView()` sets `#app[data-side]`, CSS shows only the matching host, and `renderPins()` builds only the list that is visible. The view persists in `hub.side` and defaults to the Explorer. Clicking the active icon calls `setRail(true)`, and in the rail the icons stack vertically and reopen the sidebar on their view. The Bookmarks icon carries a count badge (`#bm-count`).
 
@@ -79,7 +79,7 @@ Renaming swaps the label for an input in place rather than calling `prompt()`, w
 
 The search box is also a proper combobox as of the same day: `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant`, and one `syncCombobox()` that assigns row ids at sync time so the arrow keys walk the document and Pictures listboxes as one contiguous sequence.
 
-Together the September 8–9 work passes **64 tests** plus the live HTTP and browser checks recorded in the P7 shipping record (see the source checkout Docs/).
+Together the September 8–9 work passes **64 tests** plus the live HTTP and browser checks recorded in the P7 shipping record (see the source checkout docs/).
 
 ## Settings
 

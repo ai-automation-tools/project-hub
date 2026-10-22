@@ -20,7 +20,7 @@ import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, 
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
-const HUB_DIRS = ['Project-Hub'];
+const HUB_DIRS = ['project-hub'];
 
 test('workspace scan depth can include deep images without widening other roots', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-repo-depth-'));

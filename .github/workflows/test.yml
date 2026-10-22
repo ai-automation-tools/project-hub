@@ -33,7 +33,7 @@ jobs:
           node-version: ${{ matrix.node }}
       # No lockfile and no dependencies — npm ci would have nothing to do.
       - run: npm test
-        working-directory: Hub
+        working-directory: hub
 
   demo-build:
     # The demo build is an integration test as much as a publishing step: it runs the real

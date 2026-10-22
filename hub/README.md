@@ -20,7 +20,7 @@ values. Every fix had to land three times — and when one bad edit corrupted a 
 broke all three servers at once and nobody noticed for weeks. That got the program down
 to one copy with three config folders (one process each). Since 2026-09-07 it's one
 process, period — `../Project-Hub` holds the server's own config, and each project it
-mounts gets a config folder of its own under `../Projects/`. See
+mounts gets a config folder of its own under `../projects/`. See
 [`../docs/ROADMAP.md`](../docs/ROADMAP.md) for both stories.
 
 ## Files
@@ -53,8 +53,8 @@ Normally you don't — each hub folder's `Start-Hub.ps1` shim does it for you. D
 
 ```powershell
 .\Start-Hub.ps1 -ConfigDir ..\Project-Hub
-node hub.mjs --config ..\Project-Hub\hub.config.json
-node hub.mjs --config ..\Project-Hub\hub.config.json --scan   # writes scan.json into that folder
+node hub.mjs --config ..\project-hub\hub.config.json
+node hub.mjs --config ..\project-hub\hub.config.json --scan   # writes scan.json into that folder
 ```
 
 `--port` overrides the configured port. Requires Node 18.17+ and `git` on PATH.
@@ -313,7 +313,7 @@ that is not what you want.
 Since 2026-09-07 there are two config shapes, not one — the server's own (port, title,
 favicon: there's only one process now) and one small config per project it mounts.
 
-**The server config** (e.g. `../Project-Hub/hub.config.json`):
+**The server config** (e.g. `../project-hub/hub.config.json`):
 
 ```json
 {
@@ -344,12 +344,12 @@ favicon: there's only one process now) and one small config per project it mount
 > **`base` and `sharedRoots` are the only machine-specific values in the codebase.** They
 > used to be `const`s in `hub.mjs`, which meant a checkout on another disk was a source
 > edit. Both real configs are gitignored — copy `hub.config.example.json` and
-> `../Projects/_example/hub.config.json.example` and point them at your own paths.
+> `../projects/_example/hub.config.json.example` and point them at your own paths.
 
 The config folder is also the server's own directory — `hub.log`, `hub.err.log` and
 `scan.json` are written there.
 
-**A project config** (e.g. `../Projects/Example_Workspace/hub.config.json`):
+**A project config** (e.g. `../projects/Example_Workspace/hub.config.json`):
 
 ```json
 {
@@ -371,7 +371,7 @@ validates a project one (`name`+`dir` required, no `port`) — both share the sa
 dir-normalization and `repoScope` XOR-checking helpers, so the two validation paths can't
 quietly drift apart.
 
-`discoverProjects()` finds every `Projects/<name>/hub.config.json` at startup (sorted
+`discoverProjects()` finds every `projects/<name>/hub.config.json` at startup (sorted
 alphabetically by folder name) and builds one node per project — but instead of putting
 those at the top level, `scanTree()` nests them all under one synthetic `@projects` node
 (`kind: 'projects'`) so the tree shows a single **Projects** folder rather than three more
@@ -439,11 +439,11 @@ instead of trying to load them as text.
 
 ## Adding a project
 
-1. Make a folder under `../Projects/`, named after the project.
+1. Make a folder under `../projects/`, named after the project.
 2. Write a `hub.config.json` in it — `name`, `dir`, and `repoScope` if it needs one. No
    port, no favicon — those belong to the one server config, not to a project.
 3. `npm test` — the suite checks the new config parses and its `dir` exists.
-4. `.\Start-Hub.ps1 -Restart` from `../Project-Hub` (the server reads `Projects/` once at
+4. `.\Start-Hub.ps1 -Restart` from `../Project-Hub` (the server reads `projects/` once at
    startup, so a new project needs a restart to be picked up — same as any other
    `hub.mjs` change).
 
@@ -484,7 +484,7 @@ bypass harmless; the filter is what stops there being one.
 <p align="center">
   <a href="../README.md">← Project Hub</a> ·
   <a href="../docs/ROADMAP.md">Roadmap</a> ·
-  <a href="../Project-Hub/README.md">Project Hub →</a>
+  <a href="../project-hub/README.md">Project Hub →</a>
 </p>
 
 <p align="right"><sub><a href="#hub-top">back to top</a></sub></p>

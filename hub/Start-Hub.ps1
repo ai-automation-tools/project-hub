@@ -5,8 +5,8 @@
 .DESCRIPTION
     The launcher for the one Project Hub server. The port, page title and favicon come
     from the hub.config.json in -ConfigDir (normally ..\Project-Hub); which projects it
-    mounts comes from ..\Projects\<name>\hub.config.json, discovered at startup. This
-    script and ..\Hub\hub.mjs are shared; the config folder keeps a small shim that calls
+    mounts comes from ..\projects\<name>\hub.config.json, discovered at startup. This
+    script and ..\hub\hub.mjs are shared; the config folder keeps a small shim that calls
     this with its own directory, so the VS Code folderOpen tasks are unchanged.
 
     If the port is already in use by this same server the existing process is reused
@@ -86,7 +86,7 @@ try {
     $ConfigDir = (Resolve-Path -LiteralPath $ConfigDir).Path
     $configFile = Join-Path $ConfigDir 'hub.config.json'
     if (-not (Test-Path -LiteralPath $configFile)) {
-        throw "No hub.config.json in $ConfigDir. It needs {port, title, favicon} -- see ..\Project-Hub\hub.config.json. To mount a project, add a config under ..\Projects\<name>\ instead, not here."
+        throw "No hub.config.json in $ConfigDir. It needs {port, title, favicon} -- see ..\project-hub\hub.config.json. To mount a project, add a config under ..\projects\<name>\ instead, not here."
     }
 
     $config = Get-Content -LiteralPath $configFile -Raw | ConvertFrom-Json

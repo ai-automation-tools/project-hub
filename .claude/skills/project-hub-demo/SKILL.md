@@ -2,31 +2,31 @@
 name: project-hub-demo
 description: >-
   Work on Project Hub's hosted demo at project-hub-demo.ai-automation-tools.dev — the capture
-  build in `Demo/build-demo.mjs` that stands the real hub up against the `Demo/Workspace`
-  fixture, crawls every response and writes flat files into `Demo/site`, plus the
-  `Demo/static/demo.js` fetch shim, the `sub()` literal assertions against `Hub/index.html`,
+  build in `demo/build-demo.mjs` that stands the real hub up against the `demo/Workspace`
+  fixture, crawls every response and writes flat files into `demo/site`, plus the
+  `demo/static/demo.js` fetch shim, the `sub()` literal assertions against `hub/index.html`,
   and the Pages workflow. Use for "the demo build failed with expected 1x … found 0", "add a
   workspace / repo / document to the fixture", "the demo shows a stale tree", "an image or
   PDF 404s on the demo but works locally", "slug collision", "the demo deploy / CNAME /
-  GitHub Pages", "captured N API responses is too low in CI", and any edit to Demo/ or
+  GitHub Pages", "captured N API responses is too low in CI", and any edit to demo/ or
   .github/workflows/demo.yml.
 ---
 
 # The hosted demo
 
-**Nothing in `Demo/` reimplements the hub.** The build runs the real `Hub/hub.mjs` against a
+**Nothing in `demo/` reimplements the hub.** The build runs the real `hub/hub.mjs` against a
 fictional workspace, crawls every response it produces, and writes those out beside an
-unmodified copy of `Hub/index.html`. That is the entire design, and the property worth
+unmodified copy of `hub/index.html`. That is the entire design, and the property worth
 protecting: **if the scanner changes, the demo changes with it, or the build fails loudly.**
 
 Which is why the demo build is wired into `test.yml` as an integration test, not just into
 the deploy. A red demo build usually means the interface moved, not that the demo broke.
 
 ```sh
-node Demo/build-demo.mjs          # Node 18.17+ and Git. --keep leaves Demo/.build to inspect
+node demo/build-demo.mjs          # Node 18.17+ and Git. --keep leaves demo/.build to inspect
 ```
 
-Both `Demo/.build` and `Demo/site` are gitignored. Nothing generated is committed.
+Both `demo/.build` and `demo/site` are gitignored. Nothing generated is committed.
 
 ---
 
@@ -52,7 +52,7 @@ Two details in phase 1-3 that are load-bearing:
 
 ## 2. The literal contract with index.html
 
-Phase 5 rewrites `Hub/index.html` through `sub(find, replace, expected)`, which **throws if
+Phase 5 rewrites `hub/index.html` through `sub(find, replace, expected)`, which **throws if
 the match count is not exactly `expected`**:
 
 | Literal | × | Why |
@@ -96,7 +96,7 @@ whenever this changes.
 
 ## 4. Changing the fixture
 
-Ordinary markdown and config under `Demo/Workspace/` and `Demo/Home/`, read by the same
+Ordinary markdown and config under `demo/Workspace/` and `demo/Home/`, read by the same
 scanner that reads a user's. Rebuild to see it.
 
 - **New workspace** → a folder under `Workspace/Projects/` **plus** an entry in
@@ -113,9 +113,9 @@ scanner that reads a user's. Rebuild to see it.
 
 ## 5. Publishing
 
-`.github/workflows/demo.yml` runs the same command on any push to `main` touching `Hub/` or
-`Demo/`, and deploys `Demo/site` to Pages (`concurrency: pages`, a queued run supersedes an
-older one). The domain comes from `Demo/static/CNAME`; **Pages must be set to "GitHub
+`.github/workflows/demo.yml` runs the same command on any push to `main` touching `hub/` or
+`demo/`, and deploys `demo/site` to Pages (`concurrency: pages`, a queued run supersedes an
+older one). The domain comes from `demo/static/CNAME`; **Pages must be set to "GitHub
 Actions" as its source** in repo settings or the workflow has nowhere to publish.
 `.nojekyll` is written because Jekyll would drop underscore-prefixed paths and add nothing.
 
@@ -127,20 +127,20 @@ happily writes an empty site because the fixture stopped being found.
 
 ## 6. Checklist
 
-1. `node Demo/build-demo.mjs` locally before pushing anything that touches `Hub/` or `Demo/`.
+1. `node demo/build-demo.mjs` locally before pushing anything that touches `hub/` or `demo/`.
 2. A `sub()` failure → fix the `sub()` call, not the assertion count alone; confirm the
    rewritten interface still works.
 3. New file extension in the fixture → `TEXT`/`BINARY` in the build **and** `DOC_FILE` /
    `kindOfFile()` in `hub.mjs`, or the node captures nothing.
 4. New workspace or repo → the folder **and** its `PROJECT_CONFIGS` / `REPOS` row.
-5. Serve `Demo/site` with a static server to check it — `file://` cannot work, the shim
+5. Serve `demo/site` with a static server to check it — `file://` cannot work, the shim
    answers root-relative paths.
 6. `--keep` to inspect `.build` when the capture looks wrong.
-7. Changed what the demo can or cannot do → update the table in `Demo/README.md`.
+7. Changed what the demo can or cannot do → update the table in `demo/README.md`.
 
 ## 7. Anti-patterns
 
-- **Hand-editing anything in `Demo/site`.** It is generated and gitignored; fix the build.
+- **Hand-editing anything in `demo/site`.** It is generated and gitignored; fix the build.
 - **Faking a response the hub never produced.** The capture's whole value is that it came
   from the real scanner.
 - **Loosening a `sub()` count to make the build pass.** That assertion is the regression test.
@@ -157,4 +157,4 @@ happily writes an empty site because the fixture stopped being found.
 | Phase-by-phase notes, the manifest format, failure messages | [`references/build-and-capture.md`](references/build-and-capture.md) |
 | The literals this build rewrites, and who owns them | the `project-hub-client` skill |
 | `DOC_FILE` / `kindOfFile` — what is capturable at all | the `project-hub-scan` skill |
-| What the demo claims to be | `Demo/README.md` |
+| What the demo claims to be | `demo/README.md` |

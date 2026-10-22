@@ -28,10 +28,10 @@ $source = (Resolve-Path -LiteralPath $HubDesignRoot).Path
 $engineFiles = @('hub.mjs','index.html','navigation.mjs','open-native.mjs','pictures.mjs',
     'pictures-client.mjs','reports.mjs','webmarks.mjs','favorites.mjs','hub.test.mjs','pictures.test.mjs','reports.test.mjs','webmarks.test.mjs','favorites.test.mjs',
     'package.json','Start-Hub.ps1','Watch-Hubs.ps1','run-watchdog-hidden.vbs')
-$required = @('Hub/hub.mjs', 'Project-Hub/Start-Hub.ps1')
+$required = @('hub/hub.mjs', 'project-hub/Start-Hub.ps1')
 if ($Standalone) {
-    $required = @($engineFiles | ForEach-Object { 'Hub/' + $_ }) + @('LICENSE',
-        'Project-Hub/Start-Hub.ps1','Project-Hub/hub.config.example.json','Projects/_example/hub.config.json.example')
+    $required = @($engineFiles | ForEach-Object { 'hub/' + $_ }) + @('LICENSE',
+        'project-hub/Start-Hub.ps1','project-hub/hub.config.example.json','projects/_example/hub.config.json.example')
 }
 foreach ($file in $required) {
     if (-not (Test-Path -LiteralPath (Join-Path $source $file) -PathType Leaf)) { throw "Missing source: $file" }
@@ -45,14 +45,14 @@ if ($Standalone) {
     foreach ($key in 'TargetDir','Base','Port','Title','Glyph','Ink','Line') {
         if ($PSBoundParameters.ContainsKey($key)) { throw "$key applies only to -Standalone." }
     }
-    $serverConfig = Join-Path $source 'Project-Hub/hub.config.json'
-    if (-not (Test-Path -LiteralPath $serverConfig)) { throw 'Configure Project-Hub/hub.config.json first.' }
+    $serverConfig = Join-Path $source 'project-hub/hub.config.json'
+    if (-not (Test-Path -LiteralPath $serverConfig)) { throw 'Configure project-hub/hub.config.json first.' }
     $null = Get-Content -LiteralPath $serverConfig -Raw | ConvertFrom-Json
     $destination = $source
 }
-$projectDir = Join-Path $destination "Projects/$Name"
+$projectDir = Join-Path $destination "projects/$Name"
 if (Test-Path -LiteralPath $projectDir) { throw 'Project destination already exists.' }
-$projectsRoot = Join-Path $destination 'Projects'
+$projectsRoot = Join-Path $destination 'projects'
 if (Test-Path -LiteralPath $projectsRoot) {
     foreach ($folder in Get-ChildItem -LiteralPath $projectsRoot -Directory) {
         $file = Join-Path $folder.FullName 'hub.config.json'
@@ -75,7 +75,7 @@ if ($Standalone) {
     $server = [ordered]@{ name = 'Portfolio'; port = $Port; title = $Title
         base = (Resolve-Path -LiteralPath $Base).Path.Replace('\','/').TrimEnd('/')
         sharedRoots = @(); favicon = @{ glyph=$Glyph; ink=$Ink; line=$Line } }
-    $server | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $destination 'Project-Hub/hub.config.json') -Encoding utf8NoBOM
+    $server | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $destination 'project-hub/hub.config.json') -Encoding utf8NoBOM
     @('hub.config.json','scan.json','*.log','*.log.*','node_modules/','.env','.env.*','!.env.example',
       '*.key','*.pem','.vscode/','*.code-workspace') |
         Set-Content -LiteralPath (Join-Path $destination '.gitignore') -Encoding utf8NoBOM
@@ -83,4 +83,4 @@ if ($Standalone) {
 New-Item -ItemType Directory -Force -Path $projectDir | Out-Null
 $config | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $projectDir 'hub.config.json') -Encoding utf8NoBOM
 Write-Host "Workspace configured: $projectDir"
-Write-Host "Run npm test in $destination/Hub, then restart $destination/Project-Hub/Start-Hub.ps1 and verify health and the browser."
+Write-Host "Run npm test in $destination/hub, then restart $destination/project-hub/Start-Hub.ps1 and verify health and the browser."

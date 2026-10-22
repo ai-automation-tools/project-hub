@@ -33,7 +33,7 @@ and after that the hub remembers the last view.
 
 This page covers the hub's own bookmarks, which pin files and folders. The fourth icon, the star,
 is a different thing: it holds favorite websites, the hub's own list or your browser's. See the
-[user manual](../Project-Hub/README.md#favorites).
+[user manual](../project-hub/README.md#favorites).
 
 ---
 
@@ -164,6 +164,6 @@ backlog item ([P7-20](./ROADMAP.md#p7-review)), not something bookmarks will gro
 <p align="center">
   <a href="#bookmarks-top">↑ top</a> ·
   <a href="./ROADMAP.md">Roadmap</a> ·
-  <a href="../Hub/README.md">Hub source</a> ·
+  <a href="../hub/README.md">Hub source</a> ·
   <a href="../README.md">Project Hub</a>
 </p>

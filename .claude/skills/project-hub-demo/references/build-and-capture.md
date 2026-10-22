@@ -1,18 +1,18 @@
 # The demo build, phase by phase
 
-`Demo/build-demo.mjs`, ~340 lines, no dependencies. `PORT` is 4399 so it never collides with
+`demo/build-demo.mjs`, ~340 lines, no dependencies. `PORT` is 4399 so it never collides with
 a hub running on 4273. Everything below is in that file unless noted.
 
 ## Layout
 
 | Path | Committed | What |
 |:---|:-:|:---|
-| `Demo/Workspace/` | yes | The scanned base — 3 workspaces, 2 shared roots (`Documents`, `Automations`) |
-| `Demo/Home/` | yes | A fictional user home, so **User CLIs** shows demo skills |
-| `Demo/static/demo.js` | yes | The fetch shim |
-| `Demo/static/CNAME` | yes | The custom domain, copied into the site |
-| `Demo/.build/` | no | Staging: `workspace/`, `home/`, `hub/`, `origins/`, `gitconfig` |
-| `Demo/site/` | no | The published output |
+| `demo/Workspace/` | yes | The scanned base — 3 workspaces, 2 shared roots (`Documents`, `Automations`) |
+| `demo/Home/` | yes | A fictional user home, so **User CLIs** shows demo skills |
+| `demo/static/demo.js` | yes | The fetch shim |
+| `demo/static/CNAME` | yes | The custom domain, copied into the site |
+| `demo/.build/` | no | Staging: `workspace/`, `home/`, `hub/`, `origins/`, `gitconfig` |
+| `demo/site/` | no | The published output |
 
 ## Captured output
 
@@ -21,8 +21,8 @@ a hub running on 4273. Everything below is in that file unless noted.
 | `site/api/NNNN.json` | One recorded response, numbered in crawl order |
 | `site/api/manifest.json` | `keyOf(pathname, params)` → file. The shim's whole index |
 | `site/files/<slug>` | Binary assets, named by `slug(id)` |
-| `site/index.html` | `Hub/index.html` after the `sub()` rewrites |
-| `site/navigation.mjs`, `site/pictures-client.mjs`, `site/favorites.mjs` | Copied byte-for-byte from `Hub/`. Every module `index.html` imports must be on this list, or the demo page fails to load |
+| `site/index.html` | `hub/index.html` after the `sub()` rewrites |
+| `site/navigation.mjs`, `site/pictures-client.mjs`, `site/favorites.mjs` | Copied byte-for-byte from `hub/`. Every module `index.html` imports must be on this list, or the demo page fails to load |
 | `site/demo.js`, `site/CNAME`, `site/.nojekyll` | The shim, the domain, the Jekyll opt-out |
 
 ## The crawl
@@ -54,14 +54,14 @@ everywhere else in the repo. Ids stay relative, so only the displayed string cha
 | `hub did not come up on http://127.0.0.1:4399` | 30s of `/api/health` polling failed. Run with `--keep` and start the hub on the staged config by hand |
 | CI: `captured N` with `test "$captured" -gt 100` failing | The fixture was not found; the site is empty |
 
-`clear()` empties `Demo/site` rather than removing it — a shell or editor sitting in the
+`clear()` empties `demo/site` rather than removing it — a shell or editor sitting in the
 output folder holds a handle on the directory and `rm` then fails with `EPERM`.
 
 ## Local preview
 
 ```sh
-node Demo/build-demo.mjs
-npx serve Demo/site        # any static server; file:// cannot work
+node demo/build-demo.mjs
+npx serve demo/site        # any static server; file:// cannot work
 ```
 
 The shim answers root-relative paths, so the site must be served from a root.

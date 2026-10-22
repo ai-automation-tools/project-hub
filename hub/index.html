@@ -1079,8 +1079,8 @@ function showFatal(err) {
     ? `In VS Code:  Ctrl+Shift+P  ->  "Simple Browser: Show"  ->  ${url}\n`
       + `A static preview (Live Preview / Live Server / file://) cannot work here.\n\n`
       + `If nothing is listening yet, start it first:\n`
-      + `  cd Project-Hub\n  .\\Start-Hub.ps1`
-    : `  cd Project-Hub\n  .\\Start-Hub.ps1 -Restart`;
+      + `  cd project-hub\n  .\\Start-Hub.ps1`
+    : `  cd project-hub\n  .\\Start-Hub.ps1 -Restart`;
   box.append(pre);
   page.append(box);
 

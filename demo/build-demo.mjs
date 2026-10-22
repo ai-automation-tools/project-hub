@@ -4,13 +4,13 @@
  *
  * Project Hub is a local server that reads a real filesystem, so a hosted demo cannot be
  * the real thing. This builds the next closest: it stands the *actual* hub up against the
- * fixture workspace in `Demo/Workspace`, crawls every API response it produces, and writes
+ * fixture workspace in `demo/Workspace`, crawls every API response it produces, and writes
  * them out as flat files next to an unmodified copy of the interface.
  *
  * Nothing here reimplements the scanner. If the scanner changes, the demo changes with it.
  *
- * Usage:  node Demo/build-demo.mjs [--keep]
- *         --keep  leave Demo/.build in place afterwards (for debugging the fixture)
+ * Usage:  node demo/build-demo.mjs [--keep]
+ *         --keep  leave demo/.build in place afterwards (for debugging the fixture)
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -115,10 +115,10 @@ const HOME = path.join(BUILD, 'home');
 fs.cpSync(path.join(HERE, 'Workspace'), WORKSPACE, { recursive: true });
 fs.cpSync(path.join(HERE, 'Home'), HOME, { recursive: true });
 
-// The hub finds its projects at `<config folder>/../Projects`, so the generated config set
-// mirrors the layout the repo's own Project-Hub/ + Projects/ pair uses.
+// The hub finds its projects at `<config folder>/../projects`, so the generated config set
+// mirrors the layout the repo's own project-hub/ + projects/ pair uses.
 const HUB_ROOT = path.join(BUILD, 'hub');
-write(path.join(HUB_ROOT, 'Project-Hub', 'hub.config.json'), JSON.stringify({
+write(path.join(HUB_ROOT, 'project-hub', 'hub.config.json'), JSON.stringify({
   ...SERVER_CONFIG,
   base: WORKSPACE.replace(/\\/g, '/'),
   sharedRoots: SERVER_CONFIG.sharedRoots.map((r) => ({
@@ -126,7 +126,7 @@ write(path.join(HUB_ROOT, 'Project-Hub', 'hub.config.json'), JSON.stringify({
   })),
 }, null, 2));
 for (const p of PROJECT_CONFIGS) {
-  write(path.join(HUB_ROOT, 'Projects', p.name, 'hub.config.json'), JSON.stringify({
+  write(path.join(HUB_ROOT, 'projects', p.name, 'hub.config.json'), JSON.stringify({
     name: p.name,
     dir: path.join(WORKSPACE, 'Projects', p.name).replace(/\\/g, '/'),
     repoScope: p.repoScope,
@@ -172,9 +172,9 @@ for (const r of REPOS) {
 }
 
 // ── 3. run the real hub against it ─────────────────────────────────────────
-const CONFIG = path.join(HUB_ROOT, 'Project-Hub', 'hub.config.json');
+const CONFIG = path.join(HUB_ROOT, 'project-hub', 'hub.config.json');
 log('starting hub on', PORT, '…');
-const hub = spawn(process.execPath, [path.join(REPO, 'Hub', 'hub.mjs'), '--config', CONFIG], {
+const hub = spawn(process.execPath, [path.join(REPO, 'hub', 'hub.mjs'), '--config', CONFIG], {
   // The scanner reads `os.homedir()` for the user-scope CLI roots. Pointing it at the
   // fixture home is what makes the "User CLIs" branch show demo skills rather than yours.
   env: { ...process.env, HOME, USERPROFILE: HOME },
@@ -286,7 +286,7 @@ try {
 
   // ── 5. the interface, unmodified except where it must reach the server ───
   for (const f of ['navigation.mjs', 'pictures-client.mjs', 'favorites.mjs']) {
-    fs.copyFileSync(path.join(REPO, 'Hub', f), path.join(SITE, f));
+    fs.copyFileSync(path.join(REPO, 'hub', f), path.join(SITE, f));
   }
   fs.copyFileSync(path.join(HERE, 'static', 'demo.js'), path.join(SITE, 'demo.js'));
   if (fs.existsSync(path.join(HERE, 'static', 'CNAME'))) {
@@ -296,7 +296,7 @@ try {
   // an underscore and adds nothing this site wants.
   write(path.join(SITE, '.nojekyll'), '');
 
-  let html = fs.readFileSync(path.join(REPO, 'Hub', 'index.html'), 'utf8');
+  let html = fs.readFileSync(path.join(REPO, 'hub', 'index.html'), 'utf8');
 
   /** Replace an exact literal, failing the build if the source no longer contains it. */
   const sub = (find, replace, expected) => {
@@ -327,7 +327,7 @@ try {
   sub('<script type="module">', '<script src="/demo.js"></script>\n<script type="module">', 1);
 
 
-  // Consent gate, injected here rather than in Hub/index.html because it belongs to the
+  // Consent gate, injected here rather than in hub/index.html because it belongs to the
   // hosted demo and not to the hub: a local hub serves one person their own filesystem,
   // has no third party in it, and should not be reaching out to a CDN to say so.
   // Shared copy lives at ai-automation-tools.dev/consent.js.

@@ -1,7 +1,7 @@
 ---
 name: project-hub-client
 description: >-
-  Work on Project Hub's interface — the single-file client in `Hub/index.html`: the
+  Work on Project Hub's interface — the single-file client in `hub/index.html`: the
   `renderPage()` kind→view dispatch, the nine `data-theme` blocks and the CSS-variable
   contract every surface colour comes from, the `S` state object and `reindex()`, hash
   routes via `navigation.mjs`, the localStorage keys, and the `%TITLE%`/`%FAVICON%`/
@@ -147,7 +147,7 @@ Opening `index.html` over `file://` or a static preview serves the shell but not
 working; it is the first thing a new user hits.
 
 > [!WARNING]
-> **`Demo/build-demo.mjs` rewrites exact string literals in this file** and asserts the
+> **`demo/build-demo.mjs` rewrites exact string literals in this file** and asserts the
 > match count. Editing the `/api/raw?path=` / `/api/preview?path=` call sites, the
 > `<script type="module">` tag or a placeholder will fail the demo build in CI — which is
 > the point. Fix the `sub()` call in the same commit; see the `project-hub-demo` skill.
@@ -162,8 +162,8 @@ working; it is the first thing a new user hits.
 4. Clickable → `activate()`. Text → `textContent`. Never `innerHTML` on scan data.
 5. Hold ids, not nodes. Durable UI state on `S`. Async appends check `isConnected`.
 6. New `<script>` → `nonce="%NONCE%"`.
-7. Touched a literal the demo rewrites → update `sub()` in `Demo/build-demo.mjs`.
-8. `npm test` from `Hub/` — the byte-level control-character test covers `index.html`, and
+7. Touched a literal the demo rewrites → update `sub()` in `demo/build-demo.mjs`.
+8. `npm test` from `hub/` — the byte-level control-character test covers `index.html`, and
    it exists because scripted edits corrupted this file three times.
 9. Load the page, rescan, resize the sidebar, follow a deep link, hit back.
 

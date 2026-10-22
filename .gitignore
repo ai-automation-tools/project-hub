@@ -1,9 +1,9 @@
 # Local configuration: publish examples only.
 hub.config.json
-/Projects/*
-!/Projects/_example/
-/Projects/_example/*
-!/Projects/_example/hub.config.json.example
+/projects/*
+!/projects/_example/
+/projects/_example/*
+!/projects/_example/hub.config.json.example
 
 # Runtime indexes, logs, caches and test output contain local paths/content.
 scan.json
@@ -42,16 +42,16 @@ secrets*.json
 *.code-workspace
 
 # Private original design exports and screenshots (retained locally).
-/Src/*
-!/Src/README.md
-/Images/*
-!/Images/README.md
-!/Images/Public/
-/Images/Public/*
-!/Images/Public/README.md
-!/Images/Public/project-hub-header.svg
-!/Images/Public/project-overview.png
-!/Images/Public/document-reader.png
+/src/*
+!/src/README.md
+/images/*
+!/images/README.md
+!/images/Public/
+/images/Public/*
+!/images/Public/README.md
+!/images/Public/project-hub-header.svg
+!/images/Public/project-overview.png
+!/images/Public/document-reader.png
 /Zip/
 *.zip
 *.bak
@@ -63,12 +63,12 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# Demo site: the fixture under Demo/ is published on purpose, so the general rules above
+# Demo site: the fixture under demo/ is published on purpose, so the general rules above
 # (agent configs, local hub configs) must not swallow it. The build output is generated.
-/Demo/.build/
-/Demo/site/
-!/Demo/**/.mcp.json
-!/Demo/**/.codex/config.toml
+/demo/.build/
+/demo/site/
+!/demo/**/.mcp.json
+!/demo/**/.codex/config.toml
 
 # Machine-specific runbooks (tailnet names, device IPs).
 /docs/Local/

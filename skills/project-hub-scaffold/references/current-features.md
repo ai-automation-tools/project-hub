@@ -1,6 +1,6 @@
 # Current engine features
 
-Reference snapshot: 2026-09-09. The source checkout `Hub/README.md` remains authoritative.
+Reference snapshot: 2026-09-09. The source checkout `hub/README.md` remains authoritative.
 
 ## Sidebar context menu
 
@@ -41,7 +41,7 @@ PDF and HTML files have their own searchable types. Use `pdf:`, `html:`, or `ima
 
 PDFs use the browser's native iframe viewer, with Open and Download when the browser cannot render them. HTML previews resolve companion files through a signed directory route; nested `charts/`, scripts, styles, fonts, and JSON work within that directory. Parent-directory escapes and root-relative assets are not supported. HTML/SVG responses enforce a sandbox even when opened directly; signed preview URLs expire on server restart, so bookmark the stable Hub link instead.
 
-Document links retain heading fragments, and Copy Hub Link preserves the selected heading. Old `#Projects/...` links still work; section destinations use `#<encoded-file-id>?heading=<encoded-heading>`.
+Document links retain heading fragments, and Copy Hub Link preserves the selected heading. Old `#projects/...` links still work; section destinations use `#<encoded-file-id>?heading=<encoded-heading>`.
 
 A search has its own route too, so Back returns to the results you came from rather than the
 document you were on before them. Searching sets `#?q=<encoded-query>`, adding `scoped=1` when the

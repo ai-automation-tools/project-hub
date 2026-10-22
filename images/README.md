@@ -17,4 +17,4 @@ files listed in `Public/` are included in Git.
 
 ---
 
-<p align="center"><a href="../README.md">← Project Hub</a> · <a href="../Src/README.md">Design references</a></p>
+<p align="center"><a href="../README.md">← Project Hub</a> · <a href="../src/README.md">Design references</a></p>

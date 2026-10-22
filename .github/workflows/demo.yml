@@ -1,13 +1,13 @@
 name: Demo site
 
-# Builds Demo/site by running the real hub against the fixture workspace, then publishes
+# Builds demo/site by running the real hub against the fixture workspace, then publishes
 # it to GitHub Pages at project-hub-demo.ai-automation-tools.dev.
 on:
   push:
     branches: [main]
     paths:
-      - 'Hub/**'
-      - 'Demo/**'
+      - 'hub/**'
+      - 'demo/**'
       - '.github/workflows/demo.yml'
   workflow_dispatch:
 
@@ -31,10 +31,10 @@ jobs:
           node-version: '22'
       # The fixture repos are created by the build itself, with their own identity and
       # their own git config — nothing here needs the runner's.
-      - run: node Demo/build-demo.mjs
+      - run: node demo/build-demo.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: Demo/site
+          path: demo/site
 
   deploy:
     needs: build

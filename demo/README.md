@@ -20,8 +20,8 @@ fails loudly.
 
 | | |
 |:---|:---|
-| The interface | The real `Hub/index.html`, byte-for-byte apart from asset URLs the build rewrites |
-| The scan payload | Produced by the real `Hub/hub.mjs` against the fixture |
+| The interface | The real `hub/index.html`, byte-for-byte apart from asset URLs the build rewrites |
+| The scan payload | Produced by the real `hub/hub.mjs` against the fixture |
 | Git state | Real repositories, initialised at build time — the `clean`/`dirty`/`ahead`/`behind` column is genuine `git status` output |
 | The content | Invented. Every workspace, repo, person and domain in it is fictional |
 | Live updates | Absent. There is no server to stream changes from, so the event stream is never opened |
@@ -50,21 +50,21 @@ since a table where every row says `clean` demonstrates nothing.
 ## Build it
 
 ```sh
-node Demo/build-demo.mjs
+node demo/build-demo.mjs
 ```
 
-Needs Node 18.17+ and Git. It stages the fixture in `Demo/.build`, initialises the
-fixture repositories, starts the hub on port 4399, crawls it, and writes `Demo/site`.
+Needs Node 18.17+ and Git. It stages the fixture in `demo/.build`, initialises the
+fixture repositories, starts the hub on port 4399, crawls it, and writes `demo/site`.
 Both folders are ignored; nothing generated is committed. Pass `--keep` to leave
-`Demo/.build` behind when you want to inspect what was scanned.
+`demo/.build` behind when you want to inspect what was scanned.
 
-To look at the result before pushing, serve `Demo/site` with any static server — opening
+To look at the result before pushing, serve `demo/site` with any static server — opening
 `index.html` over `file://` will not work, because the shim answers root-relative paths.
 
 ## Publishing
 
 `.github/workflows/demo.yml` runs the same command on every push to `main` that touches
-`Hub/` or `Demo/`, and deploys `Demo/site` to GitHub Pages. The domain is set by
+`hub/` or `demo/`, and deploys `demo/site` to GitHub Pages. The domain is set by
 `static/CNAME`; Pages must be set to **GitHub Actions** as its source in the repository
 settings for the workflow to have anywhere to publish.
 

@@ -1,5 +1,5 @@
 {
-  "//": "One folder per project under Projects/. Copy this to Projects/<Name>/hub.config.json.",
+  "//": "One folder per project under projects/. Copy this to projects/<Name>/hub.config.json.",
 
   "name": "My_Workspace",
 

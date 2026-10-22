@@ -24,8 +24,8 @@ and accepted, not overlooked.
 
 **What was verified before the flip:** every tracked file was scanned for personal
 identifiers, email addresses, machine paths and credential-shaped tokens, and the remaining
-local specifics in `Hub/README.md`, `Hub/hub.mjs` and `Project-Hub/README.md` were replaced
-with generic placeholders. Private design exports under `Src/` and `Images/` stay untracked.
+local specifics in `hub/README.md`, `hub/hub.mjs` and `project-hub/README.md` were replaced
+with generic placeholders. Private design exports under `src/` and `images/` stay untracked.
 
 **What was not done, and still has not been:** the existing commits still contain the
 original files and personal references. Ignore rules and a deletion commit do not erase
@@ -51,7 +51,7 @@ Browser favorites sync, when switched on, reads the Edge, Chrome or Brave profil
 
 There is now a public page at **project-hub.ai-automation-tools.dev**, and the sentence
 above about this not being a hosted service still holds: **no server runs there.** The
-demo is static files. `Demo/build-demo.mjs` runs the real hub locally against a fixture
+demo is static files. `demo/build-demo.mjs` runs the real hub locally against a fixture
 workspace, captures its responses, and publishes those captures — GitHub Pages serves
 them and nothing else.
 
@@ -61,7 +61,7 @@ What that means for privacy, stated as properties rather than intentions:
   answered from captured files by a client-side shim. Nothing accepts a path it was not
   built with, because nothing is listening.
 - **The content is invented.** Every workspace, repo, document, person and domain in
-  `Demo/Workspace` and `Demo/Home` is fictional, and all of it is in Git where it can be
+  `demo/Workspace` and `demo/Home` is fictional, and all of it is in Git where it can be
   read before it is published.
 - **Build-machine paths are scrubbed at capture time.** The scan payload carries `base`,
   `home` and each root's `dir`, and the page displays them. They are rewritten to the

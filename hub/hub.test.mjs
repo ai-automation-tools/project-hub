@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath } from './navigation.mjs';
@@ -89,7 +89,7 @@ test('scan settings writes are local-only and use discovered config paths', () =
 
 /** Mirrors hub.mjs's own discoverProjects() so the test can't drift from runtime behavior. */
 function projectConfigDirs() {
-  const dir = path.join(ROOT, 'Projects');
+  const dir = projectsDir(ROOT);
   let entries;
   try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return []; }
   return entries.filter((e) => e.isDirectory() && fs.existsSync(path.join(dir, e.name, 'hub.config.json')))
@@ -527,9 +527,20 @@ test('every hub config is valid, unique and points somewhere real', () => {
   }
 });
 
+test('projects/ is found first, and an old Projects/ folder still mounts', () => {
+  const lower = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-projects-'));
+  fs.mkdirSync(path.join(lower, 'projects'));
+  assert.equal(projectsDir(lower), path.join(lower, 'projects'));
+  const upper = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-projects-'));
+  fs.mkdirSync(path.join(upper, 'Projects'));
+  assert.equal(fs.existsSync(path.join(projectsDir(upper), '.')), true);
+  fs.rmSync(lower, { recursive: true, force: true });
+  fs.rmSync(upper, { recursive: true, force: true });
+});
+
 test('every project config is valid, and points somewhere real', () => {
   const dirs = projectConfigDirs();
-  if (!dirs.length) loadProjectConfig(path.join(ROOT, 'Projects/_example/hub.config.json.example'));
+  if (!dirs.length) loadProjectConfig(path.join(ROOT, 'projects/_example/hub.config.json.example'));
   for (const d of dirs) {
     const file = path.join(d, 'hub.config.json');
     const c = loadProjectConfig(file);

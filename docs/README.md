@@ -10,9 +10,9 @@
 
 | Document | Contents |
 |:---|:---|
-| [**🚀 User manual**](../Project-Hub/README.md) | Configuration, navigation, and reader tools |
-| [**⚙️ Engine reference**](../Hub/README.md) | API, scanning, and health checks |
-| [**🌐 Demo site**](../Demo/README.md) | The fixture workspace, and how the hosted demo is built |
+| [**🚀 User manual**](../project-hub/README.md) | Configuration, navigation, and reader tools |
+| [**⚙️ Engine reference**](../hub/README.md) | API, scanning, and health checks |
+| [**🌐 Demo site**](../demo/README.md) | The fixture workspace, and how the hosted demo is built |
 | [**🧭 Diagrams**](diagrams/README.md) | The architecture diagram the homepage shows: server, scanner, `resolveId()` gate, watcher, watchdog and demo build. Interactive, every component linked to its code, and drift-checked in CI |
 | [**🌐 Remote access**](REMOTE-ACCESS.md) | Open the hub from your phone over Tailscale |
 | [**⭐ Bookmarks**](BOOKMARKS.md) | Save, rename, and revisit pages |
@@ -24,4 +24,4 @@
 
 ---
 
-<p align="center"><a href="../README.md">← Project Hub</a> · <a href="../Images/README.md">Screenshots →</a></p>
+<p align="center"><a href="../README.md">← Project Hub</a> · <a href="../images/README.md">Screenshots →</a></p>

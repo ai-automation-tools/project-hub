@@ -1,6 +1,6 @@
 # Scan internals — the tables you will have to edit
 
-Everything below is in `Hub/hub.mjs` unless noted.
+Everything below is in `hub/hub.mjs` unless noted.
 
 ## The endpoints
 

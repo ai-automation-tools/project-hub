@@ -1,23 +1,23 @@
 # Configuration and architecture
 
-Updated against the shared engine on 2026-09-09. Consult `Hub/README.md` and
+Updated against the shared engine on 2026-09-09. Consult `hub/README.md` and
 `loadConfig()` / `loadProjectConfig()` when making schema changes.
 
 ## Layout
 
 ```text
 <installation>/
-  Hub/                       complete runtime, launcher and tests
-  Project-Hub/               server config, example and launcher shim
-  Projects/<Name>/           one workspace config per folder
-  Projects/_example/         hub.config.json.example (not loaded as a project)
+  hub/                       complete runtime, launcher and tests
+  project-hub/               server config, example and launcher shim
+  projects/<Name>/           one workspace config per folder
+  projects/_example/         hub.config.json.example (not loaded as a project)
 ```
 
-The server discovers `Projects/` next to its config folder at startup. Restart after
+The server discovers `projects/` next to its config folder at startup. Restart after
 adding/removing projects or editing config. File watching refreshes content, not
 that startup project list. The old `/api/hubs` and hub-switcher model is retired.
 
-## Server config: Project-Hub/hub.config.json
+## Server config: project-hub/hub.config.json
 
 ```json
 {
@@ -41,7 +41,7 @@ must be checked for existence by the scaffold; the loader does not check them al
 Nested mounted roots are pruned from their parent walks to avoid duplicate IDs.
 Mount a dot-prefixed skills folder explicitly because ordinary walking skips dot dirs.
 
-## Workspace config: Projects/<Name>/hub.config.json
+## Workspace config: projects/<Name>/hub.config.json
 
 ```json
 {
@@ -66,7 +66,7 @@ User runtimes resolve from `os.homedir()` and are shared across project overview
 |:---|:---|
 | `/api/scan` | Cached project/document tree and metadata; `?fresh=1` rescans. Pictures is metadata-only. |
 | `/api/stat?path=` | Immediate child modification times for folder lists. |
-| `/api/file?path=` | Rendered text; `raw=1` returns escaped source. Images/PDF return 415. |
+| `/api/file?path=` | Rendered text; `raw=1` returns escaped source. images/PDF return 415. |
 | `/api/raw?path=` | Bytes, PDF ranges, images; `download=1` attachment. HTML redirects to preview. |
 | `/api/preview?path=` | Redirect to signed report directory. |
 | `/api/artifact/<signature>/<relative-path>` | Sandboxed HTML/SVG and contained companion assets. |
@@ -86,9 +86,9 @@ not an authenticated public hosting service.
 ## Running and verification
 
 Requires Node 18.17+ and Git; Windows launchers require PowerShell 7. No npm install
-is needed. `npm test` in `Hub/` runs all five test files. `npm start` uses the sibling
+is needed. `npm test` in `hub/` runs all five test files. `npm start` uses the sibling
 server config. `npm run scan` writes an ignored filesystem index into that config
-folder. Windows launch: `Project-Hub/Start-Hub.ps1`; use `-Restart -NoBrowser` for
+folder. Windows launch: `project-hub/Start-Hub.ps1`; use `-Restart -NoBrowser` for
 an intentional restart. Optional `Watch-Hubs.ps1` checks health; `-Restart` enables
 recovery. The VBS wrapper runs it hidden from its own directory using `pwsh` on PATH.
 

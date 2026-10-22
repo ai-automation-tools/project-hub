@@ -3,9 +3,9 @@
     "allow": [
       "Bash(npm test)",
       "Bash(node --test *)",
-      "Bash(node Demo/build-demo.mjs)",
-      "Bash(node Demo/build-demo.mjs --keep)",
-      "Bash(node Hub/hub.mjs --config * --scan)",
+      "Bash(node demo/build-demo.mjs)",
+      "Bash(node demo/build-demo.mjs --keep)",
+      "Bash(node hub/hub.mjs --config * --scan)",
       "Bash(git status *)",
       "Bash(git diff *)",
       "Bash(git log *)"

@@ -6,7 +6,7 @@ To see what the pages described here look like before configuring anything, ther
 read-only copy over a fictional workspace at
 **[project-hub-demo.ai-automation-tools.dev](https://project-hub-demo.ai-automation-tools.dev)** —
 the real interface and real scan output, minus the two things that need a local server
-(live updates and opening files). [How it is built](../Demo/README.md).
+(live updates and opening files). [How it is built](../demo/README.md).
 
 The [project-hub-scaffold skill](../Skills/project-hub-scaffold/SKILL.md) adds workspaces to this server or creates a portable installation.
 
@@ -34,16 +34,16 @@ categories everywhere they're listed — **Project CLIs** (a workspace's own `Ag
 
 ```powershell
 .\Start-Hub.ps1              # starts the server and opens http://127.0.0.1:4273
-.\Start-Hub.ps1 -Restart     # pick up code changes to ..\Hub\hub.mjs
+.\Start-Hub.ps1 -Restart     # pick up code changes to ..\hub\hub.mjs
 .\Start-Hub.ps1 -Port 5000
 ```
 
 Or directly:
 
 ```powershell
-node ..\Hub\hub.mjs --config .\hub.config.json                # serve on 4273
-node ..\Hub\hub.mjs --config .\hub.config.json --port 5000
-node ..\Hub\hub.mjs --config .\hub.config.json --scan         # write scan.json and exit
+node ..\hub\hub.mjs --config .\hub.config.json                # serve on 4273
+node ..\hub\hub.mjs --config .\hub.config.json --port 5000
+node ..\hub\hub.mjs --config .\hub.config.json --scan         # write scan.json and exit
 ```
 
 Requires Node 18+ and `git` on PATH. No dependencies, no build step.
@@ -103,7 +103,7 @@ what builds it*:
    rather than past.
 
 The stat tiles carry a `link` field naming the heading id they scroll to, set server-side
-in `../Hub/hub.mjs` alongside the count itself, so a new stat wires its own jump. Two notes on
+in `../hub/hub.mjs` alongside the count itself, so a new stat wires its own jump. Two notes on
 the scroll:
 
 - `#view` is the scroll container, not the window — the page body never scrolls, so an
@@ -298,7 +298,7 @@ Set `HUB_DEBUG=1` for per-request timing in `hub.log`.
 
 ## Files
 
-Since **2026-08-31** the program lives once, in [`../Hub`](../Hub/README.md). This folder
+Since **2026-08-31** the program lives once, in [`../Hub`](../hub/README.md). This folder
 holds only what makes this hub *this* hub.
 
 | File | Where | What it is |
@@ -325,11 +325,11 @@ title, favicon:
 }
 ```
 
-**Each project it mounts gets its own small config** under [`../Projects/`](../Projects),
+**Each project it mounts gets its own small config** under [`../projects/`](../Projects),
 one subfolder per project:
 
 ```json
-// ../Projects/Example_Workspace/hub.config.json
+// ../projects/Example_Workspace/hub.config.json
 {
   "name": "Example_Workspace",
   "dir": "D:/Work/Projects/Example_Workspace",
@@ -337,7 +337,7 @@ one subfolder per project:
 }
 ```
 
-`hub.mjs` discovers every `Projects/<name>/hub.config.json` at startup and nests each
+`hub.mjs` discovers every `projects/<name>/hub.config.json` at startup and nests each
 under one **Projects** folder in the tree — the same "a new one is just a folder"
 property the old three-hubs-one-codebase design already had, just one config file
 smaller now that a project no longer needs its own port. `repoScope` decides which of
@@ -356,7 +356,7 @@ phone on the tailnet sees the list but not the controls.
 
 The shared roots — `Documents`, `Pictures`, `Automations`, `Links` and whatever else you
 configure — and the six user-scope runtimes are the same for every project, so they stay in
-[`../Hub/hub.mjs`](../Hub/hub.mjs) (`SHARED_ROOTS` and `USER_RUNTIMES`) and are scanned once
+[`../hub/hub.mjs`](../hub/hub.mjs) (`SHARED_ROOTS` and `USER_RUNTIMES`) and are scanned once
 for all mounted workspaces rather than once per hub. Two rules decide whether a folder deserves
 its own root. A folder the walker cannot otherwise reach needs one: a dot-prefixed directory,
 hidden from an editor's indexer, is pruned by the dot-directory rule and would never appear.
@@ -366,12 +366,12 @@ sit inside another root, and is mounted separately anyway because it is a destin
 right. The walker prunes it from the `Documents` walk (`MOUNTED_ROOTS`) rather than indexing the
 same subtree twice under two parents with colliding ids.
 
-**Adding a fourth project** is a new folder under `Projects/` and a `hub.config.json` —
+**Adding a fourth project** is a new folder under `projects/` and a `hub.config.json` —
 nothing else in this repo needs touching.
 
 > [!NOTE]
 > **`Project-Hub-IAM` and `Project-Hub-Finance` are retired.** Until 2026-09-07 they ran
-> the same code from [`../Hub`](../Hub/README.md) as separate processes on 4274/4275.
+> the same code from [`../Hub`](../hub/README.md) as separate processes on 4274/4275.
 > Before that, until 2026-08-31, all mounted workspaces were literal copies of the whole program and a
 > fix had to land three times — which is how one bad edit left gzip broken in all mounted workspaces
 > at once. Splitting the config out to `hub.config.json` per folder fixed the
@@ -393,16 +393,16 @@ fingerprint of the file-descriptor leak that killed the AI Lab hub on 2026-08-31
 outage left no other trace, because every failure was swallowed by a `catch`. A handful
 is normal (files being written while the scan walks past them); hundreds is not.
 
-[`..\Hub\Watch-Hubs.ps1`](../Hub/Watch-Hubs.ps1) checks every hub and restarts any that
+[`..\hub\Watch-Hubs.ps1`](../hub/Watch-Hubs.ps1) checks every hub and restarts any that
 is unwell, going through `Start-Hub.ps1` so the port-identity rules still apply — it will
 never kill something that merely happens to hold the port:
 
 ```powershell
-..\Hub\Watch-Hubs.ps1              # report only
-..\Hub\Watch-Hubs.ps1 -Restart     # bring back anything that is down
+..\hub\Watch-Hubs.ps1              # report only
+..\hub\Watch-Hubs.ps1 -Restart     # bring back anything that is down
 ```
 
-It exits non-zero if anything needed attention, and appends to `..\Hub\watchdog.log`.
+It exits non-zero if anything needed attention, and appends to `..\hub\watchdog.log`.
 
 **It runs on a schedule.** Registered 2026-08-31 as
 `\AI-Maintenance\Project Hub Watchdog (15 min)`, every 15 minutes as the configured local user, with
@@ -639,13 +639,13 @@ but the fix is always the same: point a real browser view at the running server.
 
 For optional VS Code integration, a local `.code-workspace` file can carry a `folderOpen` task that runs `Start-Hub.ps1
 -NoBrowser` when the workspace opens, so the server is up before you look at it.
-`Restart Project Hub` is there too, for after an edit to `../Hub/hub.mjs` or `../Hub/index.html`
+`Restart Project Hub` is there too, for after an edit to `../hub/hub.mjs` or `../hub/index.html`
 (`Ctrl+Shift+P` -> `Tasks: Run Task`).
 
 The Simple Browser tab opens itself too. A second rule in the workspace settings uses
 the [`gabrielgrinberg.auto-run-command`](https://marketplace.visualstudio.com/items?itemName=gabrielgrinberg.auto-run-command)
 extension to fire `simpleBrowser.show` against the hub URL on every window open, with a
-`#Projects/<Name>` hash so each single-project workspace deep-links straight into its own
+`#projects/<Name>` hash so each single-project workspace deep-links straight into its own
 project root, with just that project's path expanded in the sidebar, instead of landing on
 the collapsed combined view every other entry point opens to:
 
@@ -653,7 +653,7 @@ the collapsed combined view every other entry point opens to:
 "auto-run-command.rules": [
   {
     "condition": "always",
-    "command": "simpleBrowser.show http://127.0.0.1:4273/#Projects/Example_Workspace",
+    "command": "simpleBrowser.show http://127.0.0.1:4273/#projects/Example_Workspace",
     "message": "Opening Project Hub — Example_Workspace (4273)"
   }
 ]
@@ -720,7 +720,7 @@ Worth knowing before changing any of it.
 | Spawning `git` for every repo at once | All 40 processes time out on Windows and half the repos come back with no branch. The pool caps at six. |
 | Node's default `keepAliveTimeout` | It's 5s. Browsers reuse a socket for longer, and a request onto one the server just closed vanishes — the page sits on "scanning…" while `curl` works fine. Raised to 65s. |
 | Rescanning per request | The walk is synchronous, so a background refresh blocks the very response it's meant to speed up. The watcher owns rescans; requests only ever read the cache. |
-| Editing `../Hub/hub.mjs` and just refreshing the browser | Nothing changes. The server reads its own source once at process start, so a renderer fix only lands after `.\Start-Hub.ps1 -Restart` — plain `Start-Hub.ps1` reuses the running process on purpose. `../Hub/index.html` is served from disk per request, so that one really does just need a refresh. **And it reaches every mounted project at once**, since there is only the one process now. |
+| Editing `../hub/hub.mjs` and just refreshing the browser | Nothing changes. The server reads its own source once at process start, so a renderer fix only lands after `.\Start-Hub.ps1 -Restart` — plain `Start-Hub.ps1` reuses the running process on purpose. `../hub/index.html` is served from disk per request, so that one really does just need a refresh. **And it reaches every mounted project at once**, since there is only the one process now. |
 | Shipping the payload uncompressed | 5.1MB of repeated path strings took seconds to move even over loopback. Gzipped once per scan, it's 0.6MB. |
 | Another server squatting the port | `Start-Hub.ps1` treats any listener on the port as "the hub is already up" and skips starting. When a Vite dev server held `4173` bound to `::1` only, the launcher reused nothing and `http://127.0.0.1:4173` answered `ERR_CONNECTION_REFUSED` with no error logged anywhere. Hubs moved to the `42xx` block on 2026-08-27 to stay clear of Vite's `4173`/`5173` defaults. |
 | A `try` that closes a file handle on the happy path only | `readHead()` opened an fd, read, then closed — with the close *after* the line that throws. Every failed read stranded a descriptor, the watcher calls it thousands of times a day, and four days later the process died on `EMFILE`. Closing in a `finally` is the fix; see below. |
@@ -733,7 +733,7 @@ exited, and the workspace's Simple Browser tab started answering
 `ERR_CONNECTION_REFUSED` on `4273`. The only trace was `hub.err.log`:
 
 ```text
-Error: EMFILE: too many open files, open '...\Project-Hub\index.html'
+Error: EMFILE: too many open files, open '...\project-hub\index.html'
     at Server.<anonymous> (.../hub.mjs:865:14)
 ```
 
@@ -786,6 +786,6 @@ Two things are worth carrying forward from this one:
 
 <p align="center">
   <a href="../README.md">← Project Hub</a> ·
-  <a href="../Src/README.md">Src</a> ·
-  <a href="../Images/README.md">Images</a>
+  <a href="../src/README.md">Src</a> ·
+  <a href="../images/README.md">Images</a>
 </p>

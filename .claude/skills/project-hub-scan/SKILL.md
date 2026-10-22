@@ -2,7 +2,7 @@
 name: project-hub-scan
 description: >-
   Change what Project Hub's scanner walks, indexes or serves — the filter chain in
-  `Hub/hub.mjs` (SKIP_DIRS / DOT_OK / DOC_FILE / SECRET_DIRS), the node `kind` vocabulary,
+  `hub/hub.mjs` (SKIP_DIRS / DOT_OK / DOC_FILE / SECRET_DIRS), the node `kind` vocabulary,
   the `BUCKETS` and `USER_RUNTIMES` tables behind the CLI pages, and the second deny gate in
   `resolveId()` that every `/api/*` path check goes through. Use for "a folder is missing
   from the tree", "my new agent runtime doesn't show up", "add a file type to the scan",
@@ -18,7 +18,7 @@ description: >-
 `resolveId()` agrees a second time.** Most "why isn't this showing up" bugs are one filter,
 and most "why can I read that" bugs are the second gate missing.
 
-All commands run from **`Hub/`**, not the repo root. `npm test` is 83 Node tests over
+All commands run from **`hub/`**, not the repo root. `npm test` is 83 Node tests over
 `hub.mjs`, `reports.mjs`, `pictures.mjs`, `webmarks.mjs` and `favorites.mjs`.
 
 ---
@@ -45,7 +45,7 @@ folder's `more` badge, so the fix for "my `.py` is missing" is almost never wide
 hub's own `hub.log` / `scan.json` so a log write does not read as a library change.
 
 > [!WARNING]
-> **Adding an extension to `DOC_FILE` is not free and not local.** `Demo/build-demo.mjs`
+> **Adding an extension to `DOC_FILE` is not free and not local.** `demo/build-demo.mjs`
 > has its own `TEXT` and `BINARY` regexes that decide whether a captured node is fetched
 > as `/api/file` or `/api/raw`; `kindOfFile()` decides which view the client opens. A new
 > extension in one and not the others gives you a node that renders as an empty page.
@@ -131,7 +131,7 @@ but present in the **tree** is a `repoScope` problem, not a scanner problem.
 3. **New kind** → server `TINT`, client's five sets, a `renderPage()` branch.
 4. **New endpoint taking a path** → `resolveId()` first, 403 on null.
 5. **New file the hub writes** → `NOISE_FILE` + `ignoreWatchEvent`.
-6. `npm test` from `Hub/`. Pure helpers are exported precisely so they are testable —
+6. `npm test` from `hub/`. Pure helpers are exported precisely so they are testable —
    add the export and the test, don't test through the server.
 7. `npm run scan` writes `scan.json` without starting a server — the fastest way to see
    what the tree now contains. `HUB_DEBUG=1 node hub.mjs` adds per-request timing.
@@ -154,4 +154,4 @@ but present in the **tree** is a `repoScope` problem, not a scanner problem.
 | Filter-chain order, kind vocabulary, endpoint table | [`references/scan-internals.md`](references/scan-internals.md) |
 | Views, themes, routes — the client side of a new `kind` | the `project-hub-client` skill |
 | The fixture and the capture that mirror these rules | the `project-hub-demo` skill |
-| Config keys as a user sees them | `Hub/README.md`, `Project-Hub/README.md` |
+| Config keys as a user sees them | `hub/README.md`, `project-hub/README.md` |

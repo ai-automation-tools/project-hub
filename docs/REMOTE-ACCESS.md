@@ -39,7 +39,7 @@ phone width.
 
 ## Prerequisites
 
-- The hub running at `http://127.0.0.1:4273/` on the PC ([user manual](../Project-Hub/README.md#run-it)).
+- The hub running at `http://127.0.0.1:4273/` on the PC ([user manual](../project-hub/README.md#run-it)).
 - Tailscale installed and signed in to the **same account** on the PC and the phone
   (`winget install Tailscale.Tailscale` on Windows; the app store on the phone).
 
@@ -53,7 +53,7 @@ tailscale status --json | ConvertFrom-Json | % { $_.Self.DNSName }
 ```
 
 **2. Let the hub answer to that name.** Add `allowedHosts` to the server config
-(`Project-Hub/hub.config.json`) — the full MagicDNS name and the short one, lowercase, no
+(`project-hub/hub.config.json`) — the full MagicDNS name and the short one, lowercase, no
 port, no trailing dot:
 
 ```json
@@ -97,7 +97,7 @@ screen.
 ## Keeping it up
 
 - **Nothing to re-run after a reboot.** The serve entry persists, and the
-  [watchdog](../Project-Hub/README.md#health-and-the-watchdog) restarts a dead hub within
+  [watchdog](../project-hub/README.md#health-and-the-watchdog) restarts a dead hub within
   15 minutes. Tailscale forwards to whatever is listening on loopback.
 - **`Start-Hub.ps1` ignores the tailnet listener.** `tailscaled` holds the same port
   number on the tailnet addresses; the launcher only treats a loopback listener as the
@@ -140,4 +140,4 @@ certificate publishes the machine name to public Certificate Transparency logs.
 
 ---
 
-<p align="center"><a href="README.md">← Documentation</a> · <a href="../Project-Hub/README.md">User manual →</a></p>
+<p align="center"><a href="README.md">← Documentation</a> · <a href="../project-hub/README.md">User manual →</a></p>

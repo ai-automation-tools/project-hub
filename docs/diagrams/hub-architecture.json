@@ -34,7 +34,7 @@
       "type": "frontend",
       "label": "Explorer UI",
       "sublabel": "one file, no build",
-      "tag": "Hub/index.html",
+      "tag": "hub/index.html",
       "pos": [
         240,
         220
@@ -45,19 +45,19 @@
       ],
       "sources": [
         {
-          "path": "Hub/index.html",
+          "path": "hub/index.html",
           "line": 990,
           "end_line": 998,
           "label": "load the tree from /api/scan"
         },
         {
-          "path": "Hub/index.html",
+          "path": "hub/index.html",
           "line": 3898,
           "end_line": 3903,
           "label": "open a document via /api/file"
         },
         {
-          "path": "Hub/index.html",
+          "path": "hub/index.html",
           "line": 4221,
           "end_line": 4231,
           "label": "EventSource on /api/events"
@@ -80,15 +80,15 @@
       ],
       "sources": [
         {
-          "path": "Hub/hub.mjs",
-          "line": 1765,
-          "end_line": 1802,
+          "path": "hub/hub.mjs",
+          "line": 1772,
+          "end_line": 1809,
           "label": "Host allowlist and CSP nonce"
         },
         {
-          "path": "Hub/hub.mjs",
-          "line": 2114,
-          "end_line": 2128,
+          "path": "hub/hub.mjs",
+          "line": 2121,
+          "end_line": 2135,
           "label": "index.html placeholders per request"
         }
       ]
@@ -108,15 +108,15 @@
       ],
       "sources": [
         {
-          "path": "Hub/hub.mjs",
-          "line": 1643,
-          "end_line": 1666,
+          "path": "hub/hub.mjs",
+          "line": 1650,
+          "end_line": 1673,
           "label": "rescan: serialize and gzip"
         },
         {
-          "path": "Hub/hub.mjs",
-          "line": 1809,
-          "end_line": 1817,
+          "path": "hub/hub.mjs",
+          "line": 1816,
+          "end_line": 1824,
           "label": "/api/scan serves the cache"
         }
       ]
@@ -136,21 +136,21 @@
       ],
       "sources": [
         {
-          "path": "Hub/hub.mjs",
-          "line": 680,
-          "end_line": 700,
+          "path": "hub/hub.mjs",
+          "line": 687,
+          "end_line": 707,
           "label": "scanTree walk"
         },
         {
-          "path": "Hub/hub.mjs",
-          "line": 1220,
-          "end_line": 1228,
+          "path": "hub/hub.mjs",
+          "line": 1227,
+          "end_line": 1235,
           "label": "scan: walk, then git per repo"
         },
         {
-          "path": "Hub/hub.mjs",
-          "line": 1159,
-          "end_line": 1190,
+          "path": "hub/hub.mjs",
+          "line": 1166,
+          "end_line": 1197,
           "label": "cached git state"
         }
       ]
@@ -170,15 +170,15 @@
       ],
       "sources": [
         {
-          "path": "Hub/hub.mjs",
-          "line": 365,
-          "end_line": 383,
+          "path": "hub/hub.mjs",
+          "line": 372,
+          "end_line": 390,
           "label": "SERVE_DIRS and the deny list"
         },
         {
-          "path": "Hub/hub.mjs",
-          "line": 2042,
-          "end_line": 2059,
+          "path": "hub/hub.mjs",
+          "line": 2049,
+          "end_line": 2066,
           "label": "/api/file renders through it"
         }
       ]
@@ -198,9 +198,9 @@
       ],
       "sources": [
         {
-          "path": "Hub/hub.mjs",
-          "line": 205,
-          "end_line": 222,
+          "path": "hub/hub.mjs",
+          "line": 212,
+          "end_line": 229,
           "label": "PROJECTS and ROOTS"
         }
       ]
@@ -209,7 +209,7 @@
       "id": "config",
       "type": "backend",
       "label": "Config loader",
-      "sublabel": "hub + Projects/*/ configs",
+      "sublabel": "hub + projects/*/ configs",
       "pos": [
         740,
         400
@@ -220,15 +220,15 @@
       ],
       "sources": [
         {
-          "path": "Hub/hub.mjs",
+          "path": "hub/hub.mjs",
           "line": 80,
           "end_line": 104,
           "label": "loadConfig validates port, base, hosts"
         },
         {
-          "path": "Hub/hub.mjs",
+          "path": "hub/hub.mjs",
           "line": 190,
-          "end_line": 205,
+          "end_line": 212,
           "label": "discoverProjects"
         }
       ]
@@ -248,15 +248,15 @@
       ],
       "sources": [
         {
-          "path": "Hub/hub.mjs",
-          "line": 2151,
-          "end_line": 2172,
+          "path": "hub/hub.mjs",
+          "line": 2158,
+          "end_line": 2179,
           "label": "noise filter, then rescan + SSE"
         },
         {
-          "path": "Hub/hub.mjs",
-          "line": 2174,
-          "end_line": 2210,
+          "path": "hub/hub.mjs",
+          "line": 2181,
+          "end_line": 2217,
           "label": "fs.watch per root"
         }
       ]
@@ -276,15 +276,15 @@
       ],
       "sources": [
         {
-          "path": "Hub/open-native.mjs",
+          "path": "hub/open-native.mjs",
           "line": 4,
           "end_line": 19,
           "label": "launchNative"
         },
         {
-          "path": "Hub/hub.mjs",
-          "line": 2087,
-          "end_line": 2102,
+          "path": "hub/hub.mjs",
+          "line": 2094,
+          "end_line": 2109,
           "label": "/api/open, same-origin only"
         }
       ]
@@ -305,7 +305,7 @@
       ],
       "sources": [
         {
-          "path": "Hub/Watch-Hubs.ps1",
+          "path": "hub/Watch-Hubs.ps1",
           "line": 77,
           "end_line": 125,
           "label": "ping /api/health, restart via Start-Hub"
@@ -328,19 +328,19 @@
       ],
       "sources": [
         {
-          "path": "Demo/build-demo.mjs",
+          "path": "demo/build-demo.mjs",
           "line": 1,
           "end_line": 13,
           "label": "crawl the real hub, write flat files"
         },
         {
-          "path": "Demo/build-demo.mjs",
+          "path": "demo/build-demo.mjs",
           "line": 175,
           "end_line": 197,
           "label": "spawn hub.mjs on the fixture"
         },
         {
-          "path": "Demo/build-demo.mjs",
+          "path": "demo/build-demo.mjs",
           "line": 283,
           "end_line": 300,
           "label": "manifest and the unmodified UI"
@@ -471,7 +471,7 @@
       "id": "demo-pages",
       "from": "demo",
       "to": "pages",
-      "label": "Demo/site"
+      "label": "demo/site"
     }
   ],
   "cards": [
@@ -507,7 +507,7 @@
       "title": "Outside the process",
       "items": [
         "Watch-Hubs.ps1 runs every 15 minutes and restarts an unhealthy hub through Start-Hub.ps1",
-        "The demo build runs the real hub against Demo/Workspace and captures every API response as a file",
+        "The demo build runs the real hub against demo/Workspace and captures every API response as a file",
         "The hosted demo has no server, so launching files and searching inside documents are unavailable there"
       ]
     }

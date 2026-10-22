@@ -13,23 +13,23 @@ description: >-
 # Project Hub scaffold
 
 Reuse an existing Project Hub engine: a local filesystem scanner and vanilla-JS
-explorer. Find the checkout containing `Hub/hub.mjs` and `Hub/index.html` from the
+explorer. Find the checkout containing `hub/hub.mjs` and `hub/index.html` from the
 user's context; ask for its location only if it cannot be found. Do not reconstruct
 the engine from screenshots. Read its README and [config reference](references/config-schema.md).
 The engine is the source of truth if this reference has drifted.
 
 ## Choose the mode
 
-- **A — add a workspace (default).** Add `Projects/<Name>/hub.config.json` to the
+- **A — add a workspace (default).** Add `projects/<Name>/hub.config.json` to the
   existing installation. One server scans all projects and shared roots. No new
   port, launcher, engine copy, or hub-switcher entry is needed.
 - **B — portable installation.** Use when the project must carry its own engine.
-  Copy the complete runtime and tests into `Hub/`, the launcher and example into
-  `Project-Hub/`, and create `Projects/<Name>/`. Each machine supplies its own
+  Copy the complete runtime and tests into `hub/`, the launcher and example into
+  `project-hub/`, and create `projects/<Name>/`. Each machine supplies its own
   ignored configs. Independent copies need their own future engine updates.
 - **C — visual match.** For an explicitly static page, read the
   [design system](references/design-system.md) and reuse the actual theme and
-  layout from `Hub/index.html`. Explain that scanning, native launch actions,
+  layout from `hub/index.html`. Explain that scanning, native launch actions,
   previews, and server-backed search require A or B.
 
 ## Workflow
@@ -46,11 +46,11 @@ The engine is the source of truth if this reference has drifted.
    user runtimes use the current home directory: do not edit source constants for
    machine paths. The runtime scans supported user-scope agent folders as well as
    configured roots; disclose that scope to the user.
-4. Run `npm test` from `Hub/`. Fresh clones validate example shapes without needing
+4. Run `npm test` from `hub/`. Fresh clones validate example shapes without needing
    personal configs; installed configs are checked when present. Separately check
    all configured directories exist. Tests do not prove a port is free or a page works.
 5. New project configs are discovered at **startup**. Restart the existing server
-   through `Project-Hub/Start-Hub.ps1 -Restart -NoBrowser` when authorized by the
+   through `project-hub/Start-Hub.ps1 -Restart -NoBrowser` when authorized by the
    setup task, then check `/api/health` and `/api/scan`. Use the configured port.
    Never terminate a foreign process to claim a port.
 6. Verify the Projects landing page, target workspace, sidebar, search, a rendered

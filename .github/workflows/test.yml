@@ -1,6 +1,6 @@
 name: Tests
 
-# The 66 Node tests in Hub/ existed for weeks with nothing running them. This is that.
+# The 66 Node tests in hub/ existed for weeks with nothing running them. This is that.
 on:
   push:
     branches: [main]
@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 18.17 is the floor the README and Hub/package.json both claim, and nothing has
+        # 18.17 is the floor the README and hub/package.json both claim, and nothing has
         # ever verified it. 22 is what the demo deploy runs on.
         node: ['18.17', '22']
     steps:
@@ -53,19 +53,19 @@ jobs:
       # pinned commit; docs/diagrams/README.md says how to update it.
       - name: Diagram drift
         run: node scripts/build-diagram.mjs --hook --no-site | sed 's/^ISSUE:/::warning title=Diagram drift::ISSUE:/'
-      - run: node Demo/build-demo.mjs
+      - run: node demo/build-demo.mjs
       # A capture that suddenly holds nothing is the failure this would otherwise miss:
       # the build is happy to write an empty site if the fixture stops being found.
       - name: Check the capture is not empty
         run: |
-          test -s Demo/site/index.html
-          test -s Demo/site/api/manifest.json
+          test -s demo/site/index.html
+          test -s demo/site/api/manifest.json
           captured=$(node -p "Object.keys(require('./Demo/site/api/manifest.json')).length")
           echo "captured $captured API responses"
           test "$captured" -gt 100
 
   scaffold-copy:
-    # Skills/project-hub-scaffold/ is a travel copy; agent-skills' main is canonical. A
+    # skills/project-hub-scaffold/ is a travel copy; agent-skills' main is canonical. A
     # feature PR here that updates only this copy used to drift silently (P2-12), so the
     # copy must match canonical exactly, line endings aside. On a failure, make the same
     # edit in agent-skills/skills/core/web/project-hub-scaffold/ and copy it back here.
@@ -79,4 +79,4 @@ jobs:
           ref: main
           path: _agent-skills
           sparse-checkout: skills/core/web/project-hub-scaffold
-      - run: diff -r --strip-trailing-cr _agent-skills/skills/core/web/project-hub-scaffold Skills/project-hub-scaffold
+      - run: diff -r --strip-trailing-cr _agent-skills/skills/core/web/project-hub-scaffold skills/project-hub-scaffold

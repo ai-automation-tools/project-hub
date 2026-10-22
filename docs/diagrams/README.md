@@ -16,7 +16,7 @@
 
 [![Project Hub architecture](hub-architecture.png)](hub-architecture.html)
 
-What sits behind the page: the explorer UI (`Hub/index.html`) calls one HTTP server on
+What sits behind the page: the explorer UI (`hub/index.html`) calls one HTTP server on
 `127.0.0.1:4273` that refuses any Host header but loopback or a listed `allowedHosts` name and
 sets a CSP on every reply. The server hands every tab the same cached scan payload, which the
 scanner builds by walking the workspace folders and reading git state. Anything addressed by path
@@ -46,8 +46,8 @@ tracing, search, light/dark, and SVG/PNG export.
 ## 🔁 Keeping it current
 
 Every component cites code by path and line range, pinned to the commit in `meta.repository.revision`.
-The cited files are `Hub/hub.mjs`, `Hub/index.html`, `Hub/open-native.mjs`, `Hub/Watch-Hubs.ps1`,
-`Demo/build-demo.mjs` and `.github/workflows/demo.yml`. `hub.mjs` and `index.html` change often,
+The cited files are `hub/hub.mjs`, `hub/index.html`, `hub/open-native.mjs`, `hub/Watch-Hubs.ps1`,
+`demo/build-demo.mjs` and `.github/workflows/demo.yml`. `hub.mjs` and `index.html` change often,
 so expect the check to name them; each time, the diagram may describe logic that moved or no
 longer exists, and it counts as stale until someone has re-read that code.
 

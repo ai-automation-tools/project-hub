@@ -20,7 +20,7 @@ page. This brings the hub's explorer in line with it, so the demo linked from th
 the page itself read as one family.
 
 It was first proposed on the hosted demo as a demo-only scheme, and adopted the same day. The
-proposal stage is in history; this file records what is in `Hub/index.html` now.
+proposal stage is in history; this file records what is in `hub/index.html` now.
 
 ## What changed
 
@@ -82,7 +82,7 @@ included.
   on the demo, and on the pre-redesign sheet too: the existing rule puts the sidebar footer
   exactly on the viewport's bottom edge, and a plain `100vh` pushes it 15% past it. The
   band was an artefact of how those first screenshots were taken. The rule stays as it was.
-- **Screenshots.** `Images/Public/` was recaptured from a real hub over the demo fixture.
+- **Screenshots.** `images/Public/` was recaptured from a real hub over the demo fixture.
 - **Skill docs.** The scaffold skill's design-system reference and the `project-hub-client`
   skill were updated in `agent-skills` and copied here; the travel copy also picked up the
   rename to `project-hub-scaffold` it had missed.
@@ -95,4 +95,4 @@ entity node carries no child for it. Unrelated to design.
 
 ---
 
-<p align="center"><a href="README.md">← Documentation</a> · <a href="../Demo/README.md">Demo site →</a></p>
+<p align="center"><a href="README.md">← Documentation</a> · <a href="../demo/README.md">Demo site →</a></p>

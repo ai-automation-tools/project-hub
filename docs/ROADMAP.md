@@ -62,10 +62,10 @@ marks one only Mike can do.
 ## 🚦 Public release
 
 - [x] CI green on push and PR: `test.yml` runs `npm test`, `demo.yml` builds and deploys the demo — done 2026-09-11: "Run the tests in CI"
-- [x] README usage (quick start, `hub.config.json`, endpoints in `Hub/README.md`) verified against the real code from a clean clone — done 2026-10-20: fresh clone of `main` at `2d95461`, setup followed as written; 96/96 tests, `--scan`, `Start-Hub.ps1` and 13 endpoints answered as documented (403 on traversal and a foreign `Host`). Fixed the gaps it found: `/api/scan-settings` and the server-level `maxDepth` were undocumented, a stray `/api/health` row sat below the endpoint table, and the test counts had drifted
+- [x] README usage (quick start, `hub.config.json`, endpoints in `hub/README.md`) verified against the real code from a clean clone — done 2026-10-20: fresh clone of `main` at `2d95461`, setup followed as written; 96/96 tests, `--scan`, `Start-Hub.ps1` and 13 endpoints answered as documented (403 on traversal and a foreign `Host`). Fixed the gaps it found: `/api/scan-settings` and the server-level `maxDepth` were undocumented, a stray `/api/health` row sat below the endpoint table, and the test counts had drifted
 - [ ] `SECURITY.md`, and a full-history secret scan that finds no credentials (decided 2026-10-22: personal references in early commits are the accepted caveat in `PUBLIC-RELEASE.md`, see [OPEN-QUESTIONS](OPEN-QUESTIONS.md))
 - [x] Licence chosen and `LICENSE` added — done 2026-09-09: MIT, in the initial commit
-- [x] Live at its URL: the demo at `https://project-hub.ai-automation-tools.dev`, built from the `Demo/Workspace/` fixture by `demo.yml` — done 2026-09-11
+- [x] Live at its URL: the demo at `https://project-hub.ai-automation-tools.dev`, built from the `demo/Workspace/` fixture by `demo.yml` — done 2026-09-11
 
 ## After public release
 
@@ -103,9 +103,9 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-18 · "Changed this week" view. A landing-page list of documents modified in the last 7 days across every root, newest first, built from data the scan already has
 - [ ] P9-19 · Frontmatter tags. Show a document's frontmatter (tags, dates, status) in a small metadata strip, and let search filter by tag. `frontmatter()` already parses it
 - [ ] P9-20 · Scan-time history in the status panel. Keep the last 20 scan durations in memory and draw a tiny inline sparkline. This makes a slow scan visible before it becomes a complaint
-- [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `Hub/markdown.mjs`, and the scanner into `Hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the largest single thing a weekly run has to read
-- [ ] P9-22 · Syntax check in CI. `node --check` over every `Hub/*.mjs`, plus a check that the inline script in `index.html` parses. No new dependencies
-- [ ] P9-23 · Keep the demo showing what shipped. Add fixture content to `Demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't show them yet: enough documents of each kind that the root and type chips (P9-02) narrow something, and a few near-miss names so the typo fallback (P9-03) has something to find. Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land
+- [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `hub/markdown.mjs`, and the scanner into `hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the largest single thing a weekly run has to read
+- [ ] P9-22 · Syntax check in CI. `node --check` over every `hub/*.mjs`, plus a check that the inline script in `index.html` parses. No new dependencies
+- [ ] P9-23 · Keep the demo showing what shipped. Add fixture content to `demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't show them yet: enough documents of each kind that the root and type chips (P9-02) narrow something, and a few near-miss names so the typo fallback (P9-03) has something to find. Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land
 - [ ] P9-37 · Repos before Live Sites on a project page. Eleven Live Sites cards fill the first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list with one row per site (name, domain, status dot)
 - [ ] P9-38 · Make "N need attention" actionable. On the Projects landing cards it's plain grey text. Color it orange and link it to the uncommitted repos. Fill a missing card description from the project README's first line so the cards are even
 - [ ] P9-39 · A quieter document header. The filename shows three times (breadcrumb, heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the green `open` button opens. That also brings the header back to one row in a narrow window
@@ -114,12 +114,12 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-42 · Show which stat tiles are clickable. Tiles with a jump target only reveal it on hover. Give them a resting affordance (a faint arrow or underline) so they read as links
 - [ ] P9-43 · Playwright verification pass. Close the browser gaps the Chrome extension couldn't reach: every clipboard write (grant `clipboard-read`/`clipboard-write`), and focus and scroll survival across a refresh. Record results under [Verification still needed](#verification-still-needed)
 - [ ] P9-44 · Document-relative Markdown links (P7-04's open follow-up). Offer copy-link as a path relative to the current document, alongside the hub link
-- [ ] P9-46 · Bring the scaffold reference and the public screenshots up to `obsidian`. The scaffold skill's `references/design-system.md` still lists IBM Plex, eight schemes, `midnight` as the default, a 42px header and square corners. It is canonical in `agent-skills` (`skills/core/web/project-hub-scaffold/`): update it there from [REDESIGN.md](REDESIGN.md), then copy the travel copy here byte-identical. Then recapture `Images/Public/project-overview.png` and `document-reader.png` from the demo build, per `Images/Public/README.md`, and update its table
+- [ ] P9-46 · Bring the scaffold reference and the public screenshots up to `obsidian`. The scaffold skill's `references/design-system.md` still lists IBM Plex, eight schemes, `midnight` as the default, a 42px header and square corners. It is canonical in `agent-skills` (`skills/core/web/project-hub-scaffold/`): update it there from [REDESIGN.md](REDESIGN.md), then copy the travel copy here byte-identical. Then recapture `images/Public/project-overview.png` and `document-reader.png` from the demo build, per `images/Public/README.md`, and update its table
 - [ ] P9-47 · `#app` height under CSS zoom. `#app{height:calc(100vh / var(--zoom))}` was written when `100vh` ignored `zoom`; in a current Chromium (headless 140 in the redesign's comparison shots) the page ends about 15% short of the window at the default 115%, so the division now happens twice. Confirm in the browsers actually in use, switch to `100vh` if it holds, and update the comment in `index.html` and the design-system reference, which explains the old pattern
 - [ ] P9-48 · A skill's own `SKILL.md` in the demo. The demo build never captures it (the entity node carries no child for the file), so the reader shows "could not read this file" on every skill in the hosted demo. Give the node a child, or have `build-demo.mjs` capture it; add a test either way
 - [ ] P9-29 · Keep icons visible on dark themes. Black favicons (GitHub, Plex) disappear on the dark themes. Give an icon a light backing when its average luminance is low, measured once per icon on a canvas
 - [ ] P9-30 · Keep favicons across restarts. The cache is memory-only, so a restart resolves every origin again. Persist it beside `scan.json` if the first open after a restart feels slow
-- [ ] P9-31 · Favorites in the demo. The demo shows a note in place of favorites. Capture a fixture `favorites.json` and a `Bookmarks` file from `Demo/Home`, and teach `demo.js` to answer `/api/favorites` read-only, so both modes are visible there
+- [ ] P9-31 · Favorites in the demo. The demo shows a note in place of favorites. Capture a fixture `favorites.json` and a `Bookmarks` file from `demo/Home`, and teach `demo.js` to answer `/api/favorites` read-only, so both modes are visible there
 - [ ] P9-35 · Keep hub tabs across reloads. Open tabs vanish on a refresh. Store their URLs and titles, not their contents, and reopen them lazily when first shown
 - [ ] P9-36 · Keyboard for favorites and tabs. Arrow-key navigation in the Favorites list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite without dragging
 
@@ -133,7 +133,7 @@ in the P9 list above.
 
 ### What was audited
 
-All three builds — [`Project-Hub`](../Project-Hub/README.md) (4273), `Project-Hub-IAM`
+All three builds — [`Project-Hub`](../project-hub/README.md) (4273), `Project-Hub-IAM`
 (4274), `Project-Hub-Finance` (4275, both retired 2026-09-07 — see
 [P6](#p6--2026-09-07-one-process-not-three)) — at roughly 2,100 lines each: `hub.mjs`
 (927), `index.html` (1,150), `Start-Hub.ps1` (80).
@@ -164,11 +164,11 @@ which fix was cheap and which was not.
 | # | Defect | Where | Impact | Status |
 |:--:|:---|:---|:---|:---|
 | 1 | Gzip is computed but never sent | all 3 `hub.mjs` | 10.2 MB per load instead of 1.08 MB | ✅ fixed |
-| 2 | Markdown sanitizer bypass → executing XSS | `Hub/hub.mjs` | Any `.md` under a scanned root can run script | ✅ fixed — CSP, then the filter rebuilt |
+| 2 | Markdown sanitizer bypass → executing XSS | `hub/hub.mjs` | Any `.md` under a scanned root can run script | ✅ fixed — CSP, then the filter rebuilt |
 | 3 | `-Restart` kills whatever owns the port | all 3 `Start-Hub.ps1` | Can kill an unrelated dev server | ✅ fixed |
-| 4 | Change-signature ignores content | `Hub/hub.mjs` | Editing a doc never refreshes the open view | ✅ fixed |
-| 5 | `/api/file` ships the file twice | `Hub/hub.mjs` | ~44 % of every document response is unread | ✅ fixed |
-| 6 | No `Host`/`Origin` check on side-effecting GETs | `Hub/hub.mjs` | Any web page can drive `/api/open` | ✅ fixed |
+| 4 | Change-signature ignores content | `hub/hub.mjs` | Editing a doc never refreshes the open view | ✅ fixed |
+| 5 | `/api/file` ships the file twice | `hub/hub.mjs` | ~44 % of every document response is unread | ✅ fixed |
+| 6 | No `Host`/`Origin` check on side-effecting GETs | `hub/hub.mjs` | Any web page can drive `/api/open` | ✅ fixed |
 | 7b | Mangled CSS escape broke the stat-tile arrow | all 3 `index.html` | Hover showed `93` instead of `↓` | ✅ fixed |
 
 #### 1. Gzip is computed on every scan and then thrown away
@@ -245,7 +245,7 @@ scanned root.
 **Fix, in order of laziness:**
 1. ✅ **Done 2026-08-31.** A CSP on every response, with a per-request nonce on the two inline scripts — `'unsafe-inline'` would have left inline handlers working, which is exactly the hole. This kills the whole class in one header, including bypasses nobody has found yet. The `<img/onerror>` payload that executed during the audit now does nothing; the app still boots, fonts load, and README badges render, with no CSP violations in the console.
 2. ✅ **Done 2026-08-31.** `sanitizeHtml()` replaces the regex filter. There is no DOM in Node, so rather than parse into a detached element it tokenises each tag and **rebuilds it**: a tag has to be on the allowlist to survive, an attribute has to be on its tag's list to exist, `href`/`src`/`srcset` values are scheme-checked, and every value is re-quoted and re-escaped. Nothing of the original text is carried through for a trick to hide in. Raw HTML is also now buffered across lines, so a tag split over several lines is filtered as one tag — which fixes the rendering half of the bug too.
-3. ✅ **Done 2026-08-31.** Eight tests in `Hub/hub.test.mjs` cover the filter, including both original bypasses.
+3. ✅ **Done 2026-08-31.** Eight tests in `hub/hub.test.mjs` cover the filter, including both original bypasses.
 
 **Checked against real content, not just fixtures.** Both renderers were run over all
 **374** markdown files the hubs can reach: **358 byte-identical**, and all 16 differences
@@ -377,7 +377,7 @@ fix it before a fourth hub. Two events since have priced it:
 - The favicon + collapsible-sections work (2026-08-31) had to be written once and ported twice.
 - **The gzip bug in #1 exists in triplicate.** One bad edit, three broken servers, and the fix has to land three times.
 
-**Fixed 2026-08-31.** The program moved to [`../Hub`](../Hub/README.md); each hub folder
+**Fixed 2026-08-31.** The program moved to [`../Hub`](../hub/README.md); each hub folder
 keeps a `hub.config.json` and a three-line `Start-Hub.ps1` shim, so the VS Code
 `folderOpen` tasks did not have to change. Config carries `name`, `dir`, `port`, `title`,
 `favicon` and `repoScope`, validated at startup rather than failing halfway through a
@@ -395,8 +395,8 @@ Adding a fourth hub is now a folder, a config file, and a copy of the shim.
 Zero test files, zero lint configs, no manifest — so no `engines` field recording the
 Node floor the README claims, and nothing that would have caught #1 or #2.
 
-**Fixed 2026-08-31.** `Hub/hub.test.mjs` — 16 tests, `node --test`, no framework, no
-fixtures, no dependencies. `Hub/package.json` records `engines.node: >=18.17` and an
+**Fixed 2026-08-31.** `hub/hub.test.mjs` — 16 tests, `node --test`, no framework, no
+fixtures, no dependencies. `hub/package.json` records `engines.node: >=18.17` and an
 `npm test` script. To make the module importable, the server, watcher and `--scan` are
 now guarded behind an `IS_MAIN` check, and `md2html`, `frontmatter`, `blurb` and
 `loadConfig` are exported.
@@ -420,7 +420,7 @@ CSP already makes inert, and they turn green when the filter is replaced. The su
 
 | Item | Status |
 |:---|:---|
-| `Project-Hub/hub.mjs.bak` | ✅ deleted — was 13 lines adrift from the live file |
+| `project-hub/hub.mjs.bak` | ✅ deleted — was 13 lines adrift from the live file |
 | `function section(title)` (`index.html`) | ✅ deleted — never called |
 | `window.go = go` | ✅ deleted — leftover debug hook |
 
@@ -584,7 +584,7 @@ Open-fd count is not readable portably on Windows, so the endpoint reports **`re
 instead — head reads that failed. That is a better signal anyway: it is the *cause* of the
 August death rather than a symptom, and it was previously swallowed silently by a `catch`.
 
-[`Hub/Watch-Hubs.ps1`](../Hub/Watch-Hubs.ps1) pings every hub and restarts the unwell ones
+[`hub/Watch-Hubs.ps1`](../hub/Watch-Hubs.ps1) pings every hub and restarts the unwell ones
 through `Start-Hub.ps1`, so the port-identity rules from #3 still apply and it can never
 kill a bystander. Report-only by default, `-Restart` to act, non-zero exit when something
 needed attention.
@@ -599,7 +599,7 @@ Three bugs of my own surfaced while running it, which is rather the point of run
 user's say-so, matching the conventions of the nine jobs already in that folder: PowerShell 7,
 `-NoProfile -ExecutionPolicy Bypass -File`, interactive token as the configured local user, start-when-available,
 `IgnoreNew` for overlapping runs, ten-minute execution limit. It runs `-Restart -Quiet`
-every 15 minutes and appends to `Hub/watchdog.log`.
+every 15 minutes and appends to `hub/watchdog.log`.
 
 Proved on the failure path rather than the happy one — the Finance hub was killed outright
 to reproduce the August shape:
@@ -715,7 +715,7 @@ The watchdog is now registered and running — see [#19](#19-nothing-notices-whe
 
 ### P5 — 2026-09-03 Antigravity audit
 
-A second pass over the shared `Hub/` engine, run by Antigravity rather than Claude, against
+A second pass over the shared `hub/` engine, run by Antigravity rather than Claude, against
 the AI Lab hub at `127.0.0.1:4273`. Full writeup:
 `Example_Workspace/Agents/Antigravity/.agents/temp/project-hub-enhancements-and-recommendations.md`.
 
@@ -727,10 +727,10 @@ also fixed (#31, #32, #33, #34, #35); #36 is queued as P9-08.
 
 | # | Defect | Where | Impact | Status |
 |:--:|:---|:---|:---|:---|
-| 27 | `blurb()` skipped every line starting with `<`, so house-style READMEs (`<h1>` + badge row, real summary inside a plain `<p><em>…</em></p>`) fell through to the first *unwrapped* prose line further down | `Hub/hub.mjs` `blurb()` | Root card and search showed `example.github.io`'s sub-repo blurb as the description for all of `Example_Workspace` | ✅ fixed |
-| 28 | `rootDocs` hardcoded `Agents/Claude/CLAUDE.md` as the 4th featured doc | `Hub/hub.mjs` (`rootDocs` construction) | Ignored `Agents/README.md`, the file the repo itself names as the vendor-neutral source of truth | ✅ fixed |
-| 29 | `href="#anchor"` links inside rendered markdown called `preventDefault()` and stopped, with no scroll-to-target handler — and headings had no `id` to scroll to even if it had | `Hub/hub.mjs` `md2html()`, `Hub/index.html` `loadDoc()` | Every in-page table of contents (this file's included) was dead | ✅ fixed |
-| 30 | Antigravity had no entry in `USER_RUNTIMES`, unlike Claude/Codex/Gemini/OpenCode | `Hub/hub.mjs` `USER_RUNTIMES` | User-scope Antigravity config (`~/.gemini/antigravity-cli`) never appeared in the hub | ✅ fixed |
+| 27 | `blurb()` skipped every line starting with `<`, so house-style READMEs (`<h1>` + badge row, real summary inside a plain `<p><em>…</em></p>`) fell through to the first *unwrapped* prose line further down | `hub/hub.mjs` `blurb()` | Root card and search showed `example.github.io`'s sub-repo blurb as the description for all of `Example_Workspace` | ✅ fixed |
+| 28 | `rootDocs` hardcoded `Agents/Claude/CLAUDE.md` as the 4th featured doc | `hub/hub.mjs` (`rootDocs` construction) | Ignored `Agents/README.md`, the file the repo itself names as the vendor-neutral source of truth | ✅ fixed |
+| 29 | `href="#anchor"` links inside rendered markdown called `preventDefault()` and stopped, with no scroll-to-target handler — and headings had no `id` to scroll to even if it had | `hub/hub.mjs` `md2html()`, `hub/index.html` `loadDoc()` | Every in-page table of contents (this file's included) was dead | ✅ fixed |
+| 30 | Antigravity had no entry in `USER_RUNTIMES`, unlike Claude/Codex/Gemini/OpenCode | `hub/hub.mjs` `USER_RUNTIMES` | User-scope Antigravity config (`~/.gemini/antigravity-cli`) never appeared in the hub | ✅ fixed |
 
 #### 27. `blurb()` returned the wrong app's description for the workspace root
 
@@ -755,7 +755,7 @@ Fixed by locating `Agents/README.md` under the hub's own project root (`ROOTS[0]
 instead of regex-matching `/Agents/Claude/CLAUDE\.md$/` across every node. Degrades to "no
 4th doc" on a hub with no `Agents/README.md`, rather than the old regex's behaviour of
 either wrongly matching something on that hub or silently finding nothing. Verified: the
-overview's 4th featured doc is now `Projects/Example_Workspace/Agents/README.md`.
+overview's 4th featured doc is now `projects/Example_Workspace/Agents/README.md`.
 
 #### 29. In-document anchor links were dead — and had nowhere to land anyway
 
@@ -989,12 +989,12 @@ project root in the tree — plus a combined **Portfolio** view as the new landi
 | Area | Before | After |
 |:---|:---|:---|
 | Processes / ports | 3 (`4273`/`4274`/`4275`) | 1 (`4273`) |
-| Config shape | One `hub.config.json` per hub: `{name, dir, port, title, favicon, repoScope}` | Split: the server's own `{port, title, favicon}` in `Project-Hub/hub.config.json`, plus one `{name, dir, repoScope}` per project under `Projects/<name>/` |
-| Discovery | None — each hub only knew its own config | `discoverProjects()` scans `Projects/*/hub.config.json` at startup, adapted from the (now-removed) `discoverHubs()` cross-hub-switcher scan |
+| Config shape | One `hub.config.json` per hub: `{name, dir, port, title, favicon, repoScope}` | Split: the server's own `{port, title, favicon}` in `project-hub/hub.config.json`, plus one `{name, dir, repoScope}` per project under `projects/<name>/` |
+| Discovery | None — each hub only knew its own config | `discoverProjects()` scans `projects/*/hub.config.json` at startup, adapted from the (now-removed) `discoverHubs()` cross-hub-switcher scan |
 | Sidebar | One project root + the shared roots | Three project roots + the shared roots, plus a synthetic `Portfolio` node first |
 | Repo scoping | One global `repoScope` filter over one hub's `repos[]` | Each project's own repos filtered by its own dir-prefix *then* its own `repoScope` (order matters — see below), unioned into one payload |
 | Cross-hub switcher | `<select id="hubswitch">`, `/api/hubs`, `discoverHubs()` — pinged sibling ports' `/api/health` | Removed entirely — dead once there's one process to be in |
-| VS Code workspaces | Each ran its own hub, own port | All three ensure the same shared server, and deep-link via `#Projects/<Name>` instead of landing on Portfolio |
+| VS Code workspaces | Each ran its own hub, own port | All three ensure the same shared server, and deep-link via `#projects/<Name>` instead of landing on Portfolio |
 
 #### Two bugs this surfaced that a single-project hub could never trigger
 
@@ -1029,7 +1029,7 @@ across all three projects" half needed no new code. Added: a "this project only"
 shown only when the current selection is inside a project, filtering the same index by
 `topAncestorOf(hit.id) === project`. Verified live: searching `agent` from inside
 `Finance_Workspace` showed 200 combined matches; toggling narrowed it to 90, every one under
-`Projects/Finance_Workspace/`.
+`projects/Finance_Workspace/`.
 
 #### Verified
 
@@ -1046,8 +1046,8 @@ shown only when the current selection is inside a project, filtering the same in
   and `Project-Hub-Finance` folders deleted, ports 4274/4275 confirmed free
   (`Get-NetTCPConnection`).
 - `Watch-Hubs.ps1` needed no code change — it already discovers hubs by walking for
-  `hub.config.json` siblings one level above `Projects/`, so it now finds one folder
-  instead of three, and the nested `Projects/*/hub.config.json` files are correctly
+  `hub.config.json` siblings one level above `projects/`, so it now finds one folder
+  instead of three, and the nested `projects/*/hub.config.json` files are correctly
   invisible to it.
 
 #### Not done
@@ -1070,7 +1070,7 @@ real `@projects` node (`kind: 'projects'`, real `children`, no filesystem path o
 instead of pushing them to the top level — `@portfolio` is gone, and `@projects` is both
 the folder you expand to reach a project and the click target for the combined view
 (`viewPortfolio()`, kept its name). Project ids are unchanged (`rel()` is path-derived,
-independent of tree position), so nothing that links to `#Projects/<Name>` needed to know
+independent of tree position), so nothing that links to `#projects/<Name>` needed to know
 about the nesting.
 
 This broke `topAncestorOf()`, and it's worth recording why: the helper walked `S.parent`
@@ -1093,12 +1093,12 @@ because `go()` already walked `S.parent` to open every ancestor of the linked no
 the node itself, if it has children) — a case that already existed for deep-linking, just
 never exercised as "the whole default expansion story" until the force-expand was deleted.
 No new expansion logic was needed, only removing what was overriding it. Each VS Code
-workspace's `#Projects/<Name>` link benefits the same way: opening the workspace now shows
+workspace's `#projects/<Name>` link benefits the same way: opening the workspace now shows
 only that one project's path in the tree, not every root at once.
 
 Verified live: the bare URL shows all six top-level rows (Projects, Documents, My Custom
 Skills, Pictures, Automations, User CLIs) collapsed with the Projects-folder view as the
-main pane; `#Projects/Example_Workspace` shows Projects → Example_Workspace expanded (revealing its
+main pane; `#projects/Example_Workspace` shows Projects → Example_Workspace expanded (revealing its
 Agents/Repos/Resources children) with the other two projects and all shared roots
 collapsed; the search "only Example_Workspace" toggle still resolves correctly through the
 fixed `topAncestorOf()`. `npm test`: 34/34 unchanged (no test asserted the old flat
@@ -1375,7 +1375,7 @@ On the final build, startup and ordinary scans performed **zero Pictures directo
 
 **Validation:** `npm test` passed **50/50** (eight new Pictures regressions). **10 live checks passed**, covering untouched startup, shallow browsing, deferred search indexing, paging, deep links, cache reuse, empty-directory invalidation, and isolation from project watcher ticks. The live watcher test created one empty, uniquely named folder under Pictures and removed it with non-recursive cleanup. No user pictures were edited. Browser control remained unavailable; sidebar interactions, history, and visual behavior still need the browser pass already listed below.
 
-New modules: `Hub/pictures.mjs` (asynchronous browse/search cache), `Hub/pictures-client.mjs` (loaded-node cache), and `Hub/pictures.test.mjs`. Updated `Hub/hub.mjs`, `Hub/index.html`, test wiring, and the refresh test's UI ports. The identified local hub was restarted on **4273**. Reload an existing tab to use the new client.
+New modules: `hub/pictures.mjs` (asynchronous browse/search cache), `hub/pictures-client.mjs` (loaded-node cache), and `hub/pictures.test.mjs`. Updated `hub/hub.mjs`, `hub/index.html`, test wiring, and the refresh test's UI ports. The identified local hub was restarted on **4273**. Reload an existing tab to use the new client.
 
 Evidence is saved under `D:\Work\Projects\Example_Workspace\Agents\Codex\temp\`: `pictures-performance-before.json`, `pictures-performance-after.json`, and `pictures-live-checks.json`. Source snapshots are in `project-hub-before-lazy-pictures/`.
 
@@ -1383,7 +1383,7 @@ Evidence is saved under `D:\Work\Projects\Example_Workspace\Agents\Codex\temp\`:
 
 #### First report/reliability pass — what shipped and how it was checked
 
-Changed `Hub/hub.mjs`, `Hub/index.html`, and the test command in `Hub/package.json`. Added `Hub/reports.mjs` (report delivery), `Hub/navigation.mjs` (route/link helpers), `Hub/open-native.mjs` (native launch requests), and `Hub/reports.test.mjs`. No dependencies or build step were added. The launcher restarted the identified hub process on port **4273**, and live health returned **ready**. Reload an already-open hub tab to load the updated interface.
+Changed `hub/hub.mjs`, `hub/index.html`, and the test command in `hub/package.json`. Added `hub/reports.mjs` (report delivery), `hub/navigation.mjs` (route/link helpers), `hub/open-native.mjs` (native launch requests), and `hub/reports.test.mjs`. No dependencies or build step were added. The launcher restarted the identified hub process on port **4273**, and live health returned **ready**. Reload an already-open hub tab to load the updated interface.
 
 - **42/42 tests passed** with `npm test`: the original 35 plus seven regression tests covering report search classification, heading routes and malformed links, same-length edits, safe native launch arguments and failures, frontend syntax, refresh/recovery behavior, and report HTTP delivery/isolation.
 - **11 live HTTP checks passed**: HTML redirect and sandbox response, three relative assets (CSS/JS/SVG), PDF MIME/ranges, binary text-view rejection, invalid and missing native-action paths, module MIME, and the live scan's PDF/HTML classifications.
@@ -1477,7 +1477,7 @@ Start with cached root summaries and children fetched when a folder is opened. K
 
 **Success:** record cold/warm load and scan timings before and after, using the same roots. Verify that an ordinary project-document edit does not require a complete Pictures transfer. Consider workers or virtualized rows only where measured timings support them.
 
-Evidence: live measurements above; `Hub/index.html:441` (`reindex`), `Hub/hub.mjs:571` (`scanTree`). Extends existing roadmap #16–18 with current evidence.
+Evidence: live measurements above; `hub/index.html:441` (`reindex`), `hub/hub.mjs:571` (`scanTree`). Extends existing roadmap #16–18 with current evidence.
 
 ##### P7-02. Make PDF and HTML deliverables searchable, and give PDFs a real viewer
 
@@ -1489,7 +1489,7 @@ PDFs also fall into the generic text viewer: `/api/file` reads them as UTF-8, an
 
 **Success:** a known PDF and HTML report both appear in filename search; PDF selection shows pages or a useful fallback rather than encoded binary text.
 
-Evidence: `Hub/hub.mjs:563`, `Hub/index.html:441`, `Hub/index.html:1661`, `Hub/hub.mjs:1578` onward.
+Evidence: `hub/hub.mjs:563`, `hub/index.html:441`, `hub/index.html:1661`, `hub/hub.mjs:1578` onward.
 
 ##### P7-03. Make live refresh notice same-size edits and preserve readable content
 
@@ -1501,7 +1501,7 @@ Separately, a failed background scan calls `showFatal()`, clearing the current d
 
 **Success:** same-length edits refresh an open document; a temporary connection failure preserves the document and reading position, then recovers without a manual page reload.
 
-Evidence: `Hub/hub.mjs:1119`, `Hub/index.html:497`, `Hub/index.html:535`, initialization near `Hub/index.html:1880`. Same-size freshness extends roadmap #4.
+Evidence: `hub/hub.mjs:1119`, `hub/index.html:497`, `hub/index.html:535`, initialization near `hub/index.html:1880`. Same-size freshness extends roadmap #4.
 
 ##### P7-04. Support links to headings in other documents
 
@@ -1513,7 +1513,7 @@ Add **Copy Hub Link** beside Copy Path. Offer document-relative Markdown links w
 
 **Success:** a cross-document section link lands on the section; copying a Hub link and reopening it restores the same document and heading.
 
-Evidence: `Hub/index.html:1729` (`loadDoc`), `Hub/index.html:715` (`showCtxMenu`).
+Evidence: `hub/index.html:1729` (`loadDoc`), `hub/index.html:715` (`showCtxMenu`).
 
 ##### P7-05. Resolve supporting assets in HTML report previews
 
@@ -1525,7 +1525,7 @@ Provide a contained artifact route that preserves the report directory structure
 
 **Success:** an existing report with a sibling `charts/` folder renders its charts while preserving preview isolation.
 
-Evidence: `Hub/index.html:1690`, `Hub/hub.mjs:1593`; the roadmap's September 7 report-deliverables example makes this a relevant workflow.
+Evidence: `hub/index.html:1690`, `hub/hub.mjs:1593`; the roadmap's September 7 report-deliverables example makes this a relevant workflow.
 
 ##### P7-06. Enforce HTML preview isolation on the response as well as the iframe
 
@@ -1537,7 +1537,7 @@ Use a response-level CSP sandbox or a separate preview origin with suitably rest
 
 **Success:** verify both embedded and directly opened previews cannot read the hub's DOM or privileged API responses, while supported charts still work. Add a targeted browser regression check when browser tooling is available.
 
-Evidence: `Hub/hub.mjs:1607–1617`, `Hub/index.html:1693–1698`. This finding is about the current HTML route, not a claim that the previously fixed Markdown sanitizer defect has returned.
+Evidence: `hub/hub.mjs:1607–1617`, `hub/index.html:1693–1698`. This finding is about the current HTML route, not a claim that the previously fixed Markdown sanitizer defect has returned.
 
 ##### P7-07. Make search results accurate and easier to narrow
 
@@ -1549,7 +1549,7 @@ Add visible filters for root/project and type, including PDF, HTML, and image. K
 
 **Success:** broad searches disclose the actual count, duplicate names are distinguishable, and a user can search only Documents or only Pictures without first navigating into a project.
 
-Evidence: `Hub/index.html:1800–1864`. Fuzzy matching is already an open roadmap item (#13).
+Evidence: `hub/index.html:1800–1864`. Fuzzy matching is already an open roadmap item (#13).
 
 ##### P7-08. Make native actions report what happened
 
@@ -1559,7 +1559,7 @@ Open buttons ignore response failures, and the server discards process errors an
 
 Disable filesystem actions for the synthetic Projects node: its regular page correctly has no filesystem buttons, but the generic tree context menu still offers them. Rename the context action “Open Folder” to **Reveal in Explorer** to distinguish selecting an item in its parent from entering the folder.
 
-Evidence: `Hub/index.html:715`, `Hub/index.html:945`, `/api/open` in `Hub/hub.mjs:1623` onward.
+Evidence: `hub/index.html:715`, `hub/index.html:945`, `/api/open` in `hub/hub.mjs:1623` onward.
 
 #### Everyday browsing improvements
 
@@ -2209,7 +2209,7 @@ P9-49 — now live in [the remaining checklist](#remaining).*
   Recent became separate sidebar views behind an icon row, with a bookmark count badge. The
   active view persists in `hub.side`, clicking the active icon folds the sidebar to the rail,
   and on the rail the icons stack vertically.)*
-- ✅ **P9-27 · Browser favorites view.** *(done 2026-09-29: `Hub/webmarks.mjs` reads the
+- ✅ **P9-27 · Browser favorites view.** *(done 2026-09-29: `hub/webmarks.mjs` reads the
   Edge, Chrome and Brave `Bookmarks` JSON live, with `/api/webmarks` and `/api/favicon`.
   Favicons come from a server-side lookup with a browser-direct fallback. 5 tests in
   `webmarks.test.mjs`, and it was checked against real profiles: 3 found, about 6,250
@@ -2255,7 +2255,7 @@ their logs and their README — nothing else.
 
 | Change | Result |
 |:---|:---|
-| Program moved to [`../Hub`](../Hub/README.md) | One `hub.mjs`, one `index.html`, one `Start-Hub.ps1` |
+| Program moved to [`../Hub`](../hub/README.md) | One `hub.mjs`, one `index.html`, one `Start-Hub.ps1` |
 | `hub.config.json` per hub | `name`, `dir`, `port`, `title`, `favicon`, `repoScope` — validated at startup |
 | `index.html` templated | `%TITLE%`, `%FAVICON%`, `%PORT%` filled per request beside the existing `%NONCE%` |
 | `Start-Hub.ps1` shims | Three lines each; the VS Code `folderOpen` tasks are unchanged |
@@ -2301,7 +2301,7 @@ one regex away from it.
 
 ### Phase 3 — what shipped
 
-Applied **2026-08-31** to `Hub/index.html` — one file, which is what phase 1 bought.
+Applied **2026-08-31** to `hub/index.html` — one file, which is what phase 1 bought.
 
 | Finding | Change | Measured on the live page |
 |:---|:---|:---|
@@ -2346,8 +2346,8 @@ the payload and a check that the health fields the watchdog reads still exist.
 <p align="center">
   <a href="README.md">← Docs home</a> ·
   <a href="CHANGELOG.md">Changelog →</a> ·
-  <a href="../Hub/README.md">Hub source</a> ·
-  <a href="../Project-Hub/README.md">Project Hub</a>
+  <a href="../hub/README.md">Hub source</a> ·
+  <a href="../project-hub/README.md">Project Hub</a>
 </p>
 
 <p align="right"><sub><a href="#roadmap-top">back to top</a></sub></p>

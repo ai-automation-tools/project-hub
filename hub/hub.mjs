@@ -4,10 +4,10 @@
 //
 // One process, one config folder, any number of projects: this file's own
 // hub.config.json holds only the server's own settings (port, title, favicon); each
-// project it mounts gets its own small config under `Projects/<name>/hub.config.json`,
+// project it mounts gets its own small config under `projects/<name>/hub.config.json`,
 // discovered at startup — adding a project is a folder and a config, nothing here changes.
 //
-//   node hub.mjs --config ../Project-Hub/hub.config.json    → serve
+//   node hub.mjs --config ../project-hub/hub.config.json    → serve
 //   node hub.mjs --config <path> --scan                     → write scan.json and exit
 //   node hub.mjs --config <path> --port 5000                → override the configured port
 
@@ -32,7 +32,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 // Before 2026-09-07 it was one process per project workspace; now it's one process for
 // all of them, so the config that used to name ONE project (`dir`/`repoScope`) has split
 // in two: this file's own hub.config.json is now just the server's own settings (port,
-// title, favicon), and each project it mounts gets its own small config under `Projects/`
+// title, favicon), and each project it mounts gets its own small config under `projects/`
 // (see loadProjectConfig below).
 const CONFIG_DEFAULTS = {
   maxDepth: 10,
@@ -102,7 +102,7 @@ export function loadConfig(file) {
   return cfg;
 }
 
-/** Read and validate one project's hub.config.json under `Projects/<name>/`. */
+/** Read and validate one project's hub.config.json under `projects/<name>/`. */
 export function loadProjectConfig(file) {
   const j = readConfigJson(file);
   for (const k of ['name', 'dir']) {
@@ -181,14 +181,21 @@ const CONFIG = (IS_MAIN || fs.existsSync(CONFIG_FILE))
 const HUB_DIR = path.dirname(CONFIG_FILE);
 
 /**
- * Every project this hub mounts, found by scanning `Projects/<name>/hub.config.json`
+ * Every project this hub mounts, found by scanning `projects/<name>/hub.config.json`
  * next to this hub's own config folder -- adding a project is a folder and a config,
  * the same property the old three-hubs-one-codebase design already relied on, just
  * redirected at a project config (no port: it names a root this ONE process mounts,
  * not another process to reach) rather than another whole hub instance.
  */
+export function projectsDir(root) {
+  // `Projects/` was the folder's name before 2026-10-22; installs on a case-sensitive
+  // filesystem may still use it.
+  const dir = path.join(root, 'projects');
+  return fs.existsSync(dir) ? dir : path.join(root, 'Projects');
+}
+
 function discoverProjects() {
-  const dir = path.join(path.dirname(HUB_DIR), 'Projects');
+  const dir = projectsDir(path.dirname(HUB_DIR));
   let entries;
   try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return []; }
   const out = [];
@@ -206,7 +213,7 @@ const PROJECTS = IS_MAIN ? discoverProjects() : [];
 
 // Every project workspace gets its own root; Documents, Pictures and the rest are shared
 // by all of them. They are machine paths, so they come from `sharedRoots` in the hub's
-// config rather than being listed here — see Project-Hub/hub.config.example.json.
+// config rather than being listed here — see project-hub/hub.config.example.json.
 //
 // A shared root may sit physically inside another one (Links inside Documents): mount it
 // anyway, MOUNTED_ROOTS below prunes it from the parent's walk so it appears once rather

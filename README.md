@@ -166,7 +166,7 @@ Part of the [**ai-automation-tools**](https://github.com/ai-automation-tools) or
 | Repo | How it relates |
 |:---|:---|
 | [**agent-skills**](https://github.com/ai-automation-tools/agent-skills) | **The canonical home of the scaffold skill** bundled here at [`Skills/project-hub-scaffold/`](Skills/project-hub-scaffold/SKILL.md). The copy in this repo is a travel copy so the skill works without that repo present, byte for byte the canonical one. A change belongs there first. It also carries three **maintainer skills for this codebase** — see below. |
-| [**Agent-chat**](https://github.com/ai-automation-tools/Agent-chat) | MCP server for AI-to-AI conversations. Its workspace is one of the things a hub renders. |
+| [**Roundtable**](https://github.com/ai-automation-tools/roundtable) | MCP server for AI-to-AI conversations. Its workspace is one of the things a hub renders. |
 | [**cronsole**](https://github.com/ai-automation-tools/cronsole) | Scheduled-task control plane. The hub's watchdog is one of the tasks it can see. |
 
 ---

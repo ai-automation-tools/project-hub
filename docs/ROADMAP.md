@@ -377,7 +377,7 @@ fix it before a fourth hub. Two events since have priced it:
 - The favicon + collapsible-sections work (2026-08-31) had to be written once and ported twice.
 - **The gzip bug in #1 exists in triplicate.** One bad edit, three broken servers, and the fix has to land three times.
 
-**Fixed 2026-08-31.** The program moved to [`../Hub`](../hub/README.md); each hub folder
+**Fixed 2026-08-31.** The program moved to [`../hub`](../hub/README.md); each hub folder
 keeps a `hub.config.json` and a three-line `Start-Hub.ps1` shim, so the VS Code
 `folderOpen` tasks did not have to change. Config carries `name`, `dir`, `port`, `title`,
 `favicon` and `repoScope`, validated at startup rather than failing halfway through a
@@ -2255,7 +2255,7 @@ their logs and their README — nothing else.
 
 | Change | Result |
 |:---|:---|
-| Program moved to [`../Hub`](../hub/README.md) | One `hub.mjs`, one `index.html`, one `Start-Hub.ps1` |
+| Program moved to [`../hub`](../hub/README.md) | One `hub.mjs`, one `index.html`, one `Start-Hub.ps1` |
 | `hub.config.json` per hub | `name`, `dir`, `port`, `title`, `favicon`, `repoScope` — validated at startup |
 | `index.html` templated | `%TITLE%`, `%FAVICON%`, `%PORT%` filled per request beside the existing `%NONCE%` |
 | `Start-Hub.ps1` shims | Three lines each; the VS Code `folderOpen` tasks are unchanged |

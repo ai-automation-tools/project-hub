@@ -94,7 +94,7 @@ Real configs stay out of Git. See the [config reference](hub/README.md#the-confi
 From the repository root:
 
 ```powershell
-./Project-Hub/Start-Hub.ps1
+./project-hub/Start-Hub.ps1
 ```
 
 Or start Node directly:

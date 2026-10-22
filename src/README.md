@@ -2,6 +2,6 @@
 
 Original design exports and screenshots are kept locally and excluded from Git because they contain private workspace details. They are not required to run Project Hub.
 
-The maintained interface is [hub/index.html](../hub/index.html). Reusable design guidance is in the [scaffold skill](../Skills/project-hub-scaffold/SKILL.md).
+The maintained interface is [hub/index.html](../hub/index.html). Reusable design guidance is in the [scaffold skill](../skills/project-hub-scaffold/SKILL.md).
 
 [Back to Project Hub](../README.md)

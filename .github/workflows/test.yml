@@ -60,7 +60,7 @@ jobs:
         run: |
           test -s demo/site/index.html
           test -s demo/site/api/manifest.json
-          captured=$(node -p "Object.keys(require('./Demo/site/api/manifest.json')).length")
+          captured=$(node -p "Object.keys(require('./demo/site/api/manifest.json')).length")
           echo "captured $captured API responses"
           test "$captured" -gt 100
 

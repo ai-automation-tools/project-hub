@@ -34,7 +34,7 @@ node hub/hub.mjs --config project-hub/hub.config.json --scan   # write scan.json
 ```
 
 ```powershell
-./Project-Hub/Start-Hub.ps1 -Restart -NoBrowser      # restart the running hub after hub.mjs changes
+./project-hub/Start-Hub.ps1 -Restart -NoBrowser      # restart the running hub after hub.mjs changes
 ```
 
 CI (`.github/workflows/test.yml`) runs `npm test` on Node 18.17 and 22, plus the demo build

@@ -19,7 +19,7 @@ Until 2026-08-31 this program existed three times, once per workspace, differing
 values. Every fix had to land three times — and when one bad edit corrupted a regex, it
 broke all three servers at once and nobody noticed for weeks. That got the program down
 to one copy with three config folders (one process each). Since 2026-09-07 it's one
-process, period — `../Project-Hub` holds the server's own config, and each project it
+process, period — `../project-hub` holds the server's own config, and each project it
 mounts gets a config folder of its own under `../projects/`. See
 [`../docs/ROADMAP.md`](../docs/ROADMAP.md) for both stories.
 
@@ -443,7 +443,7 @@ instead of trying to load them as text.
 2. Write a `hub.config.json` in it — `name`, `dir`, and `repoScope` if it needs one. No
    port, no favicon — those belong to the one server config, not to a project.
 3. `npm test` — the suite checks the new config parses and its `dir` exists.
-4. `.\Start-Hub.ps1 -Restart` from `../Project-Hub` (the server reads `projects/` once at
+4. `.\Start-Hub.ps1 -Restart` from `../project-hub` (the server reads `projects/` once at
    startup, so a new project needs a restart to be picked up — same as any other
    `hub.mjs` change).
 

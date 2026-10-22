@@ -60,7 +60,7 @@ port, no trailing dot:
 "allowedHosts": ["my-pc", "my-pc.tailnet-name.ts.net"]
 ```
 
-Then restart: `./Project-Hub/Start-Hub.ps1 -Restart -NoBrowser`.
+Then restart: `./project-hub/Start-Hub.ps1 -Restart -NoBrowser`.
 
 Why this step exists: the hub refuses any request whose `Host` header is not loopback,
 which is what stops DNS-rebinding attacks. `tailscale serve` forwards the browser's

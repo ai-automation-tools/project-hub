@@ -8,7 +8,7 @@ read-only copy over a fictional workspace at
 the real interface and real scan output, minus the two things that need a local server
 (live updates and opening files). [How it is built](../demo/README.md).
 
-The [project-hub-scaffold skill](../Skills/project-hub-scaffold/SKILL.md) adds workspaces to this server or creates a portable installation.
+The [project-hub-scaffold skill](../skills/project-hub-scaffold/SKILL.md) adds workspaces to this server or creates a portable installation.
 
 Nothing is hard-coded. Every repo, runtime, skill, command, sub-agent, hook, MCP server,
 and doc on the page comes from a live filesystem scan, and the page re-renders on its
@@ -298,18 +298,18 @@ Set `HUB_DEBUG=1` for per-request timing in `hub.log`.
 
 ## Files
 
-Since **2026-08-31** the program lives once, in [`../Hub`](../hub/README.md). This folder
+Since **2026-08-31** the program lives once, in [`../hub`](../hub/README.md). This folder
 holds only what makes this hub *this* hub.
 
 | File | Where | What it is |
 |:---|:---|:---|
 | `hub.config.json` | here | The whole difference between hubs: name, root dir, port, title, favicon, repo-table scope. |
-| `Start-Hub.ps1` | here | Three-line shim so the VS Code `folderOpen` task keeps its path; the logic is in `../Hub`. |
+| `Start-Hub.ps1` | here | Three-line shim so the VS Code `folderOpen` task keeps its path; the logic is in `../hub`. |
 | `hub.log` / `hub.err.log` | here | Server output (generated). |
 | `scan.json` | here | Only written by `--scan` (generated). |
-| `hub.mjs` | `../Hub` | Scanner, static server, markdown renderer, filesystem watcher. Zero deps. |
-| `index.html` | `../Hub` | The whole UI — vanilla JS, no framework, no build. |
-| `hub.test.mjs` | `../Hub` | `node --test hub.test.mjs`. Covers the markdown renderer, config validation, and a byte-level scan for the control-character corruption that broke gzip in August. |
+| `hub.mjs` | `../hub` | Scanner, static server, markdown renderer, filesystem watcher. Zero deps. |
+| `index.html` | `../hub` | The whole UI — vanilla JS, no framework, no build. |
+| `hub.test.mjs` | `../hub` | `node --test hub.test.mjs`. Covers the markdown renderer, config validation, and a byte-level scan for the control-character corruption that broke gzip in August. |
 
 ## Changing what this hub scans
 
@@ -371,7 +371,7 @@ nothing else in this repo needs touching.
 
 > [!NOTE]
 > **`Project-Hub-IAM` and `Project-Hub-Finance` are retired.** Until 2026-09-07 they ran
-> the same code from [`../Hub`](../hub/README.md) as separate processes on 4274/4275.
+> the same code from [`../hub`](../hub/README.md) as separate processes on 4274/4275.
 > Before that, until 2026-08-31, all mounted workspaces were literal copies of the whole program and a
 > fix had to land three times — which is how one bad edit left gzip broken in all mounted workspaces
 > at once. Splitting the config out to `hub.config.json` per folder fixed the

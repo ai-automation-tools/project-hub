@@ -17,6 +17,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 ## 2026-10-22
 
 - **Docs**: Rename the top-level `Docs/` folder to `docs/`, the org layout standard. GitHub paths are case-sensitive, so links written as `docs/...` used to 404. Links in the READMEs and `CLAUDE.md`, the `.gitignore` rules, the CI comments, `scripts/build-diagram.mjs` and the diagram's spec and receipt now point at `docs/`. Mentions of `Docs` folders in scanned workspaces, test fixtures and the demo are unchanged.
+- **Docs**: Verify the README quick start from a clean clone, and document what it turned up missing: the `/api/scan-settings` endpoint, the server config's `maxDepth`, and that `npm test` checks that a copied workspace config's `dir` exists. Test counts brought to 96 *(roadmap: Public release)*
 
 ## 2026-10-19
 

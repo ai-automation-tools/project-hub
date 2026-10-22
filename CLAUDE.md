@@ -65,6 +65,6 @@ with a >100-captured-responses check. `demo.yml` deploys the demo on push to `ma
 
 ## Skills & agents
 
-- `.claude/skills/project-hub-{scan,client,demo}` — maintainer skills, **overlay installed from `agent-skills`** (`Skills/Projects/project-hub/`). Edit them there and reinstall with `pwsh scripts/install-skills.ps1 -Project project-hub -Destination <this-clone>/.claude/skills` — don't edit the copies here.
+- `.claude/skills/project-hub-{scan,client,demo}` — maintainer skills, **overlay installed from `agent-skills`** (`skills/projects/project-hub/`). Edit them there and reinstall with `pwsh scripts/install-skills.ps1 -Project project-hub -Destination <this-clone>/.claude/skills` — don't edit the copies here.
 - `.claude/agents/hub-reviewer.md` — reviews a diff against the rules above.
 - `/check` — tests + demo build + public-hygiene grep, before committing.

@@ -63,7 +63,7 @@ marks one only Mike can do.
 
 - [x] CI green on push and PR: `test.yml` runs `npm test`, `demo.yml` builds and deploys the demo — done 2026-09-11: "Run the tests in CI"
 - [x] README usage (quick start, `hub.config.json`, endpoints in `Hub/README.md`) verified against the real code from a clean clone — done 2026-10-20: fresh clone of `main` at `2d95461`, setup followed as written; 96/96 tests, `--scan`, `Start-Hub.ps1` and 13 endpoints answered as documented (403 on traversal and a foreign `Host`). Fixed the gaps it found: `/api/scan-settings` and the server-level `maxDepth` were undocumented, a stray `/api/health` row sat below the endpoint table, and the test counts had drifted
-- [ ] `SECURITY.md`, and a full-history secret scan that comes back clean
+- [ ] `SECURITY.md`, and a full-history secret scan that finds no credentials (decided 2026-10-22: personal references in early commits are the accepted caveat in `PUBLIC-RELEASE.md`, see [OPEN-QUESTIONS](OPEN-QUESTIONS.md))
 - [x] Licence chosen and `LICENSE` added — done 2026-09-09: MIT, in the initial commit
 - [x] Live at its URL: the demo at `https://project-hub.ai-automation-tools.dev`, built from the `Demo/Workspace/` fixture by `demo.yml` — done 2026-09-11
 

@@ -29,9 +29,11 @@ Markers: `- [ ]` open, `- [-]` claimed by a run in progress, `- [x]` done, `- [!
 marks one only Mike can do.
 
 > [!NOTE]
-> **Where we are, 2026-10-19.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
+> **Where we are, 2026-10-24.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
 > P7), the merge into one process (P6) and the Links root (P8). Since 2026-09-22 the weekly
-> routine has worked the P9 backlog, the live work queue below the release line.
+> routine has worked the P9 backlog, the live work queue below the release line. One release
+> gate is open: `SECURITY.md` and the secret scan, which is settled as "no credentials in
+> history" (see [OPEN-QUESTIONS](OPEN-QUESTIONS.md)) and no longer waits on anyone.
 
 <a id="shipped"></a>
 

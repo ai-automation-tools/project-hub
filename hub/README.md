@@ -67,7 +67,7 @@ node hub.mjs --config ..\project-hub\hub.config.json --scan   # writes scan.json
 | `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Pictures is a metadata-only root. Gzipped. |
 | `/api/stat` | Modification times for one folder's immediate children, keyed by name. On demand, for the list view. |
 | `/api/file?raw=1` | The same document as escaped source instead of rendered markdown — the view-source toggle. |
-| `/api/health` | Uptime, scan history, `readErrors`, `state`, and `readErrorPaths` — the last twelve failing paths and their errno, for the status panel. 503 when unwell. |
+| `/api/health` | Uptime, scan history, `readErrors`, `state`, and `readErrorPaths` — the last twelve failing paths and their errno, for the status panel — and `recentChanges`, the last 20 paths the watcher reacted to. 503 when unwell. |
 | `/api/pictures?path=` | Immediate children of a Pictures folder, or a file and its ancestor path. |
 | `/api/pictures?action=search&q=&kind=&offset=&limit=` | Separate cached metadata search, up to 200 hits per page. Built only when requested. |
 | `/api/pictures?action=status` | Pictures cache/index version and read/build metrics. |

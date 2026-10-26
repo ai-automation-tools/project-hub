@@ -19,6 +19,7 @@ import { execFile } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import crypto from 'node:crypto';
 import zlib from 'node:zlib';
+import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { createReportHandler } from './reports.mjs';
 import { launchNative } from './open-native.mjs';
 import { PictureLibrary, ignorePictureEvent } from './pictures.mjs';
@@ -174,7 +175,11 @@ const CONFIG_FILE = path.resolve(argOf('--config') || path.join(HERE, 'hub.confi
 // Running this file as a program without a config is a hard error -- that is the
 // misconfiguration worth shouting about. Importing it (hub.test.mjs does) gets inert
 // defaults instead, so the pure functions can be tested without a workspace.
-export const IS_MAIN = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
+// A worker thread sees the parent's argv[1], so it would pass the URL check too.
+export const IS_MAIN = isMainThread && Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
+// This module, loaded again on a worker thread to run scans (see rescan()). It needs the
+// config and projects, and must not start a server or watchers -- those hang off IS_MAIN.
+const SCAN_WORKER = !isMainThread && workerData?.hubScanWorker === true;
 const CONFIG = (IS_MAIN || fs.existsSync(CONFIG_FILE))
   ? loadConfig(CONFIG_FILE)
   : { ...CONFIG_DEFAULTS, name: '(not configured)' };
@@ -209,7 +214,7 @@ function discoverProjects() {
   }
   return out;
 }
-const PROJECTS = IS_MAIN ? discoverProjects() : [];
+const PROJECTS = IS_MAIN || SCAN_WORKER ? discoverProjects() : [];
 
 // Every project workspace gets its own root; Documents, Pictures and the rest are shared
 // by all of them. They are machine paths, so they come from `sharedRoots` in the hub's
@@ -337,8 +342,11 @@ export const DOC_FILE = /\.(md|mdx|markdown|txt|rst|adoc|json|jsonc|ya?ml|toml|i
 // they can reach the payload. Scoped to repo interiors, which is the reach this
 // change added; the rest of the tree keeps the behaviour it always had.
 // Files this hub writes itself. They sit inside a scanned root, so without this a log
-// line is indistinguishable from a real change to the library.
-const NOISE_FILE = /^(hub\.log|hub\.err\.log|watchdog\.log|scan\.json)(\.\d+)?$/i;
+// line is indistinguishable from a real change to the library. Other tools' logs and the
+// temp files an atomic write passes through (`x.md.tmp.36184.2ae4…`) are the same noise:
+// on 2026-10-26 they were most of what woke the watcher. The rename that finishes an
+// atomic write still fires under the real name.
+const NOISE_FILE = /^(hub\.log|hub\.err\.log|watchdog\.log|scan\.json)(\.\d+)?$|\.log(\.\d+)?$|\.tmp(\.[\w.-]+)?$|~$/i;
 
 const SECRET_DIRS = new Set(['keys', 'secrets', '.secrets', 'credentials', 'certs', '.ssh', '.gnupg']);
 const SECRET_FILE = /(^|[._-])(secret|secrets|credential|credentials|apikey|api[_-]?keys?)|\.(key|pem|pfx|p12|crt|cer|keystore|jks|asc|ppk)$|^\.env/i;
@@ -1637,9 +1645,16 @@ const sse = new Set();
 // loop, so letting every request run its own serialises them into a queue that never
 // drains under watcher churn. Instead: one scan at a time, its serialised JSON reused
 // until the watcher says the library actually moved.
-let cached = null;          // { json, gzip, at }
+//
+// Measured on 2026-10-26 against a 150k-node library: an 18s walk plus 8s of assembly,
+// all of it blocking, so opening a document mid-scan waited up to 10s for an answer the
+// server could give in 4ms. The scan now runs on a worker thread that loads its own copy
+// of this module -- and so keeps its own descCache and git cache warm between scans --
+// and the main thread only swaps in the finished bytes. `--scan` still runs inline.
+let cached = null;          // { json, gzip, at } -- json and gzip are Buffers
 let dirty = true;
 let scanning = null;
+let lastScanEnd = 0;
 const STARTED = Date.now();
 // Rolling record of what the last few scans cost, so /api/health can show a trend rather
 // than a single number. The 2026-08-31 outage was invisible partly because nothing kept
@@ -1647,33 +1662,99 @@ const STARTED = Date.now();
 const scanLog = [];
 let scanCount = 0, watcherTicks = 0, readErrorsAtLastScan = 0;
 
+/** One scan, serialised and gzipped: what the worker posts back, or what runs inline. */
+async function scanPayload(fresh) {
+  const data = await scan(fresh);
+  const serializeStart = Date.now();
+  const json = Buffer.from(JSON.stringify(data));
+  const serializeMs = Date.now() - serializeStart;
+  const gzipStart = Date.now();
+  // The tree is megabytes of highly repetitive path strings. Gzip once per scan, not
+  // once per request — it takes 5.1MB down to ~0.6MB.
+  const gzip = zlib.gzipSync(json, { level: 6 });
+  const gzipMs = Date.now() - gzipStart;
+  // Read failures per scan, not since boot. A lifetime counter with a fixed
+  // threshold turns any long-running hub unhealthy eventually -- a few transient
+  // failures per scan is normal (files being written as the walk goes past), and it
+  // is the *rate* that distinguishes that from a descriptor leak.
+  const errs = readErrors - readErrorsAtLastScan;
+  readErrorsAtLastScan = readErrors;
+  return {
+    json, gzip, errs, contentSig,
+    meta: { ms: data.ms, nodes: data.nodes, timings: { ...data.timings, serializeMs, gzipMs } },
+    // abs and mtime are non-enumerable on tree nodes, so copy them out or postMessage drops them.
+    contentDocs: contentDocs.map((n) => ({ id: n.id, name: n.name, abs: n.abs, size: n.size, mtime: n.mtime })),
+    readErrorLog: [...readErrorLog], descCache: descCache.size,
+  };
+}
+
+let scanWorker = null, workerDescCache = null;
+function workerScan(fresh) {
+  if (!scanWorker) {
+    scanWorker = new Worker(new URL(import.meta.url), { argv: ['--config', CONFIG_FILE], workerData: { hubScanWorker: true } });
+  }
+  const w = scanWorker;
+  return new Promise((resolve, reject) => {
+    const settle = (fn, value) => { w.off('message', onMessage); w.off('error', onError); w.off('exit', onExit); fn(value); };
+    const lost = () => { if (scanWorker === w) scanWorker = null; };
+    const onMessage = (m) => (m.error ? settle(reject, new Error(m.error)) : settle(resolve, m));
+    const onError = (e) => { lost(); settle(reject, e); };
+    const onExit = (code) => { lost(); settle(reject, new Error(`scan worker exited with code ${code}`)); };
+    w.on('message', onMessage); w.on('error', onError); w.on('exit', onExit);
+    w.postMessage({ fresh });
+  });
+}
+/** The worker read the config at startup, so a mounted root or a new depth needs a fresh one. */
+function restartScanWorker() {
+  const w = scanWorker;
+  scanWorker = null;
+  w?.terminate();
+}
+
+// Posted buffers arrive as plain Uint8Arrays.
+const asBuffer = (u8) => Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength);
+
 function rescan(fresh) {
   if (scanning) return scanning;
-  scanning = scan(fresh)
-    .then((data) => {
-      const serializeStart = Date.now();
-      const json = JSON.stringify(data);
-      const serializeMs = Date.now() - serializeStart;
-      const gzipStart = Date.now();
-      // The tree is ~5MB of highly repetitive path strings. Gzip once per scan, not
-      // once per request — it takes 5.1MB down to ~0.6MB.
-      cached = { json, gzip: zlib.gzipSync(json, { level: 6 }), at: Date.now() };
-      const gzipMs = Date.now() - gzipStart;
-      dirty = false;
-      scanCount++;
-      // Read failures per scan, not since boot. A lifetime counter with a fixed
-      // threshold turns any long-running hub unhealthy eventually -- a few transient
-      // failures per scan is normal (files being written as the walk goes past), and it
-      // is the *rate* that distinguishes that from a descriptor leak.
-      const errsThisScan = readErrors - readErrorsAtLastScan;
-      readErrorsAtLastScan = readErrors;
-      scanLog.push({ at: cached.at, ms: data.ms, bytes: json.length, gzip: cached.gzip.length, nodes: data.nodes, errs: errsThisScan, timings: { ...data.timings, serializeMs, gzipMs } });
-      if (scanLog.length > 10) scanLog.shift();
-      return cached;
-    })
-    .finally(() => { scanning = null; });
+  scanning = (async () => {
+    let out = null;
+    if (IS_MAIN) {
+      try {
+        out = await workerScan(fresh);
+        out.json = asBuffer(out.json);
+        out.gzip = asBuffer(out.gzip);
+        // The worker counts its own read errors; fold them into this thread's view.
+        readErrors += out.errs;
+        for (const [file, e] of out.readErrorLog) { readErrorLog.delete(file); readErrorLog.set(file, e); }
+        while (readErrorLog.size > READ_ERROR_MAX) readErrorLog.delete(readErrorLog.keys().next().value);
+        workerDescCache = out.descCache;
+        contentDocs = out.contentDocs;
+        contentSig = out.contentSig;
+      } catch (e) {
+        console.error(`scan worker failed, scanning on the main thread: ${e.message}`);
+        out = null;
+      }
+    }
+    if (!out) out = await scanPayload(fresh);
+    cached = { json: out.json, gzip: out.gzip, at: Date.now() };
+    dirty = false;
+    scanCount++;
+    scanLog.push({ at: cached.at, ms: out.meta.ms, bytes: out.json.length, gzip: out.gzip.length, nodes: out.meta.nodes, errs: out.errs, timings: out.meta.timings });
+    if (scanLog.length > 10) scanLog.shift();
+    return cached;
+  })().finally(() => { scanning = null; lastScanEnd = Date.now(); });
   return scanning;
 }
+
+if (SCAN_WORKER) parentPort.on('message', async ({ fresh }) => {
+  try {
+    const out = await scanPayload(fresh);
+    // Transfer rather than copy, but only buffers that own their whole ArrayBuffer --
+    // transferring a slice of Node's shared pool would detach the pool.
+    const own = (b) => b.byteOffset === 0 && b.byteLength === b.buffer.byteLength;
+    parentPort.postMessage(out, [out.json, out.gzip].filter(own).map((b) => b.buffer));
+  } catch (e) { parentPort.postMessage({ error: e.message }); }
+});
 
 /**
  * Always serve the last built payload. The walk is synchronous, so kicking off a
@@ -1850,7 +1931,10 @@ const server = http.createServer(async (req, res) => {
       readErrorsRecent: recentErrs,   // across the last 3 scans -- this is what `ok` uses
       // The paths behind those counts, newest last. Relative ids, so the UI can link them.
       readErrorPaths: [...readErrorLog].map(([file, e]) => ({ path: rel(file), code: e.code, at: e.at })),
-      descCache: descCache.size,
+      descCache: workerDescCache ?? descCache.size,
+      // What the watcher last reacted to, newest last -- the place to look when scans run
+      // back to back on a machine nobody is editing on.
+      recentChanges: recentChanges.map((c) => ({ path: c.path, ageSec: Math.round((Date.now() - c.at) / 1000) })),
       // null until the first content search builds it (P9-04).
       contentIndex: contentIndex && { docs: contentIndex.entries.size, mb: +(contentIndex.bytes / 1048576).toFixed(2), buildMs: contentIndex.buildMs },
       lastScan: last && {
@@ -2165,17 +2249,33 @@ export function ignoreWatchEvent(dir, name) {
 }
 
 // Guarded by IS_MAIN below: importing this module for tests must not spawn watchers.
-let timer = null;
+// A large library takes 30-60s to scan, and the watcher used to queue the next one 2.5s
+// after any event, so on a busy machine the hub was never not scanning -- 15 scans in
+// its first 15 minutes on 2026-10-26. A change now waits until SCAN_GAP after the last
+// scan finished, and the one queued scan covers every change that lands before it runs.
+const SCAN_DEBOUNCE = 2500, SCAN_GAP = 30_000;
+let timer = null, lastWhy = '';
+const recentChanges = [];
 function bump(why) {
   dirty = true;
   watcherTicks++;
-  clearTimeout(timer);
-  timer = setTimeout(async () => {
-    // Build the new payload before announcing it, or every client races in and gets
-    // handed the same stale copy it already has.
-    await rescan(false).catch(() => {});
-    for (const res of sse) res.write(`event: change\ndata: ${JSON.stringify({ why })}\n\n`);
-  }, 2500);
+  lastWhy = why;
+  recentChanges.push({ path: why, at: Date.now() });
+  if (recentChanges.length > 20) recentChanges.shift();
+  if (timer) return;
+  timer = setTimeout(fireScan, Math.max(SCAN_DEBOUNCE, lastScanEnd + SCAN_GAP - Date.now()));
+}
+async function fireScan() {
+  // A scan already running predates this change; wait it out, then keep the gap.
+  if (scanning) await scanning.catch(() => {});
+  const wait = lastScanEnd + SCAN_GAP - Date.now();
+  if (wait > 0) { timer = setTimeout(fireScan, wait); return; }
+  timer = null;          // changes from here on queue the next scan
+  const why = lastWhy;
+  // Build the new payload before announcing it, or every client races in and gets
+  // handed the same stale copy it already has.
+  await rescan(false).catch(() => {});
+  for (const res of sse) res.write(`event: change\ndata: ${JSON.stringify({ why })}\n\n`);
 }
 
 const WATCH = [
@@ -2238,6 +2338,7 @@ function unmountRoot(r) {
 async function rootsChanged(why) {
   dirty = true;
   if (scanning) await scanning.catch(() => {});   // an in-flight scan predates the change
+  restartScanWorker();                            // and so does the worker's copy of the config
   await rescan(false).catch(() => {});
   for (const res of sse) res.write(`event: change\ndata: ${JSON.stringify({ why })}\n\n`);
 }

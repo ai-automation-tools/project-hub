@@ -14,6 +14,11 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-26
+
+- **Performance**: Scans run on a worker thread. The 18s walk used to block the server, so on a 150k-node library a document opened mid-scan waited up to 10s for a 4ms answer. Measured on the same library afterwards, the slowest of 100 document requests took 138ms. The worker keeps its own description and git caches warm, and it's restarted when a folder or the scan depth changes. `--scan` still runs inline.
+- **Watcher**: A change now waits until 30s after the previous scan finished, and one queued scan covers every change that lands before it runs. Log files and atomic-write temp files (`*.tmp.*`) no longer wake the watcher. `/api/health` lists the last 20 paths the watcher reacted to as `recentChanges`.
+
 ## 2026-10-22
 
 - **Layout**: Adopt the org folder layout. `Demo/`, `Hub/`, `Images/`, `Project-Hub/`, `Projects/`, `Skills/` and `Src/` are now lowercase, and `CLAUDE.md` became `AGENTS.md`, which every agent CLI reads; the new `CLAUDE.md` imports it and keeps only the Claude Code notes. The hub mounts projects from `projects/` and still falls back to `Projects/`, so an existing install on a case-sensitive filesystem keeps working. Links, CI paths, the demo build, the scaffold script and the architecture diagram's citations follow the new names. Paths inside the demo fixture and the hub's own `#Projects/...` routes are unchanged.

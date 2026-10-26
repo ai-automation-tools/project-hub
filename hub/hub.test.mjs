@@ -177,6 +177,9 @@ test('the watcher ignores noise and reacts to real changes', () => {
   assert.equal(ignoreWatchEvent(root, mk('db/.sync-state.json')), true, 'dot-file churn');
   assert.equal(ignoreWatchEvent(root, mk('Project-Hub/hub.log')), true, 'our own log');
   assert.equal(ignoreWatchEvent(root, mk('Hub/watchdog.log')), true, 'our own log');
+  assert.equal(ignoreWatchEvent(root, mk('app/db/healthcheck.log')), true, "another tool's log");
+  assert.equal(ignoreWatchEvent(root, mk('jobs/sweep.md.tmp.36184.2ae48b980b1d')), true, 'an atomic-write temp file');
+  assert.equal(ignoreWatchEvent(root, mk('jobs/sweep.md')), false, 'the file it is renamed to');
   assert.equal(ignoreWatchEvent(root, mk('Project-Hub/scan.json')), true, 'our own output');
   // The one that mattered: Windows names the parent directory too, and a bare directory
   // says nothing a file event has not already said.

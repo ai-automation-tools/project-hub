@@ -10,7 +10,7 @@
       "url": "https://github.com/ai-automation-tools/project-hub.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "92599e2306d3c85aea793f64057c809fc19d41be"
+      "revision": "6002229ad53b3c4cd15cdbba17c1a2ec0d9381bc"
     }
   },
   "components": [
@@ -81,14 +81,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 1772,
-          "end_line": 1809,
+          "line": 1853,
+          "end_line": 1890,
           "label": "Host allowlist and CSP nonce"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2121,
-          "end_line": 2135,
+          "line": 2205,
+          "end_line": 2219,
           "label": "index.html placeholders per request"
         }
       ]
@@ -97,7 +97,7 @@
       "id": "cache",
       "type": "database",
       "label": "Scan payload",
-      "sublabel": "JSON, gzipped once",
+      "sublabel": "built off the main thread",
       "pos": [
         480,
         40
@@ -109,14 +109,20 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 1650,
-          "end_line": 1673,
-          "label": "rescan: serialize and gzip"
+          "line": 1666,
+          "end_line": 1689,
+          "label": "scanPayload: serialize and gzip"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1816,
-          "end_line": 1824,
+          "line": 1717,
+          "end_line": 1758,
+          "label": "rescan on a worker thread, inline fallback"
+        },
+        {
+          "path": "hub/hub.mjs",
+          "line": 1897,
+          "end_line": 1905,
           "label": "/api/scan serves the cache"
         }
       ]
@@ -137,20 +143,20 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 687,
-          "end_line": 707,
+          "line": 695,
+          "end_line": 715,
           "label": "scanTree walk"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1227,
-          "end_line": 1235,
+          "line": 1235,
+          "end_line": 1243,
           "label": "scan: walk, then git per repo"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1166,
-          "end_line": 1197,
+          "line": 1174,
+          "end_line": 1205,
           "label": "cached git state"
         }
       ]
@@ -171,14 +177,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 372,
-          "end_line": 390,
+          "line": 380,
+          "end_line": 398,
           "label": "SERVE_DIRS and the deny list"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2049,
-          "end_line": 2066,
+          "line": 2133,
+          "end_line": 2150,
           "label": "/api/file renders through it"
         }
       ]
@@ -199,8 +205,8 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 212,
-          "end_line": 229,
+          "line": 217,
+          "end_line": 234,
           "label": "PROJECTS and ROOTS"
         }
       ]
@@ -221,14 +227,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 80,
-          "end_line": 104,
+          "line": 81,
+          "end_line": 105,
           "label": "loadConfig validates port, base, hosts"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 190,
-          "end_line": 212,
+          "line": 195,
+          "end_line": 217,
           "label": "discoverProjects"
         }
       ]
@@ -237,7 +243,7 @@
       "id": "watcher",
       "type": "backend",
       "label": "Watcher",
-      "sublabel": "debounced 2.5 s",
+      "sublabel": "2.5 s debounce, 30 s gap",
       "pos": [
         1000,
         400
@@ -249,14 +255,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 2158,
-          "end_line": 2179,
-          "label": "noise filter, then rescan + SSE"
+          "line": 2242,
+          "end_line": 2279,
+          "label": "noise filter, then a gapped rescan + SSE"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2181,
-          "end_line": 2217,
+          "line": 2281,
+          "end_line": 2317,
           "label": "fs.watch per root"
         }
       ]
@@ -283,8 +289,8 @@
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2094,
-          "end_line": 2109,
+          "line": 2178,
+          "end_line": 2193,
           "label": "/api/open, same-origin only"
         }
       ]
@@ -488,9 +494,9 @@
       "dot": "cyan",
       "title": "How the tree stays fresh",
       "items": [
-        "One synchronous walk plus git per repo builds the payload, gzipped once and served to every tab",
+        "A worker thread walks the tree and runs git per repo, then hands back the payload, gzipped once and served to every tab",
         "The watcher drops build output, git internals, the hub's own logs and bare directory events",
-        "After a settled burst it rescans first, then sends one change event, so no tab fetches a stale copy"
+        "After a burst it waits out a 30 s gap from the last scan, rescans first, then sends one change event, so no tab fetches a stale copy"
       ]
     },
     {

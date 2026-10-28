@@ -33,6 +33,12 @@ those versions, and commit metadata carries author/committer identities. **No hi
 rewrite or force-push has been performed.** A clean working tree and a clean history are
 separate properties; this repo has the first and not the second.
 
+**What the history does not hold is credentials.** On 2026-10-27 gitleaks 8.30.1 scanned all
+100 commits on every branch, and a token-pattern search covered every commit's tree; neither
+found a key, token or private key. The personal references above are the accepted caveat
+(decided 2026-10-22, see [open questions](OPEN-QUESTIONS.md)). How to report a security
+problem is in [SECURITY.md](../SECURITY.md).
+
 Closing that gap later means either a new public repository populated from a reviewed clean
 snapshot, or an explicit history rewrite of this one. Either way, preserve a private backup
 first and review all branches, tags, issues, releases, attachments and automation logs.

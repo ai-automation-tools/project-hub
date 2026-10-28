@@ -158,7 +158,8 @@ The published files carry no personal paths, hostnames or credentials — every 
 generic placeholders. **The commit history is a different question**, and one worth stating
 plainly rather than leaving to be discovered: earlier commits predate that cleanup and were
 never rewritten. See [public release notes](docs/PUBLIC-RELEASE.md) for what that covers and
-what it does not.
+what it does not. A full-history scan on 2026-10-27 found no credentials. To report a
+security problem, see [SECURITY.md](SECURITY.md).
 
 ## 🔗 Related repositories
 

@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-96_passing-8B5CF6?style=for-the-badge" alt="96 tests passing">
+  <img src="https://img.shields.io/badge/tests-97_passing-8B5CF6?style=for-the-badge" alt="97 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
@@ -29,11 +29,11 @@ Markers: `- [ ]` open, `- [-]` claimed by a run in progress, `- [x]` done, `- [!
 marks one only Mike can do.
 
 > [!NOTE]
-> **Where we are, 2026-10-24.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
+> **Where we are, 2026-10-27.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
 > P7), the merge into one process (P6) and the Links root (P8). Since 2026-09-22 the weekly
-> routine has worked the P9 backlog, the live work queue below the release line. One release
-> gate is open: `SECURITY.md` and the secret scan, which is settled as "no credentials in
-> history" (see [OPEN-QUESTIONS](OPEN-QUESTIONS.md)) and no longer waits on anyone.
+> routine has worked the P9 backlog, the live work queue below the release line. Every release
+> gate is closed: the last, `SECURITY.md` and a full-history secret scan, finished 2026-10-27
+> with no credentials found.
 
 <a id="shipped"></a>
 
@@ -65,7 +65,7 @@ marks one only Mike can do.
 
 - [x] CI green on push and PR: `test.yml` runs `npm test`, `demo.yml` builds and deploys the demo — done 2026-09-11: "Run the tests in CI"
 - [x] README usage (quick start, `hub.config.json`, endpoints in `hub/README.md`) verified against the real code from a clean clone — done 2026-10-20: fresh clone of `main` at `2d95461`, setup followed as written; 96/96 tests, `--scan`, `Start-Hub.ps1` and 13 endpoints answered as documented (403 on traversal and a foreign `Host`). Fixed the gaps it found: `/api/scan-settings` and the server-level `maxDepth` were undocumented, a stray `/api/health` row sat below the endpoint table, and the test counts had drifted
-- [ ] `SECURITY.md`, and a full-history secret scan that finds no credentials (decided 2026-10-22: personal references in early commits are the accepted caveat in `PUBLIC-RELEASE.md`, see [OPEN-QUESTIONS](OPEN-QUESTIONS.md))
+- [x] `SECURITY.md`, and a full-history secret scan that finds no credentials (decided 2026-10-22: personal references in early commits are the accepted caveat in `PUBLIC-RELEASE.md`, see [OPEN-QUESTIONS](OPEN-QUESTIONS.md)) — done 2026-10-27: root `SECURITY.md` (private reporting, scope, out of scope); gitleaks 8.30.1 over all 100 commits on every branch (88 with diffs) and a token-pattern `git grep` of every commit's tree, no credentials found
 - [x] Licence chosen and `LICENSE` added — done 2026-09-09: MIT, in the initial commit
 - [x] Live at its URL: the demo at `https://project-hub.ai-automation-tools.dev`, built from the `demo/Workspace/` fixture by `demo.yml` — done 2026-09-11
 

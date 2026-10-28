@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-10-27
+
+- **Security**: Add `SECURITY.md`: report privately through GitHub's vulnerability reporting, what's in scope (path escapes past the deny list, script in rendered documents, cross-site requests, answering beyond loopback) and what isn't. A full-history secret scan (gitleaks over all 100 commits on every branch, plus a token-pattern search of every commit's tree) found no credentials. *(roadmap: Public release)*
+
 ## 2026-10-26
 
 - **Performance**: Scans run on a worker thread. The 18s walk used to block the server, so on a 150k-node library a document opened mid-scan waited up to 10s for a 4ms answer. Measured on the same library afterwards, the slowest of 100 document requests took 138ms. The worker keeps its own description and git caches warm, and it's restarted when a folder or the scan depth changes. `--scan` still runs inline.

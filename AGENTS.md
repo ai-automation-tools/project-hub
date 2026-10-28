@@ -12,7 +12,7 @@ committed here, this file included, is published.
 | `hub/hub.mjs` | Scanner, static server, markdown renderer + sanitizer, watcher, config loader (~1,900 lines) |
 | `hub/index.html` | The entire UI — no framework, no build. Server fills `%TITLE%` `%FAVICON%` `%PORT%` `%NONCE%` per request |
 | `hub/{navigation,pictures,pictures-client,reports,open-native,webmarks,favorites}.mjs` | Route/bookmark logic (pure), lazy Pictures cache, signed report routes, native launch, favorites storage + favicons + embed check (server), favorites tree + bookmarks-file format (client, pure) |
-| `hub/*.test.mjs` | `node --test`, 96 tests, no framework |
+| `hub/*.test.mjs` | `node --test`, 97 tests, no framework |
 | `hub/Start-Hub.ps1`, `Watch-Hubs.ps1`, `run-watchdog-hidden.vbs` | Launcher, health watchdog, hidden-window wrapper for its scheduled task |
 | `project-hub/` | Server config folder + launcher shim. Real `hub.config.json` is gitignored |
 | `projects/<Name>/hub.config.json` | One per mounted workspace. Only `projects/_example/` is tracked |
@@ -27,7 +27,7 @@ Deep reference: `hub/README.md` (engine, endpoints, config), `project-hub/README
 ## Commands
 
 ```sh
-cd Hub && npm test                                   # 96 tests; must stay green
+cd Hub && npm test                                   # 97 tests; must stay green
 node demo/build-demo.mjs                             # from repo root; also an integration test
 node hub/hub.mjs --config project-hub/hub.config.json          # run (http://127.0.0.1:4273)
 node hub/hub.mjs --config project-hub/hub.config.json --scan   # write scan.json only

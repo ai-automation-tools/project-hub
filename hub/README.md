@@ -198,6 +198,8 @@ The gear at the right end of the activity bar opens a Settings view (`#settings`
 
 The pre-paint script in `<head>` applies the theme and the interface size before first paint, so neither flashes. It also moves every viewer onto `obsidian` once, recorded in `hub.design`: the page had always stored the scheme on load, so a stored `midnight` was never a choice. Whatever is picked after that stands. The view also has favorites import and export, **Clear recent documents** and **Reset sidebar width**, which clears `hub.sbw`.
 
+The sidebar's right edge is a drag handle and, since 2026-11-03, a focusable `role="separator"` (window-splitter pattern) that announces its width through `aria-valuenow`. Tab to it, then ←/→ (or ↓/↑) move it 16px, Shift moves 64px, Home and End jump to the 200px minimum and 480px maximum. A keyboard resize is saved to `hub.sbw` just like a drag. The key mapping is `sidebarKeyWidth()` in `navigation.mjs`.
+
 ## Favorites
 
 The fourth activity-bar view (`web`) has two sources, and the Settings switch picks one.

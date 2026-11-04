@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-97_passing-8B5CF6?style=for-the-badge" alt="97 tests passing">
+  <img src="https://img.shields.io/badge/tests-98_passing-8B5CF6?style=for-the-badge" alt="98 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
@@ -88,7 +88,7 @@ dated notes in [the P9 record](#p9).
 - [x] P9-45 · The `obsidian` redesign — done 2026-10-05: new default scheme, Inter + JetBrains Mono, rounded surfaces, spotlight cards; the other eight schemes keep their colours. Follow-ups are P9-46 to P9-48 below
 - [x] P9-04 · Search: opt-in content search — done 2026-10-06: `/api/content`, 51.5 MB of heap for a 7,752-doc tree
 - [x] P9-05 · Keyboard access to context menus — done 2026-10-13: ContextMenu key and Shift+F10; `isMenuKey()` / `menuStep()` tested
-- [ ] P9-06 · Keyboard-resizable sidebar divider (P7-15). `role="separator"` with `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the mouse width
+- [x] P9-06 · Keyboard-resizable sidebar divider (P7-15). `role="separator"` with `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the mouse width — done 2026-11-03: `#sidedrag` in `hub/index.html` is a focusable `role="separator"` (`aria-valuenow`/min/max, `aria-controls="sidebar"`); ←/→ (and ↓/↑) step 16px, Shift 64px, Home/End jump to 200/480px, saved to `hub.sbw` like a drag; key mapping is `sidebarKeyWidth()` in `navigation.mjs`, tested in `reports.test.mjs`
 - [ ] P9-07 · Settle the `~/.gemini/skills` read errors that P7-16's status panel surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a directory named like a file, and make the scanner skip it quietly or report it once. Add a test using a fixture that reproduces it
 - [ ] P9-08 · Skip git spawns for unchanged repos (#36). `gitStateCached()` in `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are instant; this replaces the TTL with invalidation on each repo's `.git/index` and `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result when neither has moved. Measure scan time before and after on the demo fixture and record both numbers here
 - [ ] P9-09 · Close the testable verification gaps. Unit tests for malformed or missing heading destinations, and for copy-link output on paths containing spaces. These are two of the gaps listed under [Verification still needed](#verification-still-needed) that don't need a browser
@@ -1181,7 +1181,7 @@ optional and are queued in [the remaining list](#remaining).
 | P7-12 | **Shipped 2026-09-09; browser-verified** | Heading outline, rendered/source toggle behind `?raw=1`, copy buttons on code blocks, reading width and text size, and a print stylesheet. See [P7-12 shipped](#p7-12-shipped--five-small-things-that-make-a-file-a-document). |
 | P7-13 | **Shipped 2026-09-09; browser-verified** | Lazy thumbnails on image cards, and a viewer with fit/100%/zoom, natural dimensions, prev-next and arrow keys. Uncovered and fixed the P7-06 SVG regression. See [P7-13 shipped](#p7-13-shipped--thumbnails-a-real-viewer-and-the-svg-bug-it-uncovered). |
 | P7-14 | **Shipped 2026-10-03; browser-verified** | Narrow embedded panes. Long blocked because the Chrome extension's `resize_window` never moved `innerWidth` off 1549; Playwright's `browser_resize` reached real 800px and 700px viewports. See P9-24. |
-| P7-15 | **Shipped 2026-09-09; browser-verified; partly open** | The search box is a real combobox with `aria-expanded`, `aria-controls` and `aria-activedescendant` across both listboxes. `Ctrl+K` and announced toasts shipped earlier. **Still open:** keyboard resizing for the mouse-only sidebar divider (P9-06). See [P7-15 fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). |
+| P7-15 | **Shipped 2026-09-09; browser-verified; closed 2026-11-03** | The search box is a real combobox with `aria-expanded`, `aria-controls` and `aria-activedescendant` across both listboxes. `Ctrl+K` and announced toasts shipped earlier. The mouse-only sidebar divider became a keyboard-resizable separator on 2026-11-03 (P9-06). See [P7-15 fixed](#p7-15s-combobox-fixed--one-sync-point-not-four). |
 | P7-16 | **Shipped 2026-09-09; browser-verified** | The scan status line opens a detail panel: last scan, duration, timing split, roots, and the **paths** behind the read-error count. The understated "only docs and config" wording is replaced and linked to the explanation. See [P7-16 shipped](#p7-16-shipped--the-number-and-then-the-paths-behind-it). |
 | P7-17–21 | **Optional; queued** | Related report files, repo-changes drilldown, document link checking, saved views, and copy-context-for-an-agent — P9-13, P9-10, P9-11, P9-15 and P9-14. |
 | P7-22 | **Withdrawn** | The large-folder tab stall was a measurement artifact of a hidden tab, not a defect. Kept as a record so the same wrong conclusion is not reached twice. |
@@ -1298,7 +1298,7 @@ combobox attributes, that every id named in `aria-controls` is actually built, a
 that test pins the wiring rather than the behaviour; the table above is the behavioural evidence.
 
 **Still open in P7-15:** ~~keyboard focus entry and return for context menus~~ (shipped
-2026-10-13 as P9-05), and keyboard resizing for the mouse-only sidebar divider. The `⌘K`/`Ctrl+K` half was already shipped.
+2026-10-13 as P9-05), and ~~keyboard resizing for the mouse-only sidebar divider~~ (shipped 2026-11-03 as P9-06). The `⌘K`/`Ctrl+K` half was already shipped.
 
 ##### Still unverified after this pass
 

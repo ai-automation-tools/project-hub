@@ -173,6 +173,25 @@ export function menuStep(count, from, key) {
   }
 }
 
+/**
+ * New sidebar width for a key pressed on the divider (P9-06), or null for any other key.
+ * Arrows move 16px (64px with Shift) and Home/End jump to the limits, the window-splitter
+ * pattern's keys. The sidebar sits on the left, so ArrowRight widens it; Up/Down mirror
+ * them because a vertical separator gets both from screen readers.
+ */
+export function sidebarKeyWidth(key, width, shift = false, min = 200, max = 480) {
+  const step = shift ? 64 : 16;
+  let next;
+  switch (key) {
+    case 'ArrowRight': case 'ArrowUp': next = width + step; break;
+    case 'ArrowLeft': case 'ArrowDown': next = width - step; break;
+    case 'Home': return min;
+    case 'End': return max;
+    default: return null;
+  }
+  return Math.max(min, Math.min(max, next));
+}
+
 // ── bookmarks and recents (P7-10) ──────────────────────────────────────────
 // Paths only, never document contents: these outlive a process restart in localStorage,
 // and a rendered document does not. The hub has no per-user server state and this does

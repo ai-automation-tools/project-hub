@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createReportHandler, REPORT_CSP } from './reports.mjs';
 import { kindOfFile, fileStamp, scanSignature } from './hub.mjs';
 import { routeHash, parseRoute, searchHash, parseSearch, documentTarget, markdownLink, includeInSearch,
-  SEARCH_TYPES, filterSearchPool, rankSearch, editDistance, isMenuKey, menuStep } from './navigation.mjs';
+  SEARCH_TYPES, filterSearchPool, rankSearch, editDistance, isMenuKey, menuStep, sidebarKeyWidth } from './navigation.mjs';
 import { launchNative } from './open-native.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -116,6 +116,32 @@ test('P9-03: typo tolerance only runs when the substring pass finds nothing', ()
 
   // An empty query is still everything, best kinds first.
   assert.equal(rankSearch(index, '').ranked[0].h.kind, 'repo');
+});
+
+test('P9-06: the sidebar divider resizes from the keyboard as a window splitter', () => {
+  assert.equal(sidebarKeyWidth('ArrowRight', 284), 300, 'right widens the left-hand sidebar');
+  assert.equal(sidebarKeyWidth('ArrowLeft', 284), 268);
+  assert.equal(sidebarKeyWidth('ArrowUp', 284), 300, 'up/down mirror right/left');
+  assert.equal(sidebarKeyWidth('ArrowDown', 284), 268);
+  assert.equal(sidebarKeyWidth('ArrowRight', 284, true), 348, 'Shift takes a bigger step');
+  assert.equal(sidebarKeyWidth('ArrowRight', 470), 480, 'clamped at the maximum');
+  assert.equal(sidebarKeyWidth('ArrowLeft', 205), 200, 'clamped at the minimum');
+  assert.equal(sidebarKeyWidth('Home', 300), 200);
+  assert.equal(sidebarKeyWidth('End', 300), 480);
+  assert.equal(sidebarKeyWidth('Home', 300, false, 150, 600), 150, 'limits are parameters');
+  assert.equal(sidebarKeyWidth('Enter', 300), null, 'other keys are left alone');
+  assert.equal(sidebarKeyWidth('Tab', 300), null);
+
+  // The wiring: a focusable separator with its value range, the key handler persisting
+  // through setSbw like a drag, and the image viewer not stealing the same arrows.
+  assert.match(ui, /id="sidedrag"[^>]*role="separator" tabindex="0"/);
+  assert.match(ui, /aria-controls="sidebar"/);
+  assert.match(ui, /<aside id="sidebar">/);
+  assert.match(ui, /aria-valuemin="200" aria-valuemax="480" aria-valuenow="284"/);
+  assert.match(ui, /const SBW_MIN = 200, SBW_MAX = 480, SBW_DEFAULT = 284;/);
+  assert.match(ui, /sidebarKeyWidth\(e\.key, sbw, e\.shiftKey, SBW_MIN, SBW_MAX\)/);
+  assert.match(ui, /setAttribute\('aria-valuenow', w\)/);
+  assert.match(ui, /if \(e\.defaultPrevented\) return;\s+\/\/ the sidebar divider took the key/);
 });
 
 test('P9-05: the context menu opens from the keyboard and walks like a menu', () => {

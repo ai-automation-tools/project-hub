@@ -16,7 +16,7 @@
 ---
 
 The Project-Hub Weekly Roadmap routine (`project-hub-roadmap`, Tuesday 21:00) works this file
-top to bottom, one item per run: it takes the first open item that isn't `🔒 Needs Mike`,
+top to bottom, one item per run: it takes the first open item that isn't `🔒 Needs owner`,
 builds it, opens a `roadmap/auto-<date>` pull request, and the Sunday PR sweep merges it.
 **Every item above `## After public release` is a release gate.** The repo and its demo are
 already public, so the open gates are catch-up work. Ticking an item adds its line to the
@@ -25,8 +25,8 @@ the same commit. Item ids (`P9-06`, `P7-15`, `#36`) name the older item each one
 grep for that id to find its diagnosis in [the record](#the-record) at the end of this file.
 
 Markers: `- [ ]` open, `- [-]` claimed by a run in progress, `- [x]` done, `- [!]` blocked
-(the reason follows on the line). `small` marks an item a check verifies; `🔒 Needs Mike`
-marks one only Mike can do.
+(the reason follows on the line). `small` marks an item a check verifies; `🔒 Needs owner`
+marks one only the owner can do.
 
 > [!NOTE]
 > **Where we are, 2026-10-27.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
@@ -93,7 +93,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-08 · Skip git spawns for unchanged repos (#36). `gitStateCached()` in `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are instant; this replaces the TTL with invalidation on each repo's `.git/index` and `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result when neither has moved. Measure scan time before and after on the demo fixture and record both numbers here
 - [ ] P9-09 · Close the testable verification gaps. Unit tests for malformed or missing heading destinations, and for copy-link output on paths containing spaces. These are two of the gaps listed under [Verification still needed](#verification-still-needed) that don't need a browser
 - [ ] P9-25 · Connection-recovery check. Start a second hub on a spare port with the demo config, open it in Playwright, stop and restart that process, and confirm the connection banner appears, Retry works, and the page recovers without a manual reload. Never stop the live hub on 4273
-- [ ] P9-49 · The positive native-launch path. Rejections are covered by HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been clicked through to a running application. One click per action on this machine, then note the result under [Verification still needed](#verification-still-needed) 🔒 Needs Mike
+- [ ] P9-49 · The positive native-launch path. Rejections are covered by HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been clicked through to a running application. One click per action on this machine, then note the result under [Verification still needed](#verification-still-needed) 🔒 Needs owner
 - [ ] P9-10 · Repo changes detail (P7-18 / #23). "uncommitted" on a repo card expands into the changed filenames. A read-only diff loads on demand for one file at a time, size-capped
 - [ ] P9-11 · On-demand document link check (P7-19). An endpoint plus a panel listing broken relative links, missing images, and missing heading targets, each linked to its source document. It never runs as part of a routine scan
 - [ ] P9-12 · Routine pass/fail, not just run count (#24). Read the last line of the newest log for each routine and show ok / failed / unknown beside the run count
@@ -2027,7 +2027,7 @@ measured in Chrome against the live hub on port 4273, not read out of the source
 | **Connection interruption and recovery** | Never stop the live hub on 4273 to test it; P9-25 uses a second hub on a spare port instead. The same-length-edit half of P7-03 is verified; the failure-recovery half is not. |
 | **Focus and scroll survival across a refresh** | Never exercised. Queued as P9-43. |
 | **Malformed/missing heading destinations; copy-link output containing spaces** | Never exercised. Queued as P9-09. |
-| **The positive native-launch path** | Rejections are covered by HTTP checks and the menu wiring is confirmed, but no action was clicked through to a running application. Queued as P9-49 (🔒 Needs Mike). |
+| **The positive native-launch path** | Rejections are covered by HTTP checks and the menu wiring is confirmed, but no action was clicked through to a running application. Queued as P9-49 (🔒 Needs owner). |
 | **Any clipboard write, anywhere in the app** | Not verifiable with the Chrome extension; Playwright can grant clipboard permission, so it is queued as P9-43. The MCP tab is never focused, so `writeText` throws `NotAllowedError` for **every** copy button, the pre-existing ones included; a `readText` probe hangs the evaluator. What is verified is that each button is wired to the right source text. |
 
 Text-token contrast was computed for all eight themes on 2026-10-03 (`--dim` ≈ 5.8:1, `--dimmer` ≥ 4.6:1
@@ -2139,7 +2139,7 @@ this section now records **what shipped** and why, kept as the reference for the
 `done` notes. Every item below is closed; the open ones are listed at the top of this file.
 
 How items are marked: `- [x]` done, with a dated note · `- [ ]` open (see
-[Remaining](#remaining)) · `🔒 Needs Mike` means only a person can do it, so the routine
+[Remaining](#remaining)) · `🔒 Needs owner` means only a person can do it, so the routine
 skips it.
 
 #### Finish what's open

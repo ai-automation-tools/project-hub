@@ -109,11 +109,13 @@ server's `DOT.clean` ships `var(--ok)` for this reason.
 ```
 #app (flex row, full viewport height / --zoom)
 ├── aside            --sbw wide (284px default, drag to resize); folds to a 34px rail via
-│   │                #app.rail (Ctrl+B, the «/» toggle, or clicking the active view icon)
+│   │                #app.rail (Ctrl+B, the panel-icon toggle, or clicking the active view icon)
 │   ├── #activity      VS Code-style view icons: Explorer · Bookmarks · Recent · Favorites,
 │   │                  then the Settings gear at the right end; stacks vertically on the rail
-│   ├── .ex-head       glyph + view title + "collapse all" (Explorer only) + «/» toggle
-│   ├── #pins          Bookmarks or Recent, whichever view is active
+│   ├── .ex-head       glyph + view title + .ex-tools icon row (.hbtn): add folder +
+│   │                  collapse all (Explorer only) + sidebar toggle
+│   ├── #pins          Bookmarks or Recent, whichever view is active; Bookmarks ends in a
+│   │                  sticky .pinadd footer: per-browser note, New Group, export, import
 │   ├── #webmarks      Favorites: the hub's own list or a synced browser profile
 │   ├── #settings      Settings: theme, interface size, hub tabs, favorites source, tools
 │   ├── #tree          the scrollable node tree (role="tree") — the Explorer view
@@ -128,9 +130,14 @@ server's `DOT.clean` ships `var(--ok)` for this reason.
 
 - `#app[data-side]` names the active sidebar view, and CSS shows only the matching host,
   so switching views never re-renders the tree.
-- The «/» sidebar toggle sits at the right end of `.ex-head`, the one strip the rail keeps,
-  so it is always reachable. It stays clear of "collapse all", which folds tree nodes, a
-  different action from hiding the panel.
+- `.ex-head` actions are 26px `.hbtn` icon buttons (16px stroke SVGs, the activity bar's
+  icon language one size down), each with a `title` and `aria-label`. The sidebar toggle
+  sits at the right end, the one strip the rail keeps, so it is always reachable; on the
+  rail it turns `--green-hi` and its title flips between Hide and Show. Collapse-all (two
+  inward chevrons) folds tree nodes, a different action from hiding the panel.
+- Bookmarks are `localStorage`, so each browser and origin has its own list. The Bookmarks
+  footer says so and carries export/import of a `project-hub-bookmarks.json` file
+  (`exportPins()` / `importPins()` in `navigation.mjs`); import merges by path.
 - The header's control order, left to right: **Back/Forward** → breadcrumbs → (grow) →
   search → rescan button. The theme picker moved into the Settings view on 2026-09-29.
 - `#view` is the only scrolling container for content; `.page` inside it caps at

@@ -16,7 +16,7 @@ import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfi
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
-  resolveBookmarks, RECENT_MAX, absolutePath } from './navigation.mjs';
+  resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -682,6 +682,20 @@ test('bookmark groups are a name on each bookmark and vanish when emptied', () =
   // A created-but-empty group is listed last; one that already has members isn't doubled.
   assert.deepEqual(groupBookmarks(list, ['Printer', 'GitHub org', ' ', 7]).map((g) => [g.name, g.entries.length]),
     [['', 2], ['GitHub org', 2], ['Printer', 0]]);
+});
+
+test('a bookmarks file round-trips and merges without clobbering what is already here', () => {
+  const there = parseList(JSON.stringify([{ path: 'a', label: 'A' }, { path: 'b', group: 'Docs' }]));
+  const file = exportPins(there, ['Later']);
+  const here = parseList(JSON.stringify([{ path: 'a', label: 'mine' }]));
+  const r = importPins(here, ['Local'], file);
+  assert.equal(r.added, 1);
+  assert.deepEqual(r.bookmarks.map((e) => [e.path, e.label, e.group]), [['a', 'mine', undefined], ['b', 'b', 'Docs']]);
+  assert.deepEqual(r.groups, ['Local', 'Later']);
+  // Anything that is not our file is refused rather than half-imported.
+  for (const junk of ['', 'nope', '[]', '{"bookmarks":[]}', '{"format":"project-hub-bookmarks"}']) {
+    assert.equal(importPins(here, [], junk), null, junk);
+  }
 });
 
 test('recents are newest-first, deduplicated by path, and capped', () => {

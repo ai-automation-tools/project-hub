@@ -66,7 +66,7 @@ Two chrome controls sit outside the views:
 
 | Control | Does |
 |:---|:---|
-| **Sidebar** | The `«` / `»` button at the left of the breadcrumb bar (or `⌘B` / `Ctrl+B`) folds the panel away and back. It lives in the header rather than the panel so it stays put in both states — and stays clear of the explorer's own `collapse all` link, which is a different thing: that one closes every open tree node without hiding anything. |
+| **Sidebar** | The panel icon at the right of the sidebar header (or `⌘B` / `Ctrl+B`) folds the panel down to a thin rail and back; it stays in the rail so it is always reachable. The double-chevron icon beside it is different: it closes every open tree node without hiding anything. |
 | **Back / Forward** | The `‹` / `›` buttons next to the sidebar toggle walk the hash history — same effect as the browser's own Back/Forward, just reachable when that chrome isn't (VS Code's Simple Browser keeps its arrows on the tab toolbar, above the page). `Alt+←` / `Alt+→` do the same from anywhere on the page. |
 | **README as the landing view** | **Any folder that documents itself opens on its own README** — the shared roots (`Documents`, `Links`, `Automations`) and every sub-folder down the tree, rather than on a card grid or a stats overview. A folder with no `README.md` (or `index.md`/`INDEX.md`) skips all of this and behaves exactly as before. One button in the header — `⊞ folder`, or `⊞ overview` on a root — drops to the view it would otherwise have had, and `☰ readme` comes back; the switch is per-folder and lasts the session, so a fresh open always lands on the README. **Project roots, CLI runtimes, repos, skills, commands, sub-agents and routines are excluded** — each has a purpose-built page, and the repo and entity pages already render their document beside it. |
 | **Color scheme** | In Settings, nine schemes — seven dark: `obsidian` (default, sky on near-black), `midnight` (terminal green), `oxide` (warm amber), `cobalt` (blue/cyan), `plum` (violet on aubergine), `nord` (muted arctic blue-grey), `mono` (pure greyscale, no hue); and two light: `paper` (ink on warm white) and `sepia` (brown ink on aged cream). Every color in the UI resolves from one block of CSS variables, so a new scheme is a copied block, an `<option>`, and a name in the `THEMES` array. The schemes differ in colour only; the shapes, type and hover treatments are shared. |
@@ -347,7 +347,7 @@ repos reach its overview table — `groups` for a workspace with a `Repos/<group
 config loader rejects that and every other malformed shape at startup rather than
 halfway through a scan.
 
-**Adding a folder to the sidebar** needs no JSON: **Settings → Folders** (or **+ folder** in the
+**Adding a folder to the sidebar** needs no JSON: **Settings → Folders** (or the folder-plus icon in the
 Explorer header) takes a path — paste one from File Explorer's *Copy as path*, quotes and all —
 and an optional name, and the folder appears next to Projects at once. The ✕ beside a folder
 removes it from the sidebar; nothing on disk is touched. Both write `sharedRoots` in
@@ -521,7 +521,7 @@ whatever you last chose.
 
 | | |
 | :--- | :--- |
-| **Bookmarks** | Pinned by hand. Drag to reorder, double-click a label to rename, `×` to remove. Group related bookmarks under a foldable header: **+ new group** at the bottom of the sidebar, or right-click → **Move to New Group…**. Any row the tree can select qualifies — a document, a folder, a repo, a whole project. |
+| **Bookmarks** | Pinned by hand. Drag to reorder, double-click a label to rename, `×` to remove. Group related bookmarks under a foldable header: the **New Group** button at the bottom of the sidebar, or right-click → **Move to New Group…**. Any row the tree can select qualifies — a document, a folder, a repo, a whole project. Bookmarks are kept per browser (VS Code's Simple Browser, Chrome and `localhost` vs `127.0.0.1` each have their own), so the export and import icons beside **New Group** carry them across as a `project-hub-bookmarks.json` file; import merges and never overwrites. |
 | **Recent** | The last 20 documents you opened, newest first, deduplicated. Automatic; folders you pass through don't count. |
 
 Pin something three ways, whichever is nearest: the `☆ bookmark` button beside `copy Hub

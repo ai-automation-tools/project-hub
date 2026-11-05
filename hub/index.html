@@ -170,11 +170,16 @@ aside{position:relative;width:min(var(--sbw,284px),50%);flex:0 0 auto;border-rig
 #sidedrag:hover,#app.dragging #sidedrag,#sidedrag:focus-visible{background:var(--green)}
 #sidedrag:focus-visible{outline:none}   /* 6px wide: the green fill is the focus ring */
 #app.rail #sidedrag{display:none}
-#sidetoggle{font-family:var(--mono);font-size:11.5px;line-height:1;color:var(--dimmer);
-  border:1px solid var(--line-a);border-radius:var(--r-sm);padding:3px 6px;cursor:pointer;user-select:none}
-#sidetoggle:hover{color:var(--fg);border-color:var(--dimmest)}
-#sidetoggle::before{content:"«"}
-#app.rail #sidetoggle::before{content:"»"}
+/* header icon buttons — same language as the activity bar's .act, one size down */
+.ex-tools{display:flex;align-items:center;gap:2px;margin-right:-4px}
+.hbtn{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:var(--r-sm);
+  color:var(--dimmer);cursor:pointer;user-select:none;transition:background .15s,color .15s}
+.hbtn[hidden]{display:none}
+.hbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hbtn:hover{color:var(--fg);background:var(--surface-2)}
+.hbtn:focus-visible{outline:1px solid var(--green-line);outline-offset:-1px}
+#app.rail .ex-tools{margin:0}
+#app.rail #sidetoggle{color:var(--green-hi)}
 @media (prefers-reduced-motion:reduce){aside{transition:none}}
 /* history back/forward — history.back()/forward() work with no button at all once a
    hash exists, but nothing on the page said so. These just make the existing mechanism
@@ -677,11 +682,19 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .pingrp.drop{box-shadow:inset 0 0 0 1px var(--green)}
 .pingrp + .pinlist .pin{margin-left:22px}
 .pingrp + .pinempty{padding-left:34px}
-/* "+ new group": stuck to the bottom of the sidebar however long the list gets */
+/* "New Group" button: stuck to the bottom of the sidebar however long the list gets */
 #pins{display:flex;flex-direction:column}
 #app[data-side="bookmarks"] #pins{padding-bottom:0}
-.pinadd{position:sticky;bottom:0;margin-top:auto;flex:0 0 auto;display:flex;align-items:center;height:32px;
-  padding:0 16px;background:var(--panel);border-top:1px solid var(--line-a)}
+.pinadd{position:sticky;bottom:0;margin-top:auto;flex:0 0 auto;display:flex;flex-direction:column;gap:7px;
+  padding:8px 10px;background:var(--panel);border-top:1px solid var(--line-a)}
+.pinaddrow{display:flex;align-items:center;gap:4px;min-height:30px}
+.pinhint{font-size:11px;line-height:1.45;color:var(--dimmer);padding:0 2px}
+.pinaddbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:30px;
+  border:1px dashed var(--line-b);border-radius:var(--r-md);color:var(--fg-mid);font-family:var(--sans);font-size:12.5px;font-weight:500;
+  cursor:pointer;user-select:none;transition:background .15s,color .15s,border-color .15s}
+.pinaddbtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.pinaddbtn:hover{color:var(--green-hi);border-color:var(--green-line);border-style:solid;background:color-mix(in srgb,var(--green) 8%,transparent)}
+.pinaddbtn:focus-visible{outline:1px solid var(--green-line);outline-offset:1px}
 .pinadd input{flex:1;min-width:0;font-family:var(--mono);font-size:11.5px}
 .pin.drop{box-shadow:0 -2px 0 var(--green)}
 .pin.dragging{opacity:.4}
@@ -721,11 +734,20 @@ details[open]>summary .fchev{transform:rotate(90deg)}
     <div class="ex-head">
       <div class="glyph">/</div>
       <div class="ex-title" id="side-title">Explorer</div>
-      <div class="ex-act" id="addroot" title="Add a folder to the sidebar" hidden>+ folder</div>
-      <div class="ex-act" id="collapse">collapse all</div>
-      <div id="sidetoggle" title="Show/hide sidebar (Ctrl+B)"></div>
+      <div class="ex-tools">
+        <div class="hbtn" id="addroot" title="Add a folder to the sidebar" aria-label="Add folder" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.6l2 2h7.4a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+        </div>
+        <div class="hbtn" id="collapse" title="Collapse all folders" aria-label="Collapse all folders">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5l4 4 4-4M8 19.5l4-4 4 4M5 12h14"/></svg>
+        </div>
+        <div class="hbtn" id="sidetoggle" title="Hide sidebar (Ctrl+B)" aria-label="Toggle sidebar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></svg>
+        </div>
+      </div>
     </div>
     <div id="pins"></div>
+    <input type="file" id="pins-file" accept=".json,application/json" hidden>
     <div id="webmarks"></div>
     <div id="settings">
       <section class="set">
@@ -833,7 +855,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
-  setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
+  setBookmarkGroup, renameBookmarkGroup, groupBookmarks, exportPins, importPins,
   pushRecent, resolveBookmarks, absolutePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
@@ -1374,14 +1396,43 @@ function renderPins() {
   }
   // Pinned to the bottom of the sidebar so grouping is discoverable without a right-click.
   const foot = el('div', 'pinadd');
-  const add = el('span', 'ex-act', '+ new group');
+  const row = el('div', 'pinaddrow');
+  const add = el('span', 'pinaddbtn');
+  add.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.6l2 2h7.4a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg>New Group';
   add.title = 'Create a bookmark group';
-  activate(add, () => inlineEdit(foot, add, '', 'group name', (v) => {
+  activate(add, () => inlineEdit(row, add, '', 'group name', (v) => {
     if (v) { emptyGroups.push(v); closedGroups.delete(v); }
   }));
-  foot.append(add);
+  const exp = el('span', 'hbtn');
+  exp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 14v4.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg>';
+  exp.title = 'Export bookmarks to a file'; exp.setAttribute('aria-label', 'Export bookmarks');
+  activate(exp, exportBookmarks);
+  const imp = el('span', 'hbtn');
+  imp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 14v4.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg>';
+  imp.title = 'Import bookmarks from a file'; imp.setAttribute('aria-label', 'Import bookmarks');
+  activate(imp, () => $('#pins-file').click());
+  row.append(add, exp, imp);
+  foot.append(el('div', 'pinhint', 'Saved in this browser only. VS Code, another browser, or localhost vs 127.0.0.1 each keep their own list. Export here, then Import there.'), row);
   host.append(foot);
 }
+
+function exportBookmarks() {
+  const a = el('a');
+  a.href = URL.createObjectURL(new Blob([exportPins(pins.bookmarks, emptyGroups)], { type: 'application/json' }));
+  a.download = 'project-hub-bookmarks.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$('#pins-file').onchange = async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file) return;
+  const r = importPins(pins.bookmarks, emptyGroups, await file.text());
+  if (!r) return toast('not a Project Hub bookmarks file', 2400);
+  pins.bookmarks = r.bookmarks; emptyGroups = r.groups;
+  savePins(); renderPins();
+  toast(r.added ? `imported ${r.added} bookmark${r.added === 1 ? '' : 's'}` : 'nothing new — all already here', 2400);
+};
 
 // Activity bar. Clicking the view that is already showing folds the sidebar to the rail,
 // and any icon on the rail reopens it on that view -- the VS Code behaviour.
@@ -2579,6 +2630,7 @@ const narrow = matchMedia('(max-width:1024px)');
 let railPref = false;
 const setRail = (on, persist = true) => {
   $('#app').classList.toggle('rail', on);
+  $('#sidetoggle').title = (on ? 'Show' : 'Hide') + ' sidebar (Ctrl+B)';
   if (!persist) return;
   railPref = on;
   try { localStorage.setItem('hub.rail', on ? '1' : '0'); } catch {}

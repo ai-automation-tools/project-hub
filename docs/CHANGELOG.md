@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-05
+
+- Bookmarks: export and import a `project-hub-bookmarks.json` file from the bottom of the Bookmarks sidebar, with a note explaining why each browser (and VS Code's Simple Browser) keeps its own list. Import merges by path and never overwrites. The sidebar header and the New Group button are now icon buttons.
+
 ## 2026-11-03
 
 - **Accessibility**: Resize the sidebar from the keyboard. Its divider is now a focusable `role="separator"` with `aria-valuenow`. Arrow keys move it 16px (64px with Shift), Home/End jump to the minimum or maximum, and the width is saved like a drag. *(roadmap: P9-06)*

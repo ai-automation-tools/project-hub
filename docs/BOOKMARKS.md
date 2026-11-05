@@ -65,7 +65,7 @@ Pinning something bumps the count on the Bookmarks icon. It doesn't switch you a
 | :--- | :--- |
 | **Reorder** | Drag a bookmark onto another one. Recent has no manual order — it is always newest first. |
 | **Rename** | Double-click a bookmark's label, or right-click → **Rename Bookmark**. `Enter` commits, `Escape` cancels. |
-| **Group** | Right-click a bookmark → **Move to New Group…** (type a name), **Move to ‹group›**, or **Remove from Group**. Dragging a bookmark onto a group header or onto a row in a group also moves it there. Click a header to fold it, double-click to rename it (renaming onto an existing name merges the two), `×` to ungroup — the bookmarks stay. Or click **+ new group** at the bottom of the Bookmarks sidebar, type a name and press `Enter`: the group appears empty, ready for bookmarks to be dragged or moved in. An empty group is kept until you `×` it; a group that had bookmarks disappears once its last one leaves. |
+| **Group** | Right-click a bookmark → **Move to New Group…** (type a name), **Move to ‹group›**, or **Remove from Group**. Dragging a bookmark onto a group header or onto a row in a group also moves it there. Click a header to fold it, double-click to rename it (renaming onto an existing name merges the two), `×` to ungroup — the bookmarks stay. Or click the **New Group** button at the bottom of the Bookmarks sidebar, type a name and press `Enter`: the group appears empty, ready for bookmarks to be dragged or moved in. An empty group is kept until you `×` it; a group that had bookmarks disappears once its last one leaves. |
 | **Remove** | Hover a row and click the `×` on the right — it removes the row without opening it. Right-click → **Remove Bookmark** does the same. |
 
 Renaming changes only what you see. The path underneath is untouched, so a bookmark renamed
@@ -147,15 +147,22 @@ Recent is capped at 20 and deduplicated by path, so reopening a document moves i
 rather than adding a second row. Opening a *folder* does not count as reading a document, so
 folders you pass through on the way somewhere do not fill the list up.
 
+> [!NOTE]
+> **Bookmarks live in one browser.** They are stored in that browser's `localStorage`, so VS Code's
+> Simple Browser, Chrome, Edge, each browser profile, and even `localhost` vs `127.0.0.1` each keep
+> their own list. To copy them across, use the export icon at the bottom of the Bookmarks sidebar
+> (it saves `project-hub-bookmarks.json`), then the import icon on the other side. Import merges:
+> bookmarks you already have are kept as they are, and only new paths are added.
+
 > [!TIP]
-> **To move a pin to another machine, use a Hub link instead.** Right-click → **Copy Hub
+> **To share a single pin, a Hub link also works.** Right-click → **Copy Hub
 > Link** gives a stable URL you can paste anywhere — a note, a chat, another browser — and
 > pin on the other side. Since searches have their own URLs too, that works for a set of
 > search results as well.
 
 ## What this deliberately does not do
 
-No sync, no server component, no export or import, one level of groups (no groups inside groups), no tags, and
+No sync, no server component (export/import is a file you carry yourself), one level of groups (no groups inside groups), no tags, and
 no settings. Saved views — a named combination of search, filter and scope — are a separate
 backlog item ([P7-20](./ROADMAP.md#p7-review)), not something bookmarks will grow into.
 

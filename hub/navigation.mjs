@@ -216,6 +216,26 @@ export function parseList(raw) {
     }));
 }
 
+// ── bookmarks file (export / import) ──
+// localStorage is per browser and per origin, so this file is the only way to carry a list
+// from VS Code's Simple Browser to Chrome (or localhost to 127.0.0.1). Paths only, as stored.
+export const PINS_FORMAT = 'project-hub-bookmarks';
+
+export function exportPins(bookmarks, groups = []) {
+  return JSON.stringify({ format: PINS_FORMAT, version: 1, bookmarks, groups }, null, 2) + '\n';
+}
+
+/** Merge, never replace: existing rows win, new paths are appended. null = not our file. */
+export function importPins(current, groups, raw) {
+  let file;
+  try { file = JSON.parse(raw); } catch { return null; }
+  if (!file || file.format !== PINS_FORMAT || !Array.isArray(file.bookmarks)) return null;
+  const have = new Set(current.map((e) => e.path));
+  const incoming = parseList(JSON.stringify(file.bookmarks)).filter((e) => !have.has(e.path));
+  const names = (Array.isArray(file.groups) ? file.groups : []).map(cleanGroup).filter(Boolean);
+  return { bookmarks: [...current, ...incoming], groups: [...new Set([...groups, ...names])], added: incoming.length };
+}
+
 // ── bookmark groups ──
 // A group is just a name on its bookmarks, so it exists while something is in it and an
 // emptied group simply disappears. The one exception is a group made with "+ new group",

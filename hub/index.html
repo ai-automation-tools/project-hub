@@ -3136,6 +3136,31 @@ function viewOverview(page, root) {
 
   page.append(statsStrip(stats));
 
+  // Order is deliberate: the stat strip reads as a table of contents, then the sections
+  // it points at — repos (what you ship), then where they run, root docs (what explains
+  // them), and the agent runtimes (what builds them) last, because that block is the
+  // tallest. P9-37: Live Sites used to come first, and eleven cards filled the opening
+  // screen before a single repo showed.
+
+  page.append(repoTableSection(repos, groups, dirtyCount));
+
+  // Pre-repo R&D under Repos/Private/Draft/ (#34) \u2014 no `.git`, so it never reaches `repos` above
+  // and has no git state to show; a lighter card cluster instead, cardless entirely on a
+  // project whose workspace has no such folder.
+  if (drafts.length) {
+    const cards = el('div', 'cards');
+    for (const d of drafts) {
+      const c = el('div', 'card');
+      const dot = el('span', 'dot round'); dot.style.background = TINT.draft;
+      const hd = el('div', 'hd'); hd.append(dot, el('b', '', d.name), el('em', '', 'DRAFT'));
+      c.append(hd, el('p', '', d.desc || '\u2014'));
+      activate(c, () => go(d.id));
+      cards.append(c);
+    }
+    page.append(foldable('Draft Initiatives',
+      sectionWith('Draft Initiatives', `${drafts.length} pre-repo`, 'sec-drafts'), cards));
+  }
+
   // Straight from the root README's own "Live sites" table (parsed server-side each
   // scan) — absent entirely on projects whose workspace has no such table (Identity_Workspace,
   // Finance_Workspace), rather than showing an empty section.
@@ -3156,29 +3181,6 @@ function viewOverview(page, root) {
     }
     page.append(foldable('Live Sites',
       sectionWith('Live Sites', `${liveSites.length} deployments`, 'sec-live-sites'), cards));
-  }
-
-  // Order is deliberate: the stat strip reads as a table of contents, then the three
-  // sections it points at — repos (what you ship), root docs (what explains them), and
-  // the agent runtimes (what builds them) last, because that block is the tallest.
-
-  page.append(repoTableSection(repos, groups, dirtyCount));
-
-  // Pre-repo R&D under Repos/Private/Draft/ (#34) \u2014 no `.git`, so it never reaches `repos` above
-  // and has no git state to show; a lighter card cluster instead, cardless entirely on a
-  // project whose workspace has no such folder.
-  if (drafts.length) {
-    const cards = el('div', 'cards');
-    for (const d of drafts) {
-      const c = el('div', 'card');
-      const dot = el('span', 'dot round'); dot.style.background = TINT.draft;
-      const hd = el('div', 'hd'); hd.append(dot, el('b', '', d.name), el('em', '', 'DRAFT'));
-      c.append(hd, el('p', '', d.desc || '\u2014'));
-      activate(c, () => go(d.id));
-      cards.append(c);
-    }
-    page.append(foldable('Draft Initiatives',
-      sectionWith('Draft Initiatives', `${drafts.length} pre-repo`, 'sec-drafts'), cards));
   }
 
   // root docs
@@ -3234,6 +3236,11 @@ function viewPortfolio(page, n) {
   page.append(statsStrip(S.data.stats));
   if (S.data.recent?.docs.length) page.append(recentSection(S.data.recent));
 
+  // P9-37: repos before Live Sites, as on a project page.
+  const groups = [...new Set(S.data.repos.map((r) => r.group))];
+  const dirtyCount = S.data.repos.filter((r) => r.state !== 'clean').length;
+  page.append(repoTableSection(S.data.repos, groups, dirtyCount, { projects: projects.map((p) => p.name) }));
+
   if (S.data.liveSites && S.data.liveSites.length) {
     const siteCards = el('div', 'cards two');
     for (const s of S.data.liveSites) {
@@ -3252,10 +3259,6 @@ function viewPortfolio(page, n) {
     page.append(foldable('Live Sites',
       sectionWith('Live Sites', `${S.data.liveSites.length} deployments`, 'sec-live-sites'), siteCards));
   }
-
-  const groups = [...new Set(S.data.repos.map((r) => r.group))];
-  const dirtyCount = S.data.repos.filter((r) => r.state !== 'clean').length;
-  page.append(repoTableSection(S.data.repos, groups, dirtyCount, { projects: projects.map((p) => p.name) }));
 
   if (S.data.rootDocs.length) {
     const docs = el('div', 'cards two');

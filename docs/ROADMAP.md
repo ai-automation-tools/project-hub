@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-110_passing-8B5CF6?style=for-the-badge" alt="110 tests passing">
+  <img src="https://img.shields.io/badge/tests-111_passing-8B5CF6?style=for-the-badge" alt="111 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
@@ -108,7 +108,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-15 · Saved views (P7-20). Save a search plus its filters under a name, list saved views above Bookmarks, and give each one a hub link
 - [ ] P9-16 · `--init` for a new workspace (#21). `node hub.mjs --init <dir>` writes a commented `hub.config.json` skeleton for a new workspace and prints the next step. It never overwrites an existing config
 - [x] P9-17 · Roadmap progress on repo cards. Count `- [x]` / `- [x]` in each repo's `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos in the lab now carry one, and the routines work them weekly — done 2026-11-06. `roadmapProgress()` counts `[x]` as done and `[ ]`, `[-]` (claimed) and `[!]` (blocked) as open, skipping fenced code. The scan reads each repo's roadmap once per change, cached by mtime. The Repos table has a `roadmap` column with a bar and `done/total` (hover for the open count), hidden below 640px with the other middle columns, and a repo page has a `roadmap` row in its Git box. Live: 37 of 47 repos carry one; this repo reads 35/72. The demo fixture's `signal-api` now has a small roadmap, so the hosted demo shows a bar too (P9-23)
-- [ ] P9-18 · "Changed this week" view. A landing-page list of documents modified in the last 7 days across every root, newest first, built from data the scan already has
+- [x] P9-18 · "Changed this week" view. A landing-page list of documents modified in the last 7 days across every root, newest first, built from data the scan already has — done 2026-11-06. `recentDocs()` filters the walk's existing mtimes to documents (`md`, `txt`, `html`, `pdf` and similar) from the last 7 days that pass `resolveId`, newest first. The payload carries the newest 100 plus the total. The landing page shows a `Changed this week` section under the stats, 12 rows to start (name, folder, age) with `show all`. Live: 3,030 documents changed this week on this machine, so the cap matters; the list costs 15 KB of payload
 - [ ] P9-19 · Frontmatter tags. Show a document's frontmatter (tags, dates, status) in a small metadata strip, and let search filter by tag. `frontmatter()` already parses it
 - [ ] P9-20 · Scan-time history in the status panel. Keep the last 20 scan durations in memory and draw a tiny inline sparkline. This makes a slow scan visible before it becomes a complaint
 - [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `hub/markdown.mjs`, and the scanner into `hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 2,450 lines (2026-11-06), the file is the largest single thing a weekly run has to read after `index.html` (P9-63)

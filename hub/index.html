@@ -429,6 +429,10 @@ h2.sec.flash{animation:secflash 1.4s ease-out}
 .filelist i{font-style:normal;color:var(--dimmer);width:8px}
 .filelist .more{margin-top:7px;padding-top:7px;border-top:1px solid var(--line-a);color:var(--dimmer)}
 .filelist .more:hover{color:var(--blue)}
+.filelist.recent div{gap:10px}
+.filelist.recent span{color:var(--fg-mid);flex:0 1 auto}
+.filelist.recent em{font-style:normal;color:var(--dimmer);flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filelist.recent b{font-weight:400;color:var(--dimmer);flex:none}
 .filelist div.on{color:var(--green-hi)}
 .filelist span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 pre.diff{background:var(--sunken);border:1px solid var(--line-a);border-radius:var(--r-md);padding:10px 0;margin:0 0 16px;overflow:auto;max-height:60vh;font:12px/1.55 var(--mono);color:var(--fg-mid)}
@@ -3148,6 +3152,7 @@ function viewPortfolio(page, n) {
   page.append(foldable('Projects', sectionWith('Projects', `${projects.length}`, 'sec-projects'), cards));
 
   page.append(statsStrip(S.data.stats));
+  if (S.data.recent?.docs.length) page.append(recentSection(S.data.recent));
 
   if (S.data.liveSites && S.data.liveSites.length) {
     const siteCards = el('div', 'cards two');
@@ -3231,6 +3236,34 @@ function remember(key, open) {
 }
 
 /** Wrap a section heading and its blocks in a <details> that folds. */
+// P9-18: documents changed in the last 7 days across every root, newest first. Twelve
+// rows to start with so it doesn't push the repos off the page; "show all" opens the rest.
+function recentSection(recent) {
+  const list = el('div', 'filelist recent');
+  const render = (all) => {
+    list.textContent = '';
+    for (const d of all ? recent.docs : recent.docs.slice(0, 12)) {
+      const row = el('div');
+      const where = d.id.split('/').slice(0, -1).join('/');
+      row.append(el('span', '', d.name), el('em', '', where), el('b', '', fmtAgo(d.mtime) || 'just now'));
+      row.title = d.id;
+      activate(row, () => go(d.id));
+      list.append(row);
+    }
+    const hidden = (all ? recent.docs.length : Math.min(12, recent.docs.length));
+    if (hidden < recent.docs.length) {
+      const more = el('div', 'more', `show all ${recent.docs.length}`);
+      activate(more, () => render(true));
+      list.append(more);
+    } else if (recent.total > recent.docs.length) {
+      list.append(el('div', 'more', `+${recent.total - recent.docs.length} older changes this week not listed`));
+    }
+  };
+  render(false);
+  const note = recent.total > recent.docs.length ? `${recent.docs.length} of ${recent.total}` : `${recent.total} documents`;
+  return foldable('Changed this week', sectionWith('Changed this week', note, 'sec-recent'), list);
+}
+
 function foldable(key, head, ...blocks) {
   const d = el('details', 'fold');
   d.open = !COLLAPSED.has(key);

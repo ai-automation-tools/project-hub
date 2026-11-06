@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -1198,4 +1198,25 @@ test('roadmap progress counts done and open checkboxes outside code fences', () 
   const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
   assert.match(ui, /tr\.append\(n, el\('span', 'm', r\.group\), br, st, roadmapBar\(r\.roadmap\), cm\);/);
   assert.match(ui, /\.trow>:nth-child\(n\+2\):nth-child\(-n\+5\)\{display:none\}/);
+});
+
+// P9-18: "Changed this week" on the landing page.
+test('recent documents are the last 7 days, newest first, documents only, capped', () => {
+  const now = Date.UTC(2026, 10, 6), day = 86_400_000;
+  const node = (id, ago) => { const n = { id, name: id.split('/').pop() }; Object.defineProperty(n, 'mtime', { value: now - ago, enumerable: false }); return n; };
+  const flat = [
+    node('A/old.md', 8 * day), node('A/new.md', 1000), node('A/mid.pdf', 3 * day),
+    node('A/app.js', 1000), node('A/secrets/k.md', 1000), node('A/page.html', 2 * day),
+    node('A/future.md', -day), { id: 'A/nostamp.md', name: 'nostamp.md' },
+  ];
+  const allowed = (n) => !n.id.includes('/secrets/');
+  const r = recentDocs(flat, now, allowed);
+  assert.deepEqual(r.docs.map((d) => d.id), ['A/new.md', 'A/page.html', 'A/mid.pdf']);
+  assert.equal(r.total, 3);
+  assert.equal(r.docs[0].mtime, now - 1000);
+  const many = Array.from({ length: RECENT_DOCS_MAX + 5 }, (_, i) => node(`B/${i}.md`, i * 1000));
+  const capped = recentDocs(many, now, () => true);
+  assert.equal(capped.docs.length, RECENT_DOCS_MAX);
+  assert.equal(capped.total, RECENT_DOCS_MAX + 5);
+  assert.equal(capped.docs[0].id, 'B/0.md');
 });

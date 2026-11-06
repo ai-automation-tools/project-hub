@@ -47,6 +47,10 @@ bookmarks, recent documents, favorite websites and settings. Favorites are the h
 list, imported from any browser or synced live with Edge, Chrome or Brave, and websites can
 open in tabs inside the hub.
 
+Repo pages show uncommitted changes with their diffs, and roadmap progress. Routines show
+whether their last run passed. The overview lists the documents changed this week, frontmatter
+tags are searchable, and a link check finds broken links and headings in a folder's Markdown.
+
 One local server handles all your workspaces. No build step or runtime dependencies.
 
 ## 🌐 Try it

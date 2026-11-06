@@ -1,6 +1,6 @@
 # Current engine features
 
-Reference snapshot: 2026-09-09. The source checkout `hub/README.md` remains authoritative.
+Reference snapshot: 2026-09-09, plus the 2026-11-06 additions at the end. The source checkout `hub/README.md` remains authoritative.
 
 ## Sidebar context menu
 
@@ -53,7 +53,7 @@ share or bookmark.
 
 A failed refresh leaves the current page visible with a stale-data message and Retry. SSE reconnects also retry after a startup failure. File modification times now participate in the change signature, including same-size edits. `/api/health` exposes walk/Git/assembly/serialization/gzip timing fields under `lastScan.timings`.
 
-The September 8 work passed 52 tests plus 11 live HTTP checks and a browser verification pass that confirmed nine acceptance criteria in Chrome. Narrow-pane layout and connection recovery are still unverified. See the P7 shipping record (see the source checkout docs/) for exact coverage and remaining work.
+The September 8 work passed 52 tests plus 11 live HTTP checks and a browser verification pass that confirmed nine acceptance criteria in Chrome. Narrow-pane layout and connection recovery were verified later with Playwright (P9-24 on 2026-10-03, P9-25 on 2026-11-06). See the P7 shipping record (see the source checkout docs/) for exact coverage and remaining work.
 
 ## Bookmarks and recents
 
@@ -165,3 +165,16 @@ The fix negotiates on `Sec-Fetch-Dest`, which the browser sets and page script c
 The panel reuses the context menu's floating layer wholesale — same element bookkeeping, same dismissal on Escape, outside click, scroll, resize and blur — so there is only ever one floating layer, and opening a tree context menu replaces it.
 
 **The indexing text was also wrong.** "only docs and config are indexed" predated PDF, HTML-report and image support and understated `DOC_FILE` badly. Folder pages now say *"N other files here that the index skips — see what's indexed"*, and that phrase opens the panel's **What gets indexed** section rather than pointing nowhere. A regression asserts the panel's file-type list still matches `DOC_FILE`, so the replacement cannot rot into a new lie.
+
+**Scan history** (P9-20). The panel draws the last 20 scan durations (`recentScanMs` from `/api/health`) as a small line under the latest one.
+
+## Repo and document insights (2026-11-06)
+
+| Feature | Where |
+|:---|:---|
+| **Uncommitted changes** with per-file diffs (P9-10) | Repo page, when the repo is dirty or has a conflict |
+| **Roadmap progress** from `docs/ROADMAP.md` checkboxes (P9-17) | Repo table column and repo page |
+| **Routine pass/fail** from the latest log's tail (P9-12) | Routines list and schedule |
+| **Changed this week** (P9-18) | Portfolio overview |
+| **Link check**: broken relative links, images and heading anchors (P9-11) | `check links` on folder and repo pages |
+| **Frontmatter strip and `tag:` search** (P9-19) | Above a Markdown document; content search |

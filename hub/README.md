@@ -163,7 +163,7 @@ share or bookmark.
 
 A failed refresh leaves the current page visible with a stale-data message and Retry. SSE reconnects also retry after a startup failure. File modification times now participate in the change signature, including same-size edits. `/api/health` exposes walk/Git/assembly/serialization/gzip timing fields under `lastScan.timings`.
 
-The September 8 work passed 52 tests plus 11 live HTTP checks and a browser verification pass that confirmed nine acceptance criteria in Chrome. Narrow-pane layout and connection recovery are still unverified. See [the P7 shipping record](../docs/ROADMAP.md#p7-review) for exact coverage and remaining work.
+The September 8 work passed 52 tests plus 11 live HTTP checks and a browser verification pass that confirmed nine acceptance criteria in Chrome. Narrow-pane layout and connection recovery were verified later with Playwright (P9-24 on 2026-10-03, P9-25 on 2026-11-06). See [the P7 shipping record](../docs/ROADMAP.md#p7-review) for exact coverage and remaining work.
 
 ## Bookmarks and recents
 
@@ -251,6 +251,7 @@ A long README is a document, not just a file. `viewFile()` gives markdown five t
 | **Copy buttons** | One per `pre.code`, appended to the rendered block so it copies exactly what is on screen. Hidden until hover or focus. |
 | **Width and size** | `↔` cycles 82ch (default) → full → 64ch, `A` cycles 100 → 112 → 125 → 90%. Both set CSS variables on the `.md` container. The measure is a `ch` unit, so it tracks the text size rather than fighting it. |
 | **Print** | A `@media print` block that hides every bit of chrome and prints the document in black on white. |
+| **Metadata strip** | P9-19. When the frontmatter has tags, a `status` or date fields, `/api/file` returns them as `meta` and a strip shows them above the body. Each tag links to a `tag:name` content search, which matches frontmatter tags exactly. The strip goes in after `loadDoc` rewrites the body's links, or its tag links would be rewritten too. |
 
 Two placement details. The measure applies to `.md > *`, not `.md`: the panel chrome stays full width, and a wide table or code block is held to the measure and scrolls inside it — both already carry `overflow-x`, so nothing is clipped. And width and size persist (one `hub.reader` key holding two **names**, not indexes, so a stored value cannot silently mean something else when either list changes), while the source toggle and the outline are per-session — the same split the HTML preview tabs already use.
 
@@ -279,6 +280,21 @@ The fix negotiates on `Sec-Fetch-Dest`, which the browser sets and page script c
 The panel reuses the context menu's floating layer wholesale — same element bookkeeping, same dismissal on Escape, outside click, scroll, resize and blur — so there is only ever one floating layer, and opening a tree context menu replaces it.
 
 **The indexing text was also wrong.** "only docs and config are indexed" predated PDF, HTML-report and image support and understated `DOC_FILE` badly. Folder pages now say *"N other files here that the index skips — see what's indexed"*, and that phrase opens the panel's **What gets indexed** section rather than pointing nowhere. A regression asserts the panel's file-type list still matches `DOC_FILE`, so the replacement cannot rot into a new lie.
+
+**Scan history** (P9-20). `/api/health` returns `recentScanMs`, the durations of the last 20 scans (`SCAN_LOG_MAX`), and the panel draws them as a small SVG line under the latest duration, with the range beside it. The line's colours come from CSS, because a `var()` in an SVG presentation attribute never resolves.
+
+## Repo and document insights
+
+Added 2026-11-06. Each one reads only what is already in reach of a scan or a single request, and none of them makes a scan slower.
+
+| Feature | Where | How it works |
+|:---|:---|:---|
+| **Uncommitted changes** (P9-10) | Repo page, when the repo is dirty or has a conflict | `/api/repo/changes` lists `git status` (capped at 300 files). Clicking a file loads its diff from `/api/repo/diff`: against HEAD, or the file's text if it is untracked. Diffs are cut at 256 KB. Only listed files are served, and each passes the deny list. Denied files still appear in the list by name. |
+| **Roadmap progress** (P9-17) | Repo table column, repo page row | `roadmapProgress()` counts `- [x]` against `- [ ]`, `[-]` and `[!]` in `docs/ROADMAP.md` (or `Docs/`), skipping code fences. Cached by mtime. |
+| **Routine pass/fail** (P9-12) | Routines list and schedule | `routineStatus()` reads the last 16 KB of a routine's newest log. An `[ERROR]` line means failed; `[DONE]`, a "completed" line or exit code 0 means ok; anything else is unknown. |
+| **Changed this week** (P9-18) | Portfolio overview | `recentDocs()` lists documents modified in the last 7 days, newest first. It sends 100 and the total; the overview shows 12 with a "show all". |
+| **Link check** (P9-11) | `check links` on folder and repo pages | `checkLinks()` reads the Markdown under the folder (first 2,000 documents) and reports links that are malformed, absolute, outside the roots, or point at a missing file, image or heading. Headings use the same slugs as the renderer, plus `<a id>` / `<a name>` anchors. It runs only when asked. |
+| **Tag search** (P9-19) | Content search | `tag:name` matches frontmatter `tags` / `tag` / `keywords` exactly. Tags are parsed when the content index reads a file and reused while the file is unchanged. |
 
 ## The watchdog
 
@@ -470,7 +486,7 @@ almost always the right move instead.
 npm test          # node --test hub.test.mjs reports.test.mjs pictures.test.mjs webmarks.test.mjs favorites.test.mjs
 ```
 
-Ninety-six tests, no framework or dependencies to install. In a fresh clone they run against the example configs; once you copy a real `hub.config.json`, they also check that each workspace's `dir` exists, so an unedited workspace copy fails until it points somewhere real. Report and stat tests create and clean isolated temporary fixtures, including a junction-escape check.
+117 tests, no framework or dependencies to install. One of them (P9-22) runs `node --check` over every `hub/*.mjs` and both inline scripts in `index.html`, so a syntax error in code only the browser loads still fails the suite. In a fresh clone they run against the example configs; once you copy a real `hub.config.json`, they also check that each workspace's `dir` exists, so an unedited workspace copy fails until it points somewhere real. Report and stat tests create and clean isolated temporary fixtures, including a junction-escape check.
 
 The September 9 additions are mostly of two shapes. **Pure logic**, testable with no DOM: the bookmark list (storage round-trips with junk and duplicate input, Recent's ordering, deduplication and cap, an unresolved entry surviving a scan and recovering when its file returns) and `folderStamps` (names not ids, immediate children only, `null` for a non-directory). **Wiring checks over `index.html` and `hub.mjs`**, which catch the thing a unit test cannot: that `/api/stat` still goes through `resolveId`, that a new scan still invalidates the timestamp cache, that `readErrors++` still has exactly one call site, that source view is still gated behind an explicit `raw=1`, that thumbnails are still lazy, that the arrow keys still yield to the tree and to text fields, and that no `localStorage` key outside the known set is ever written. Plus one HTTP test covering the SVG sandbox across all six fetch destinations.
 

@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Docs: the engine reference gains a "Repo and document insights" section (changes and diffs, roadmap progress, routine pass/fail, changed this week, link check, tag search), the metadata strip, scan history, and the current test count (117), and no longer calls narrow-pane layout and connection recovery unverified. The README, user manual, demo README and the scaffold feature snapshot cover the same work
 - Tests: every `hub/*.mjs` module and both inline scripts in `index.html` are syntax-checked with `node --check`, so a parse error in browser-only code fails the suite *(roadmap: P9-22)*
 - Docs: the architecture diagram is re-pinned after the `hub.mjs` split, its scanner, config and resolve cards now citing `scan.mjs`
 - Engine: `hub/hub.mjs` is split three ways, with no behaviour change. The server, watcher and content search stay in `hub.mjs`; configuration and the scanner move to `scan.mjs`, which the scan worker now loads on its own; markdown rendering, sanitizing and the link check move to `markdown.mjs`. `hub.mjs` still exports everything it did, and scaffolded hubs copy the two new files *(roadmap: P9-21)*

@@ -426,6 +426,15 @@ h2.sec.flash{animation:secflash 1.4s ease-out}
 .filelist i{font-style:normal;color:var(--dimmer);width:8px}
 .filelist .more{margin-top:7px;padding-top:7px;border-top:1px solid var(--line-a);color:var(--dimmer)}
 .filelist .more:hover{color:var(--blue)}
+.filelist div.on{color:var(--green-hi)}
+.filelist span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+pre.diff{background:var(--sunken);border:1px solid var(--line-a);border-radius:var(--r-md);padding:10px 0;margin:0 0 16px;overflow:auto;max-height:60vh;font:12px/1.55 var(--mono);color:var(--fg-mid)}
+pre.diff div{padding:0 14px;white-space:pre}
+pre.diff .dh{color:var(--fg);padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid var(--line-a)}
+pre.diff .dadd{color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent)}
+pre.diff .ddel{color:var(--red);background:color-mix(in srgb,var(--red) 9%,transparent)}
+pre.diff .dhunk{color:var(--blue)}
+pre.diff .dmeta{color:var(--dimmer)}
 .stack{display:flex;flex-direction:column;gap:10px}
 
 /* artifact bucket columns -- a masonry via CSS columns, not a grid: panels flow down
@@ -3622,6 +3631,7 @@ function viewRepo(page, n) {
     ['last commit', n.ago || '—'], ['ahead / behind', `${n.ahead ?? 0} / ${n.behind ?? 0}`],
     ['remote', n.remote || '—'],
   ]));
+  if (n.state === 'dirty' || n.state === 'conflict') side.append(changesBox(n, doc, body));
   if (n.commit && n.commit !== '—') {
     const b = el('div', 'box');
     b.append(el('div', 'cap', 'Latest commit'));
@@ -3667,6 +3677,54 @@ function contentsBox(cap, n) {
     list.append(m);
   }
   b.append(list);
+  return b;
+}
+
+// P9-10: the files behind "uncommitted", fetched when the repo page opens, and one
+// file's diff at a time, shown above the README in the document column.
+const CHANGE_LABEL = { M: 'modified', A: 'added', D: 'deleted', R: 'renamed', C: 'copied', U: 'conflict', '?': 'untracked', T: 'type changed' };
+function changesBox(n, doc, before) {
+  const b = el('div', 'box');
+  const cap = el('div', 'cap', 'Changes');
+  const list = el('div', 'filelist'); list.textContent = 'loading…';
+  b.append(cap, list);
+  let diffPane = null;
+  const q = (extra = '') => '?path=' + encodeURIComponent(n.id) + extra;
+  const showDiff = async (f, row) => {
+    for (const r of list.children) r.classList.remove('on');
+    row.classList.add('on');
+    if (!diffPane) { diffPane = el('pre', 'code diff'); doc.insertBefore(diffPane, before); }
+    diffPane.textContent = 'loading ' + f.path + '…';
+    try {
+      const r = await fetch('/api/repo/diff' + q('&file=' + encodeURIComponent(f.path)));
+      if (!r.ok) throw new Error(await r.text() || r.status);
+      const d = await r.json();
+      diffPane.textContent = '';
+      const head = el('div', 'dh', f.path + (d.untracked ? ' — untracked, full text' : '') + (d.truncated ? ' — cut at 256 KB' : ''));
+      diffPane.append(head);
+      if (d.binary) { diffPane.append(el('div', '', 'binary file — no text to show')); return; }
+      if (!d.text) { diffPane.append(el('div', '', 'no text changes (mode or whitespace only)')); return; }
+      for (const line of d.text.split('\n')) {
+        const cls = d.untracked ? '' : line.startsWith('@@') ? 'dhunk' : /^(\+\+\+|---|diff |index )/.test(line) ? 'dmeta' : line[0] === '+' ? 'dadd' : line[0] === '-' ? 'ddel' : '';
+        diffPane.append(el('div', cls, line || ' '));
+      }
+    } catch (e) { diffPane.textContent = 'could not load the diff — ' + e.message; }
+  };
+  fetch('/api/repo/changes' + q()).then((r) => r.ok ? r.json() : Promise.reject(new Error(r.status))).then((c) => {
+    list.textContent = '';
+    cap.textContent = `Changes (${c.total})`;
+    if (!c.files.length) { list.append(el('div', 'empty', 'nothing uncommitted now')); return; }
+    for (const f of c.files) {
+      const row = el('div');
+      const kind = f.code.trim()[0] === '?' ? '?' : (f.code.includes('U') ? 'U' : f.code.trim()[0]);
+      const tag = el('i', '', kind); tag.title = CHANGE_LABEL[kind] || f.code;
+      row.append(tag, el('span', '', f.path + (f.from ? ' ← ' + f.from : '')));
+      row.title = (CHANGE_LABEL[kind] || f.code) + ': ' + f.path;
+      activate(row, () => showDiff(f, row));
+      list.append(row);
+    }
+    if (c.total > c.files.length) list.append(el('div', 'more', `+${c.total - c.files.length} more not listed`));
+  }).catch((e) => { list.textContent = 'could not list changes — ' + e.message; });
   return b;
 }
 

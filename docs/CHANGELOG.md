@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Repos: a dirty repo's page lists its changed files, and clicking one shows its diff (or an untracked file's text), size-capped and behind the same deny list as every other read *(roadmap: P9-10)*
 - Verified: when the hub stops and restarts, the page shows the connection banner, keeps the open view, and recovers about 2 s after restart with no reload; Retry works both while the hub is down and after it is back. Checked on a spare-port demo hub *(roadmap: P9-25)*
 - Routines: each routine shows whether its last run passed, failed or is unknown, read from the runner's markers in the newest log, with failures in red in the Routines list *(roadmap: P9-12)*
 - Links: a relative link that climbs above the top of its root is rejected instead of opening a same-named document higher up; heading-destination and copy-link-with-spaces cases now have unit tests *(roadmap: P9-09)*

@@ -280,7 +280,23 @@ try {
       assets++;
     }
   }
-  log(`captured ${folders} folders, ${files} documents, ${assets} assets`);
+  // P9-10: a dirty repo's page lists its changes and loads one diff per click. The
+  // fixture's dirty repos are tiny, so every listed file's diff is captured up front.
+  let diffs = 0;
+  for (const repo of scan.repos.filter((r) => r.state === 'dirty' || r.state === 'conflict')) {
+    const r = await get('/api/repo/changes?path=' + encodeURIComponent(repo.id));
+    if (!r.ok) throw new Error(`/api/repo/changes answered ${r.status} for ${repo.id}`);
+    const changes = await r.json();
+    record(keyOf('/api/repo/changes', { path: repo.id }), JSON.stringify(changes));
+    for (const f of changes.files) {
+      const d = await get('/api/repo/diff?path=' + encodeURIComponent(repo.id) + '&file=' + encodeURIComponent(f.path));
+      if (!d.ok) continue;
+      record(keyOf('/api/repo/diff', { path: repo.id, file: f.path }), await d.text());
+      diffs++;
+    }
+  }
+  if (!diffs) throw new Error('no repo diffs captured: the fixture should have a dirty repo');
+  log(`captured ${folders} folders, ${files} documents, ${assets} assets, ${diffs} diffs`);
 
   write(path.join(SITE, 'api', 'manifest.json'), JSON.stringify(manifest));
 

@@ -573,6 +573,18 @@ function readHead(file, bytes = 4096, encoding = 'utf8') {
   finally { if (fd !== undefined) try { fs.closeSync(fd); } catch {} }
 }
 
+/** readHead without holding the event loop: the content index reads ~11k files in one go. */
+async function readHeadAsync(file, bytes = 4096, encoding = 'utf8') {
+  let handle;
+  try {
+    handle = await fs.promises.open(file, 'r');
+    const buf = Buffer.alloc(bytes);
+    const { bytesRead } = await handle.read(buf, 0, bytes, 0);
+    return buf.subarray(0, bytesRead).toString(encoding);
+  } catch { return null; }
+  finally { await handle?.close().catch(() => {}); }
+}
+
 /** Pull `name`/`description` out of YAML frontmatter, incl. `>-` folded blocks. */
 export function frontmatter(text) {
   const m = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text);
@@ -1854,7 +1866,7 @@ const CONTENT_HITS_MAX = 1000;
  * moved. Files clipped to the per-file cap, left out by the total budget, or unreadable
  * are counted rather than silently dropped, so the page can say the index is partial.
  */
-export function buildContentIndex(docs, prev = new Map(), read = (abs, n) => readHead(abs, n, 'latin1'), caps = CONTENT_CAPS) {
+export async function buildContentIndex(docs, prev = new Map(), read = (abs, n) => readHeadAsync(abs, n, 'latin1'), caps = CONTENT_CAPS) {
   const entries = new Map();
   let bytes = 0, clipped = 0, skipped = 0, unread = 0;
   for (const d of docs) {
@@ -1862,7 +1874,7 @@ export function buildContentIndex(docs, prev = new Map(), read = (abs, n) => rea
     const want = Math.min(d.size, caps.perFile);
     if (bytes + want > caps.total) { skipped++; continue; }
     const old = prev.get(d.id);
-    const text = old && old.size === d.size && old.mtime === d.mtime ? old.text : read(d.abs, want);
+    const text = old && old.size === d.size && old.mtime === d.mtime ? old.text : await read(d.abs, want);
     if (text == null) { unread++; continue; }
     entries.set(d.id, { size: d.size, mtime: d.mtime, text });
     bytes += want;
@@ -1903,14 +1915,22 @@ export function searchContent(index, q, limit = CONTENT_HITS_MAX) {
 }
 
 // The index is rebuilt lazily when the scan's signature moves on (state declared above
-// scan(), which `--scan` runs before this point is reached).
-function contentIndexNow() {
-  if (!contentIndex || contentIndex.sig !== contentSig) {
-    const t0 = Date.now();
-    contentIndex = { sig: contentSig, ...buildContentIndex(contentDocs, contentIndex?.entries) };
-    contentIndex.buildMs = Date.now() - t0;
+// scan(), which `--scan` runs before this point is reached). P9-55: the build reads
+// asynchronously -- the first one is ~11k files and took 10.4s, during which a synchronous
+// build stalled every other request. Queries arriving mid-build share the one build.
+// ponytail: each query still scans the whole index on this thread (50-170ms over 64MB
+// here); move search to a worker if that ever shows up as lag.
+let contentBuild = null;
+async function contentIndexNow() {
+  if (contentIndex?.sig === contentSig) return contentIndex;
+  if (contentBuild?.sig !== contentSig) {
+    const sig = contentSig, t0 = Date.now();
+    const promise = buildContentIndex(contentDocs, contentIndex?.entries)
+      .then((built) => (contentIndex = { sig, ...built, buildMs: Date.now() - t0 }))
+      .finally(() => { if (contentBuild?.promise === promise) contentBuild = null; });
+    contentBuild = { sig, promise };
   }
-  return contentIndex;
+  return contentBuild.promise;
 }
 
 // A page on any origin can point a request at 127.0.0.1, and an attacker's domain can be
@@ -2219,7 +2239,7 @@ const server = http.createServer(async (req, res) => {
     const q = (url.searchParams.get('q') || '').trim();
     if (q.length < 2) { res.writeHead(400).end('type at least two characters to search inside documents'); return; }
     await scanJson(false);
-    const index = contentIndexNow();
+    const index = await contentIndexNow();
     const { hits, total } = searchContent(index, q);
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify({
       hits, total, docs: index.entries.size, mb: +(index.bytes / 1048576).toFixed(2),

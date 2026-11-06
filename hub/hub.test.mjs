@@ -936,7 +936,7 @@ test('hub tabs and favorites sync are off unless a viewer turns them on', () => 
 
 // ── content search (P9-04) ─────────────────────────────────────────────────
 // A fixed in-memory "filesystem" so the caps, the reuse and the ranking are exact.
-test('the content index honours both caps, reuses unchanged files and counts what it left out', () => {
+test('the content index honours both caps, reuses unchanged files and counts what it left out', async () => {
   const files = { '/w/a.md': 'Alpha beta. ALPHA again, alpha.', '/w/b.txt': 'nothing here', '/w/long.md': 'x'.repeat(50) + ' alpha', '/w/gone.md': null };
   const reads = [];
   const read = (abs, bytes) => { reads.push(abs); return files[abs] == null ? null : files[abs].slice(0, bytes); };
@@ -948,7 +948,7 @@ test('the content index honours both caps, reuses unchanged files and counts wha
     { id: 'empty.md', abs: '/w/empty.md', size: 0, mtime: 1 },
   ];
   const caps = { perFile: 40, total: 90 };
-  const index = buildContentIndex(docs, new Map(), read, caps);
+  const index = await buildContentIndex(docs, new Map(), read, caps);
   assert.deepEqual([...index.entries.keys()], ['a.md', 'b.txt', 'long.md']);
   assert.equal(index.entries.get('long.md').text.length, 40, 'a long file is clipped to the per-file cap');
   assert.equal(index.clipped, 1);
@@ -957,13 +957,13 @@ test('the content index honours both caps, reuses unchanged files and counts wha
   assert.ok(!reads.includes('/w/empty.md'), 'an empty file is never opened');
 
   // The total budget: a fourth file that would cross it is left out and counted.
-  const over = buildContentIndex([...docs.slice(0, 3), { id: 'c.md', abs: '/w/a.md', size: 32, mtime: 1 }], new Map(), read, caps);
+  const over = await buildContentIndex([...docs.slice(0, 3), { id: 'c.md', abs: '/w/a.md', size: 32, mtime: 1 }], new Map(), read, caps);
   assert.equal(over.skipped, 1);
   assert.ok(!over.entries.has('c.md'));
 
   // A rebuild reads only what moved: same size and mtime reuses the text.
   reads.length = 0;
-  const again = buildContentIndex([{ ...docs[0] }, { ...docs[1], mtime: 2 }], index.entries, read, caps);
+  const again = await buildContentIndex([{ ...docs[0] }, { ...docs[1], mtime: 2 }], index.entries, read, caps);
   assert.deepEqual(reads, ['/w/b.txt']);
   assert.equal(again.entries.get('a.md').text, index.entries.get('a.md').text);
 });

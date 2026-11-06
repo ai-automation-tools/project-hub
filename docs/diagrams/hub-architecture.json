@@ -10,7 +10,7 @@
       "url": "https://github.com/ai-automation-tools/project-hub.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "741b3f306347f4a606bc60e11895c468d8abf700"
+      "revision": "22996218a15caed26c6d08bd595567ad9d2c3254"
     }
   },
   "components": [
@@ -46,20 +46,20 @@
       "sources": [
         {
           "path": "hub/index.html",
-          "line": 1037,
-          "end_line": 1045,
+          "line": 1045,
+          "end_line": 1053,
           "label": "load the tree from /api/scan"
         },
         {
           "path": "hub/index.html",
-          "line": 4130,
-          "end_line": 4135,
+          "line": 4177,
+          "end_line": 4182,
           "label": "open a document via /api/file"
         },
         {
           "path": "hub/index.html",
-          "line": 4453,
-          "end_line": 4463,
+          "line": 4503,
+          "end_line": 4513,
           "label": "EventSource on /api/events"
         }
       ]
@@ -81,14 +81,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 2115,
-          "end_line": 2152,
+          "line": 2157,
+          "end_line": 2194,
           "label": "Host allowlist and CSP nonce"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2508,
-          "end_line": 2522,
+          "line": 2550,
+          "end_line": 2564,
           "label": "index.html placeholders per request"
         }
       ]
@@ -109,20 +109,20 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 1907,
-          "end_line": 1930,
+          "line": 1937,
+          "end_line": 1960,
           "label": "scanPayload: serialize and gzip"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1968,
-          "end_line": 2012,
+          "line": 1998,
+          "end_line": 2043,
           "label": "rescan on a worker thread, inline fallback"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2159,
-          "end_line": 2167,
+          "line": 2201,
+          "end_line": 2209,
           "label": "/api/scan serves the cache"
         }
       ]
@@ -143,20 +143,20 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 758,
-          "end_line": 777,
+          "line": 787,
+          "end_line": 806,
           "label": "scanTree walk"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1408,
-          "end_line": 1419,
+          "line": 1437,
+          "end_line": 1448,
           "label": "scan: walk, then git per repo"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1256,
-          "end_line": 1282,
+          "line": 1285,
+          "end_line": 1311,
           "label": "git state kept until its files or tree change"
         }
       ]
@@ -183,8 +183,8 @@
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2395,
-          "end_line": 2412,
+          "line": 2437,
+          "end_line": 2454,
           "label": "/api/file renders through it"
         }
       ]
@@ -255,14 +255,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 2545,
-          "end_line": 2582,
+          "line": 2587,
+          "end_line": 2624,
           "label": "noise filter, then a gapped rescan + SSE"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2584,
-          "end_line": 2621,
+          "line": 2626,
+          "end_line": 2663,
           "label": "fs.watch per root"
         }
       ]
@@ -289,8 +289,8 @@
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2481,
-          "end_line": 2496,
+          "line": 2523,
+          "end_line": 2538,
           "label": "/api/open, same-origin only"
         }
       ]
@@ -347,8 +347,8 @@
         },
         {
           "path": "demo/build-demo.mjs",
-          "line": 299,
-          "end_line": 316,
+          "line": 310,
+          "end_line": 327,
           "label": "manifest and the unmodified UI"
         }
       ]

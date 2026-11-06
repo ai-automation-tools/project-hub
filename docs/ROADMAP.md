@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-98_passing-8B5CF6?style=for-the-badge" alt="98 tests passing">
+  <img src="https://img.shields.io/badge/tests-99_passing-8B5CF6?style=for-the-badge" alt="99 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
@@ -89,6 +89,10 @@ dated notes in [the P9 record](#p9).
 - [x] P9-04 · Search: opt-in content search — done 2026-10-06: `/api/content`, 51.5 MB of heap for a 7,752-doc tree
 - [x] P9-05 · Keyboard access to context menus — done 2026-10-13: ContextMenu key and Shift+F10; `isMenuKey()` / `menuStep()` tested
 - [x] P9-06 · Keyboard-resizable sidebar divider (P7-15). `role="separator"` with `aria-valuenow`, arrow keys to resize, Home/End for min/max, persisted like the mouse width — done 2026-11-03: `#sidedrag` in `hub/index.html` is a focusable `role="separator"` (`aria-valuenow`/min/max, `aria-controls="sidebar"`); ←/→ (and ↓/↑) step 16px, Shift 64px, Home/End jump to 200/480px, saved to `hub.sbw` like a drag; key mapping is `sidebarKeyWidth()` in `navigation.mjs`, tested in `reports.test.mjs`
+- [ ] P9-50 · Serve only what the scan walks (2026-11-06 audit H1, T1). `SERVE_DIRS` in `hub.mjs` adds each user runtime's whole `rt.dir` (`~/.claude`, `~/.codex`, `~/.gemini`, …), so `/api/file?path=~/.claude/projects/…` or `~/.codex/sessions/…` reads the session history the scanner deliberately skips. Build the runtime half of `SERVE_DIRS` from each runtime's declared `dirs`/`files` subpaths, keeping `~/.gemini/config`. First add a direct `resolveId` test (roots, `~/` prefix, runtime subpaths allowed, a session path refused, `SECRET_DIRS`, `CREDENTIAL_FILE`) so the gate is pinned before it changes. Details: [2026-11-06 audit](#audit-2026-11-06)
+- [ ] P9-51 · Escape link and image targets in markdown `inline()` (audit M3, T2, T6). `esc()` doesn't escape quotes and `inline()` drops `$2` straight into `href="…"` / `src="…"`, so `[x](a" onmouseover=…)` injects an attribute and `javascript:` targets pass; only the CSP holds it today. Run each target through `safeUrl()` plus a quote escape; add regression tests for both shapes and the `java\nscript:` / `&#x0A;` variants
+- [ ] P9-52 · Realpath before `/api/file` and `/api/open` (audit M2, L2). Both call `resolveId()` on the requested name only, so a junction inside a root that points outside is read or launched. Mirror `reports.mjs`: `fs.realpath`, then `resolveId` the real path too; a junction-escape test like the one in `reports.test.mjs`
+- [ ] P9-53 · One `requireSameOrigin()` helper (audit S5, M4, M1). The Sec-Fetch-Site check plus `LOCAL_HOSTS` is copy-pasted across seven handlers. Extract it, and apply it to `/api/raw` and `/api/preview` too. Leave `/api/artifact` ungated: its opaque-origin iframe needs `access-control-allow-origin: *` and the HMAC token is the gate. Confirm first in a browser whether a cross-origin `fetch('/api/raw?path=<report>.html')` can read past the 302 (the audit says yes; the Fetch spec's CORS check on the redirect says no) and record the answer
 - [ ] P9-07 · Settle the `~/.gemini/skills` read errors that P7-16's status panel surfaced (`EISDIR` / `ENOENT`). Find the cause, which is probably a symlink or a directory named like a file, and make the scanner skip it quietly or report it once. Add a test using a fixture that reproduces it
 - [ ] P9-08 · Skip git spawns for unchanged repos (#36). `gitStateCached()` in `hub.mjs` already keeps a 15 s TTL cache (`GIT_TTL`), so watcher-driven rescans are instant; this replaces the TTL with invalidation on each repo's `.git/index` and `.git/refs/heads` mtimes, so a full rescan reuses the last `git status` / `git log` result when neither has moved. Measure scan time before and after on the demo fixture and record both numbers here
 - [ ] P9-09 · Close the testable verification gaps. Unit tests for malformed or missing heading destinations, and for copy-link output on paths containing spaces. These are two of the gaps listed under [Verification still needed](#verification-still-needed) that don't need a browser
@@ -109,7 +113,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-22 · Syntax check in CI. `node --check` over every `hub/*.mjs`, plus a check that the inline script in `index.html` parses. No new dependencies
 - [ ] P9-23 · Keep the demo showing what shipped. Add fixture content to `demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't show them yet: enough documents of each kind that the root and type chips (P9-02) narrow something, and a few near-miss names so the typo fallback (P9-03) has something to find. Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land
 - [ ] P9-37 · Repos before Live Sites on a project page. Eleven Live Sites cards fill the first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list with one row per site (name, domain, status dot)
-- [ ] P9-38 · Make "N need attention" actionable. On the Projects landing cards it's plain grey text. Color it orange and link it to the uncommitted repos. Fill a missing card description from the project README's first line so the cards are even
+- [ ] P9-38 · Make "N need attention" actionable. On the Projects landing cards it's plain grey text. Color it orange and link it to the uncommitted repos. Count repos that are behind their upstream as needing attention too, not only dirty ones (audit A2). Fill a missing card description from the project README's first line so the cards are even
 - [ ] P9-39 · A quieter document header. The filename shows three times (breadcrumb, heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the green `open` button opens. That also brings the header back to one row in a narrow window
 - [ ] P9-40 · Rescan feedback and the sidebar footer. `rescan` gives no sign of the 3–4 s it takes: show a spinner or elapsed time. The footer's `index.html` label is a leftover — show the last scan's duration, or remove it
 - [ ] P9-41 · Phone widths (below 640px). P9-24 was measured at 800px and 700px, with one breakpoint at 1024px and nothing narrower. Measure 390px in Playwright, then decide whether the rail should become an overlay drawer and the header drop to two rows
@@ -124,6 +128,16 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-31 · Favorites in the demo. The demo shows a note in place of favorites. Capture a fixture `favorites.json` and a `Bookmarks` file from `demo/Home`, and teach `demo.js` to answer `/api/favorites` read-only, so both modes are visible there
 - [ ] P9-35 · Keep hub tabs across reloads. Open tabs vanish on a refresh. Store their URLs and titles, not their contents, and reopen them lazily when first shown
 - [ ] P9-36 · Keyboard for favorites and tabs. Arrow-key navigation in the Favorites list like the tree has, Ctrl+Tab between hub tabs, and a keyboard way to move a favorite without dragging
+- [ ] P9-54 · Delete the orphaned `artifacts` payload (audit R1, R5). The scan collects `artifacts` → `artifactList` and ships it in every payload, but no client code reads it since the P5 shelf went away; `index.html` only mentions it in a comment. Remove the collection, `ARTIFACT_DIRS`'s use for it, and the stale comment, keeping `isArtifactHtml`'s visibility rule for repo folders. Also drop `MAX_DEPTH`, which duplicates `CONFIG_DEFAULTS.maxDepth`
+- [ ] P9-55 · Build the content index off the main thread (audit P1, P2). The first `/api/content` builds the index synchronously (up to 64 MB of reads) and every query regex-scans all of it, stalling every other request meanwhile. Build it on the scan worker, which already holds the warm `descCache`, and search it there too. Measure first-query and per-query time before and after on this machine
+- [ ] P9-56 · Non-color state and tab semantics (audit A1, A2, A3, A5). Repo and live-site dots say dirty/live/behind by color alone (WCAG 1.4.1): add text or `aria-label`. `#activity` and `#tabs` need `aria-controls`, `role="tabpanel"` and arrow-key roving; sortable headers need `aria-sort`; `#live` needs `aria-haspopup`/`aria-expanded`
+- [ ] P9-57 · `?` shortcut overlay (audit H4.1). The hub has gathered about a dozen keyboard features (P2, P9-05, P9-06, Ctrl+K) with no list of them anywhere. `?` outside a text field opens a cheat sheet; append the shortcut to each button's `title` while there
+- [ ] P9-58 · Command palette (audit C1). Extend Ctrl+K with a "Run command" section beside the existing search: rescan, color scheme, toggle sidebar, open settings, jump to a project. Commands are a plain array of `{ label, run }`; ranking reuses `rankSearch()`
+- [ ] P9-59 · "Follow system" color scheme (audit H1.2). A `System` choice in Settings that picks `obsidian` or `paper` from `prefers-color-scheme` and follows changes, applied before first paint like `hub.theme`
+- [ ] P9-60 · Last change on a document (audit B3). For a document inside a repo, show "changed <ago> by <author> · <short sha>" in the reader header, from one `git log -1` per open, cached by the file's mtime
+- [ ] P9-61 · Backlinks (audit B1). After P9-11: invert its link index to show "linked from" under a document's outline, each entry jumping to the source
+- [ ] P9-62 · Weekly status digest (audit E1). After P9-12 and P9-18: one button (and `--digest` on the CLI) writes a dated Markdown file of repos that moved, documents changed this week, routine pass/fail, and attention items, all from the current scan
+- [ ] P9-63 · Split the inline script out of `index.html` (audit S1). P9-21 covers `hub.mjs` only; `index.html` is 226 KB with about 3,450 lines of inline module script. Move it out one seam per PR (tree + context menu, favorites/tabs, views), each new module added to `build-demo.mjs`'s copy list and the scaffold's `$engineFiles` (canonical in `agent-skills`), with `npm test` and the demo build green. Do it after P9-21
 
 <a id="the-record"></a>
 
@@ -2230,6 +2244,40 @@ P9-49 — now live in [the remaining checklist](#remaining).*
 - ✅ **P9-34 · Hub tabs.** *(done 2026-09-29: sandboxed iframes without top navigation,
   kept alive across switches, and a `/api/frameable` check that sends sites refusing to be
   framed to a browser tab. Checked live: Wikipedia opens in a hub tab and GitHub falls back.)*
+
+<a id="audit-2026-11-06"></a>
+
+#### The 2026-11-06 audit
+
+An outside review produced a findings report and an enhancement list. Each finding was
+checked against the code before it was queued; ids below are the report's.
+
+**Queued:** H1 + T1 → P9-50 · M3, T2, T6 → P9-51 · M2, L2 → P9-52 · S5, M4, M1 → P9-53 ·
+R1, R5 → P9-54 · P1, P2 → P9-55 · A1–A3, A5 → P9-56 · H4.1 → P9-57 · C1 → P9-58 ·
+H1.2 → P9-59 · B3 → P9-60 · B1 → P9-61 · E1 → P9-62 · S1 → P9-63 · A2 (repo score) folded
+into P9-38. The rest of its "already planned" table matched existing items.
+
+**Confirmed in code:** `SERVE_DIRS` spreads every runtime's whole `rt.dir`; `inline()` puts
+unescaped link targets into attributes; `/api/file` and `/api/open` skip `realpath`; the
+`artifacts` payload has no client reader.
+
+**Rejected or downgraded:**
+
+- M1, as a working read path: a cross-origin `fetch` is CORS-checked on the 302 from
+  `/api/raw`, which carries no `access-control-allow-origin`, so it should fail before reaching
+  the signed route. Kept as a browser check inside P9-53 rather than taken on faith.
+- L1 (SSRF via `/api/frameable` / `/api/favicon`): both are same-origin only, and blocking
+  private ranges would break favicons for LAN bookmarks (router, NAS), which is a real use.
+- L3 (tables merge across prose): the join regex needs adjacent rows, so prose already splits
+  tables. Only two tables separated by nothing but a blank line merge; not worth an item.
+- L4 (`SEARCH_TYPES` read before its declaration): read at call time, after module load; no bug.
+- H4.4 (clickable breadcrumbs): already clickable (`#crumbs span[data-go]`).
+- G1 / H3.1 (open a repo in an agent CLI) and A5 (repo fetch): new shell-outs, and "open a
+  terminal here" was declined in #15. Left to the owner; see [OPEN-QUESTIONS](OPEN-QUESTIONS.md)
+  if it comes back.
+- Not queued for now: R2–R4, R6, R7, S2–S4, S6, T3–T5, T7 (pick up during P9-21 / P9-63, which
+  move the same code), and the Later-tier ideas (activity feed, split pane, graph, PWA,
+  notifications, wizard, pins, extra settings and context-menu items).
 
 ---
 

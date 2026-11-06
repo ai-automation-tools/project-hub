@@ -313,7 +313,9 @@ holds only what makes this hub *this* hub.
 | `Start-Hub.ps1` | here | Three-line shim so the VS Code `folderOpen` task keeps its path; the logic is in `../hub`. |
 | `hub.log` / `hub.err.log` | here | Server output (generated). |
 | `scan.json` | here | Only written by `--scan` (generated). |
-| `hub.mjs` | `../hub` | Scanner, static server, markdown renderer, filesystem watcher. Zero deps. |
+| `hub.mjs` | `../hub` | Static server, filesystem watcher, content search. Zero deps. |
+| `scan.mjs` | `../hub` | Config, roots and the scanner. |
+| `markdown.mjs` | `../hub` | Markdown renderer and sanitizer, link check. |
 | `index.html` | `../hub` | The whole UI — vanilla JS, no framework, no build. |
 | `hub.test.mjs` | `../hub` | `node --test hub.test.mjs`. Covers the markdown renderer, config validation, and a byte-level scan for the control-character corruption that broke gzip in August. |
 
@@ -362,7 +364,7 @@ phone on the tailnet sees the list but not the controls.
 
 The shared roots — `Documents`, `Pictures`, `Automations`, `Links` and whatever else you
 configure — and the six user-scope runtimes are the same for every project, so they stay in
-[`../hub/hub.mjs`](../hub/hub.mjs) (`SHARED_ROOTS` and `USER_RUNTIMES`) and are scanned once
+[`../hub/scan.mjs`](../hub/scan.mjs) (`SHARED_ROOTS` and `USER_RUNTIMES`) and are scanned once
 for all mounted workspaces rather than once per hub. Two rules decide whether a folder deserves
 its own root. A folder the walker cannot otherwise reach needs one: a dot-prefixed directory,
 hidden from an editor's indexer, is pruned by the dot-directory rule and would never appear.

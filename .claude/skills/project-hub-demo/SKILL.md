@@ -131,7 +131,7 @@ happily writes an empty site because the fixture stopped being found.
 2. A `sub()` failure → fix the `sub()` call, not the assertion count alone; confirm the
    rewritten interface still works.
 3. New file extension in the fixture → `TEXT`/`BINARY` in the build **and** `DOC_FILE` /
-   `kindOfFile()` in `hub.mjs`, or the node captures nothing.
+   `kindOfFile()` in `scan.mjs`, or the node captures nothing.
 4. New workspace or repo → the folder **and** its `PROJECT_CONFIGS` / `REPOS` row.
 5. Serve `demo/site` with a static server to check it — `file://` cannot work, the shim
    answers root-relative paths.

@@ -2,7 +2,7 @@
 name: project-hub-scan
 description: >-
   Change what Project Hub's scanner walks, indexes or serves — the filter chain in
-  `hub/hub.mjs` (SKIP_DIRS / DOT_OK / DOC_FILE / SECRET_DIRS), the node `kind` vocabulary,
+  `hub/scan.mjs` (SKIP_DIRS / DOT_OK / DOC_FILE / SECRET_DIRS), the node `kind` vocabulary,
   the `BUCKETS` and `USER_RUNTIMES` tables behind the CLI pages, and the second deny gate in
   `resolveId()` that every `/api/*` path check goes through. Use for "a folder is missing
   from the tree", "my new agent runtime doesn't show up", "add a file type to the scan",
@@ -18,8 +18,8 @@ description: >-
 `resolveId()` agrees a second time.** Most "why isn't this showing up" bugs are one filter,
 and most "why can I read that" bugs are the second gate missing.
 
-All commands run from **`hub/`**, not the repo root. `npm test` is 83 Node tests over
-`hub.mjs`, `reports.mjs`, `pictures.mjs`, `webmarks.mjs` and `favorites.mjs`.
+All commands run from **`hub/`**, not the repo root. `npm test` is 116 Node tests over
+`hub.mjs` (with `scan.mjs` and `markdown.mjs`), `reports.mjs`, `pictures.mjs`, `webmarks.mjs` and `favorites.mjs`.
 
 ---
 
@@ -58,7 +58,7 @@ enough: `/api/file?path=…` is addressed by path, not by index, so a hand-typed
 still read a file the tree never listed. `resolveId()` re-checks:
 
 ```js
-// hub.mjs — every /api/* path check calls this, no exceptions
+// scan.mjs — every /api/* path check calls this, no exceptions
 const ok = SERVE_DIRS.some((d) => lo === d || lo.startsWith(d + '/'));   // inside a served root
 if (segs.some((s) => SECRET_DIRS.has(s.toLowerCase()))) return null;     // same deny-list, at the exit
 if (CREDENTIAL_FILE.test(path.basename(abs))) return null;               // key material by extension
@@ -72,7 +72,7 @@ so a doc honestly named `secret-scanner.md` stays readable. **Any new endpoint t
 
 `kind` is the tree's vocabulary; the client dispatches views off it (see the
 [`project-hub-client`](../project-hub-client/SKILL.md) skill). Adding one means **three
-places**: the `TINT` map in `hub.mjs`, the `TINT` / `ROUND` / `DIRISH` / `ENTITY` /
+places**: the `TINT` map in `scan.mjs`, the `TINT` / `ROUND` / `DIRISH` / `ENTITY` /
 `KIND_LABEL` sets in `index.html`, and a branch in `renderPage()`. Reuse a kind before
 adding one — `folder` is the fallthrough and is usually right.
 
@@ -113,7 +113,7 @@ long-running hub unhealthy eventually.
 
 ## 5. Config is the machine-specific half
 
-Nothing machine-specific belongs in `hub.mjs`. `loadConfig()` validates the server file
+Nothing machine-specific belongs in `scan.mjs` or `hub.mjs`. `loadConfig()` validates the server file
 (`port` 1024-65535 and `base` are required; `sharedRoots[]` needs `name`+`dir`);
 `loadProjectConfig()` validates one workspace (`name`+`dir` required, `repoScope.groups`
 and `repoScope.pathPrefix` mutually exclusive — `validateRepoScope` throws on both).
@@ -140,7 +140,7 @@ but present in the **tree** is a `repoScope` problem, not a scanner problem.
 
 - **Widening `DOC_FILE` to surface one file.** It multiplies the payload for every repo.
 - **A path check that skips `resolveId()`.** The tree filter is not a security boundary.
-- **Putting a machine path in `hub.mjs`.** `base`, `sharedRoots` and workspace `dir`s are config.
+- **Putting a machine path in `scan.mjs` or `hub.mjs`.** `base`, `sharedRoots` and workspace `dir`s are config.
 - **Making every node carry `mtime`.** Fetch `/api/stat` for the folder that needs it.
 - **Kicking off a scan inside a request handler.** It blocks the response it is serving.
 - **Walking a whole `~/.<vendor>` folder.** Name the sub-dirs in `USER_RUNTIMES`.

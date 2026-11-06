@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "8a5d1c21-29fe-4ab1-b519-e7ee0ffb0587",
+  "receiptId": "14a8e679-ea9e-47a2-a944-533ddcac1c54",
   "status": "current",
   "command": "deliver",
   "type": "architecture",
-  "input": "D:\\AI_Agents\\Projects\\Mikes_AI_Lab\\Repos\\AI-Automation-Tools\\Tools\\HTML-Project-Design\\docs\\diagrams\\hub-architecture.json",
-  "output": "D:\\AI_Agents\\Projects\\Mikes_AI_Lab\\Repos\\AI-Automation-Tools\\Tools\\HTML-Project-Design\\docs\\diagrams\\hub-architecture.html",
+  "input": "docs/diagrams/hub-architecture.json",
+  "output": "docs/diagrams/hub-architecture.html",
   "specification": {
-    "sha256": "f901be727c7241a2f7da16344e5e8d8105969beb903a203d78402c7fc15e2008",
+    "sha256": "d9bc34d7a0a761d9756f8c43767a2fca2f4673004828332cae01c8c0f4d4801a",
     "bytes": 11895
   },
   "artifact": {
-    "sha256": "55d9bee919502349b0c4ae874c98e4c59fde747bb930878d604164ec26a72ec2",
+    "sha256": "02e621d380011275b7105e7b2570befe0f1bb336b1b19d27bd2258cefd684af4",
     "bytes": 844706
   }
 }

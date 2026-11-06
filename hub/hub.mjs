@@ -319,11 +319,6 @@ const DOT_OK = new Set(['.claude', '.codex', '.opencode', '.agents', '.antigravi
 const CONFIG_DIRS = new Set(['.claude', '.codex', '.opencode', '.agents', '.antigravity', '.gemini']);
 const BUCKETS = { skills: 'skill', commands: 'command', agents: 'agent', hooks: 'hook', 'sub-agents': 'agent',
   skill: 'skill', command: 'command', agent: 'agent', prompts: 'command', 'output-styles': 'style' };
-const MAX_DEPTH = 10;
-// A folder by one of these names is a signal the .html files under it are meant to be
-// looked at, not read as source -- so they survive the repo doc-only filter (which
-// otherwise drops every .html, #31) and get surfaced on the overview as a shelf.
-const ARTIFACT_DIRS = new Set(['artifacts', 'dashboards', 'prototypes']);
 const DOC_NAMES = /^(README|CLAUDE|AGENTS|SKILL|GEMINI|CONTRIBUTING|INDEX)\.md$/i;
 // What counts as a document once we are inside a repo. Repos are walked for their
 // docs and deliverables, not their source: keeping all 100k+ source files across every
@@ -332,9 +327,8 @@ const DOC_NAMES = /^(README|CLAUDE|AGENTS|SKILL|GEMINI|CONTRIBUTING|INDEX)\.md$/
 // files. Whatever this misses is still counted per folder as `more` and reachable via
 // `open folder`. Report outputs (a rendered .html, a .pdf export, chart .pngs sitting
 // next to a markdown summary) are exactly what this is meant to show, same as a repo's
-// own README -- html/pdf/image extensions are recognized generally now, not only under
-// an artifacts/dashboards/prototypes folder (see isArtifactHtml below, which still
-// gates the separate Artifacts-shelf listing, just no longer gates plain visibility).
+// own README -- html/pdf/image extensions are recognized everywhere, not only under an
+// artifacts/dashboards/prototypes folder as they were before #31.
 export const DOC_FILE = /\.(md|mdx|markdown|txt|rst|adoc|json|jsonc|ya?ml|toml|ini|cfg|conf|csv|pdf|html?|png|jpe?g|gif|svg|webp|avif|bmp|ico)$|^(LICENSE|NOTICE|Dockerfile|Makefile|CNAME)/i;
 // Walking repos put real credential stores in reach — Edge-Radar keeps gitignored
 // Kalshi keys in `keys/`, and a `.txt`/`.toml` in there matches DOC_FILE. Anything
@@ -729,7 +723,6 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
   const repos = [];
   const runtimes = [];
   const flat = [];
-  const artifacts = [];
   const drafts = [];
 
   function walk(dir, depth, ctx) {
@@ -788,7 +781,7 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
           // depth-1 group/CLI rules can't fire again on a folder deep inside a repo,
           // and `repo` marks the subtree for the doc-only file filter in walk().
           // Use the workspace's bounded scan depth, including its wrapper folders.
-          node.children = depth < (ctx.maxDepth ?? MAX_DEPTH) ? walk(full, depth + 1, {
+          node.children = depth < (ctx.maxDepth ?? CONFIG_DEFAULTS.maxDepth) ? walk(full, depth + 1, {
             ...ctx, section: null, bucket: null, repo: id, group: node.group,
           }) : [];
           if (node.children.more) node.more = node.children.more;
@@ -815,7 +808,7 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
             node.doc = rel(path.join(full, readme));
             node.docFirst = true;   // a draft renders through viewFolder, so the same rule applies
           }
-          node.children = depth < (ctx.maxDepth ?? MAX_DEPTH) ? walk(full, depth + 1, {
+          node.children = depth < (ctx.maxDepth ?? CONFIG_DEFAULTS.maxDepth) ? walk(full, depth + 1, {
             ...ctx, section: null, bucket: null, repo: id,
           }) : [];
           if (node.children.more) node.more = node.children.more;
@@ -854,7 +847,7 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
           // branch above, where the README already renders beside the git box.
           if (kind !== 'cli') node.docFirst = true;
         }
-        node.children = depth < (ctx.maxDepth ?? MAX_DEPTH) ? walk(full, depth + 1, nextCtx) : [];
+        node.children = depth < (ctx.maxDepth ?? CONFIG_DEFAULTS.maxDepth) ? walk(full, depth + 1, nextCtx) : [];
         if (node.children.more) node.more = node.children.more;
         if (node.children.length) node.badge = node.children.length;
         else delete node.children;
@@ -883,14 +876,7 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
         out.push(node); flat.push(node);
       } else {
         if (e.name === '.gitignore' || e.name === '.DS_Store') continue;
-        // DOC_FILE already recognizes .html generally, so isArtifactHtml no longer gates
-        // whether an .html file is visible at all -- it only decides whether this one
-        // additionally gets collected for the overview's Artifacts shelf (below), which
-        // is meant to surface interactive dashboards specifically, not every report
-        // export sitting next to a markdown summary.
-        const dirName = path.basename(dir);
-        const isArtifactHtml = ARTIFACT_DIRS.has(dirName.toLowerCase()) && /\.html?$/i.test(e.name);
-        if (ctx.repo && !isArtifactHtml && (!DOC_FILE.test(e.name) || SECRET_FILE.test(e.name))) { hidden++; continue; }
+        if (ctx.repo && (!DOC_FILE.test(e.name) || SECRET_FILE.test(e.name))) { hidden++; continue; }
         // Inside a bucket every file is one of that artifact (hooks are .ps1/.sh, skills .md).
         const bucketKind = ctx.bucket && !/^README\.md$/i.test(e.name) ? ctx.bucket : null;
         const kind = bucketKind || kindOfFile(e.name);
@@ -902,7 +888,6 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
           if (info.fmName) node.title = info.fmName;
         }
         if (bucketKind) { node.doc = id; node.cli = ctx.cli; }
-        if (isArtifactHtml) artifacts.push({ id, name: e.name, repo: ctx.repo || '', folder: dirName, size: node.size });
         out.push(node); flat.push(node);
       }
     }
@@ -1031,7 +1016,7 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
     if (match) rt.userCli = match.id;
   }
 
-  return { tree, repos, runtimes, flat, artifacts, drafts };
+  return { tree, repos, runtimes, flat, drafts };
 }
 
 // Deliberately lean: `abs`, tint and shape are derived on the client from id + kind.
@@ -1267,7 +1252,7 @@ export const CONTENT_FILE = /\.(md|mdx|markdown|txt|rst|adoc)$/i;
 
 async function scan(fresh = false) {
   const t0 = Date.now();
-  const { tree, repos, runtimes, flat, artifacts, drafts } = scanTree();
+  const { tree, repos, runtimes, flat, drafts } = scanTree();
   const walkMs = Date.now() - t0;
 
   await Promise.all(repos.map(async (r) => {
@@ -1335,13 +1320,6 @@ async function scan(fresh = false) {
     catch { return []; /* no root README, or unreadable — an empty list just hides the section */ }
   });
 
-  // .html files found under an artifacts/dashboards/prototypes folder (#31) — surfaced
-  // on the overview so an interactive dashboard doesn't require finding its repo first.
-  const repoNameById = new Map(repos.map((r) => [r.id, r.name]));
-  const artifactList = artifacts.map((a) => ({
-    id: a.id, name: a.name, folder: a.folder, size: a.size,
-    repoName: repoNameById.get(a.repo) || '',
-  }));
 
   // Pre-repo R&D under Repos/Private/Draft/ (#34) — no git state to show, so a lighter list than
   // `repos`: just enough to card it on the overview and jump to its folder page.
@@ -1367,7 +1345,7 @@ async function scan(fresh = false) {
     home: HOME, base: BASE,
     roots: ROOTS.map((r) => ({ name: r.name, dir: r.dir })),
     sharedRoots: SHARED_ROOTS.map((r) => ({ name: r.name, dir: r.dir, tint: r.tint })),
-    tree, stats, rootDocs, liveSites, artifacts: artifactList, drafts: draftList,
+    tree, stats, rootDocs, liveSites, drafts: draftList,
     runtimes: runtimes.map((r) => ({
       id: r.id, name: r.name, desc: r.desc, config: r.config, counts: r.counts,
       scope: r.scope || 'project', mcp: (r.mcp || []).length, plugins: (r.plugins || []).length,

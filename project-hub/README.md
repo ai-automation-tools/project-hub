@@ -278,9 +278,8 @@ folder."* — and **see what's indexed** opens the
 
 An `.html` file used to need a parent folder literally named `artifacts`, `dashboards`,
 or `prototypes` to survive this filter at all (see [#31](../docs/ROADMAP.md#31-dual-mode-html-viewer--artifacts-shelf)).
-That folder-name check still decides whether an `.html` file *additionally* gets
-collected onto the overview's Artifacts shelf — a curated surface for interactive
-dashboards specifically — but no longer decides whether it's visible in the tree at all.
+It no longer does: `.html` is a document type everywhere. The Artifacts shelf that
+folder name also fed is gone, and the scan stopped collecting its list on 2026-11-06 (P9-54).
 
 **Credential stores are skipped outright.** Walking into repos put things like
 Edge-Radar's gitignored `keys/` in reach, and a `.txt` in there matches the doc filter.

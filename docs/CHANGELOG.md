@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Scan: reuse a repo's git status until its git files or working tree change, instead of rerunning git for every repo once a 15 s TTL lapses. On this machine git went from 22 s of a scan to under 1–5 s on watcher rescans *(roadmap: P9-08)*
 - Scan: skills linked in by symlink or junction are read as folders, and dangling links are skipped quietly, so they no longer show up as read errors in the status panel *(roadmap: P9-07)*
 - Scan: stop collecting the `artifacts` list no page has read since the Artifacts shelf went away, and drop the duplicate `MAX_DEPTH` *(roadmap: P9-54)*
 - Security: `/api/raw` and `/api/preview` refuse cross-site requests, like the hub's other side-effecting routes; the signed artifact route still serves report frames *(roadmap: P9-53)*

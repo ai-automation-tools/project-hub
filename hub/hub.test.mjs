@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -1000,7 +1000,7 @@ test('content search is a case-insensitive literal match ranked by occurrences, 
 test('content search is opt-in, never runs in a scan, and only indexes what resolveId admits', () => {
   const server = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
   assert.ok(/contentDocs = flat\.filter\([^\n]*resolveId\(n\.id\)/.test(server), 'the content index must be gated by resolveId');
-  const scanFn = /async function scan\(fresh = false\) \{[\s\S]*?\n\}/.exec(server)[0];
+  const scanFn = /async function scan\(fresh = false[^)]*\) \{[\s\S]*?\n\}/.exec(server)[0];
   assert.ok(!scanFn.includes('buildContentIndex('), 'a scan must never read documents for content search');
   const handler = /if \(url\.pathname === '\/api\/content'\) \{[\s\S]*?\n  \}/.exec(server)?.[0] || '';
   assert.ok(handler.includes('contentIndexNow()'), '/api/content must build the index lazily');
@@ -1110,5 +1110,34 @@ test('linked skills are read as folders, and dangling or folder links elsewhere 
     assert.ok(!flat.some((n) => n.name === 'dangling'), 'a dangling link is left out');
     assert.ok(!flat.some((n) => n.name === 'loop'), 'a folder link outside a bucket is not walked or shown as a file');
     assert.ok(flat.some((n) => n.name === 'README.md'), 'the rest of the root still scans');
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a cached git result is reused only while the repo and its working tree are untouched (P9-08)', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-gitsig-'));
+  try {
+    const repo = path.join(root, 'Repo');
+    fs.mkdirSync(path.join(repo, '.git', 'refs', 'heads'), { recursive: true });
+    fs.writeFileSync(path.join(repo, '.git', 'HEAD'), 'ref: refs/heads/main');
+    fs.writeFileSync(path.join(repo, '.git', 'index'), 'v1');
+    assert.equal(gitSignature(root), null, 'not a repo');
+    const sig = gitSignature(repo);
+    assert.ok(sig);
+    const later = new Date(Date.now() + 5000);
+    fs.utimesSync(path.join(repo, '.git', 'index'), later, later);
+    assert.notEqual(gitSignature(repo), sig, 'staging or committing moves the signature');
+
+    const abs = repo.split(path.sep).join('/');
+    const now = Date.now();
+    const hit = { at: now, sig: 'a', val: {} };
+    const ok = (over) => gitHitValid(hit, { sig: 'a', abs, touched: [], now, ...over });
+    assert.equal(ok({}), true, 'nothing moved: reuse');
+    assert.equal(ok({ sig: 'b' }), false, 'git state moved');
+    assert.equal(ok({ sig: null }), false, 'no signature (worktree, submodule): never reuse');
+    assert.equal(ok({ touched: [(abs + '/src/a.md').toLowerCase()] }), false, 'a working-tree edit');
+    assert.equal(ok({ touched: [(abs + 'Other/a.md').toLowerCase()] }), true, 'a sibling folder sharing the prefix');
+    assert.equal(ok({ touched: true }), false, 'unknown changes');
+    assert.equal(ok({ now: now + 11 * 60_000 }), false, 'the relative commit time would be stale');
+    assert.equal(gitHitValid(undefined, { sig: 'a', abs, touched: [], now }), false);
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });

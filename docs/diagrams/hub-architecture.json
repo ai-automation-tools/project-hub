@@ -10,7 +10,7 @@
       "url": "https://github.com/ai-automation-tools/project-hub.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "6002229ad53b3c4cd15cdbba17c1a2ec0d9381bc"
+      "revision": "741b3f306347f4a606bc60e11895c468d8abf700"
     }
   },
   "components": [
@@ -46,20 +46,20 @@
       "sources": [
         {
           "path": "hub/index.html",
-          "line": 990,
-          "end_line": 998,
+          "line": 1037,
+          "end_line": 1045,
           "label": "load the tree from /api/scan"
         },
         {
           "path": "hub/index.html",
-          "line": 3898,
-          "end_line": 3903,
+          "line": 4130,
+          "end_line": 4135,
           "label": "open a document via /api/file"
         },
         {
           "path": "hub/index.html",
-          "line": 4221,
-          "end_line": 4231,
+          "line": 4453,
+          "end_line": 4463,
           "label": "EventSource on /api/events"
         }
       ]
@@ -81,14 +81,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 1853,
-          "end_line": 1890,
+          "line": 2115,
+          "end_line": 2152,
           "label": "Host allowlist and CSP nonce"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2205,
-          "end_line": 2219,
+          "line": 2508,
+          "end_line": 2522,
           "label": "index.html placeholders per request"
         }
       ]
@@ -109,20 +109,20 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 1666,
-          "end_line": 1689,
+          "line": 1907,
+          "end_line": 1930,
           "label": "scanPayload: serialize and gzip"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1717,
-          "end_line": 1758,
+          "line": 1968,
+          "end_line": 2012,
           "label": "rescan on a worker thread, inline fallback"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1897,
-          "end_line": 1905,
+          "line": 2159,
+          "end_line": 2167,
           "label": "/api/scan serves the cache"
         }
       ]
@@ -143,21 +143,21 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 695,
-          "end_line": 715,
+          "line": 758,
+          "end_line": 777,
           "label": "scanTree walk"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1235,
-          "end_line": 1243,
+          "line": 1408,
+          "end_line": 1419,
           "label": "scan: walk, then git per repo"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 1174,
-          "end_line": 1205,
-          "label": "cached git state"
+          "line": 1256,
+          "end_line": 1282,
+          "label": "git state kept until its files or tree change"
         }
       ]
     },
@@ -165,7 +165,7 @@
       "id": "resolve",
       "type": "security",
       "label": "resolveId() gate",
-      "sublabel": "roots only, no secrets",
+      "sublabel": "roots only, no secrets, links followed",
       "pos": [
         740,
         220
@@ -177,14 +177,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 380,
-          "end_line": 398,
-          "label": "SERVE_DIRS and the deny list"
+          "line": 391,
+          "end_line": 424,
+          "label": "deny list, and .real() judges link targets"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2133,
-          "end_line": 2150,
+          "line": 2395,
+          "end_line": 2412,
           "label": "/api/file renders through it"
         }
       ]
@@ -255,14 +255,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 2242,
-          "end_line": 2279,
+          "line": 2545,
+          "end_line": 2582,
           "label": "noise filter, then a gapped rescan + SSE"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2281,
-          "end_line": 2317,
+          "line": 2584,
+          "end_line": 2621,
           "label": "fs.watch per root"
         }
       ]
@@ -289,8 +289,8 @@
         },
         {
           "path": "hub/hub.mjs",
-          "line": 2178,
-          "end_line": 2193,
+          "line": 2481,
+          "end_line": 2496,
           "label": "/api/open, same-origin only"
         }
       ]
@@ -347,8 +347,8 @@
         },
         {
           "path": "demo/build-demo.mjs",
-          "line": 283,
-          "end_line": 300,
+          "line": 299,
+          "end_line": 316,
           "label": "manifest and the unmodified UI"
         }
       ]
@@ -486,8 +486,8 @@
       "title": "What the server refuses",
       "items": [
         "Any Host header other than loopback or a listed allowedHosts name gets a 403, which stops DNS rebinding",
-        "resolveId() admits only paths under a mounted root, and never a secrets folder or a key or certificate file",
-        "/api/open, favorites and webmarks are same-origin only; mounting a root also needs a loopback Host"
+        "resolveId() admits only paths under a mounted root, never a secrets folder or a key or certificate file, and follows a symlink or junction to judge where it really points",
+        "/api/open, raw and preview files, repo diffs, the link check, favorites and webmarks are same-origin only; mounting a root also needs a loopback Host"
       ]
     },
     {
@@ -495,7 +495,7 @@
       "title": "How the tree stays fresh",
       "items": [
         "A worker thread walks the tree and runs git per repo, then hands back the payload, gzipped once and served to every tab",
-        "The watcher drops build output, git internals, the hub's own logs and bare directory events",
+        "A repo's git status is reused until its git files or its working tree change, so a watcher rescan skips most of git",
         "After a burst it waits out a 30 s gap from the last scan, rescans first, then sends one change event, so no tab fetches a stale copy"
       ]
     },
@@ -503,8 +503,8 @@
       "dot": "violet",
       "title": "Built only when asked",
       "items": [
-        "Pictures loads one folder at a time; its search index is built on the first query that needs it",
-        "Search inside documents builds its index on the first such query, never during a scan",
+        "Pictures loads one folder at a time, and search inside documents builds its index on the first query that needs it, never during a scan",
+        "A repo's changed files and one file's diff, and a folder's link check, run only when their page asks",
         "HTML reports open through signed directory routes with a sandbox on every response"
       ]
     },
@@ -514,7 +514,7 @@
       "items": [
         "Watch-Hubs.ps1 runs every 15 minutes and restarts an unhealthy hub through Start-Hub.ps1",
         "The demo build runs the real hub against demo/Workspace and captures every API response as a file",
-        "The hosted demo has no server, so launching files and searching inside documents are unavailable there"
+        "The hosted demo has no server, so launching files, searching inside documents and the link check are unavailable there"
       ]
     }
   ]

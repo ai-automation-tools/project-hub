@@ -52,12 +52,13 @@ Requires Node 18+ and `git` on PATH. No dependencies, no build step.
 
 | View | Shows |
 |:---|:---|
-| **Projects** (landing page) | The Projects folder's own view — combined stats and a repos table across all mounted workspaces projects, each row tagged with which one it belongs to. Click a project (card or sidebar) to see it scoped on its own. |
+| **Projects** (landing page) | The Projects folder's own view — combined stats, a **Changed this week** list (documents modified in the last 7 days across every root, newest first; 12 shown, `show all` for up to 100), and a repos table across all mounted workspaces projects, each row tagged with which one it belongs to. Click a project (card or sidebar) to see it scoped on its own. |
 | **Overview** | One project, scoped: a stat strip that doubles as the table of contents, then the three sections it points at, in order: **Repos** (that project's own, with live git state), **Readmes** (its root docs), and its agent runtimes last in two labelled groups — **Project CLIs** and **User CLIs**. |
 | **Stat strip** | Runtimes / repos / skills / commands / sub-agents / MCP servers / uncommitted, each noting the user-scope share. Every tile is a link: clicking one scrolls to its section and flashes the heading. Repo counts jump to **Repos**, artifact counts to the agents block. |
 | **CLI runtime** | A `project scope` / `user scope` tag matching its category, config file chips (`CLAUDE.md`, `.mcp.json`, `.env`…), then a masonry column per bucket — skills, commands, sub-agents, hooks, output styles, routines, MCP servers, and (user-scope Claude Code) installed plugins — so expanding one long panel only pushes what's below it in its own column, not every panel beside it. A project CLI (Claude/Codex/Gemini/Antigravity/OpenCode) that matches a user-scope runtime gets a second, clearly labeled **Inherited from user scope** block below its own, with a link to the full user-CLI page — see [Inherited artifacts](#inherited-artifacts). Each file-backed item is titled from its frontmatter `name` and blurbed from its `description`; MCP servers and plugins are read out of config instead. |
-| **Repo** | Rendered `README.md`, a git panel (branch, state, ahead/behind, remote), the latest commit, a link to the repo's `CLAUDE.md`/`AGENTS.md`, and its top-level files. |
-| **Folder** | A card per child, with the child's own README blurb. A folder that holds CLI runtimes (`Agents/`, the `User CLIs` root) leads with them under their category heading and its artifact counts, then everything else under **Folders & docs**. |
+| **Repo** | Rendered `README.md`, a git panel (branch, state, ahead/behind, remote, roadmap done/open), the latest commit, a link to the repo's `CLAUDE.md`/`AGENTS.md`, and its top-level files. A repo with uncommitted work adds a **Changes** box listing each changed file (M, A, D, R, U, ? for untracked); click one to see its diff against HEAD above the README, capped at 256 KB. **check links** in the header runs the link check below. |
+| **Repos table** | One row per repo: group, branch, git state, and a **roadmap** bar with done/total counted from the repo's `docs/ROADMAP.md` (`[x]` done; `[ ]`, `[-]` and `[!]` open). Hover the bar for the open count. Repos without a roadmap leave it blank. |
+| **Folder** | A card per child, with the child's own README blurb. A folder that holds CLI runtimes (`Agents/`, the `User CLIs` root) leads with them under their category heading and its artifact counts, then everything else under **Folders & docs**. **check links** lists every broken relative link, missing image and missing heading target in the Markdown below the folder, by document and line; click a row to open the document. It runs only when clicked (first 2,000 documents) and never during a scan. |
 | **Skill / command / sub-agent / hook** | The rendered doc. Its YAML frontmatter is read for the title and blurb, not shown in the body. |
 | **File** | Markdown rendered; HTML preview/source; PDF preview with Open/Download fallback; other text as source. |
 | **Search** | `⌘K` / `Ctrl+K`. Ranks by kind — runtimes and repos above folders and docs. When nothing matches, it shows names within a typo or two instead, labelled *close to … (no exact match)*. |
@@ -148,7 +149,11 @@ comes back as a plain folder, and `bin/` is on the prune list so the runner scri
 disappear. So `buildRoutines()` reads the JSON instead and emits one `routine` node per
 job, carrying its schedule, Task Scheduler name, runner script, target repo, branch
 prefix, and — from the log directory, the only record that any of this actually fires —
-how many runs it has and when the last one was.
+how many runs it has, when the last one was, and how it went. The result comes from the
+runner's own markers near the end of the newest log, not its last line (usually the email
+notice): any `[ERROR]` line is **failed**; a `[DONE]`, `completed …` or exit-0 line is
+**ok**; anything else, such as a cleanup-only run or one still going, is **unknown**. The
+Routines list shows `last ok` / `last failed` beside the schedule, with failures in red.
 
 The entity page swaps the usual Meta box for a **Schedule** box with those fields, and
 adds chips through to `prompt.md`, the JSON, and the newest log. The seven roadmap jobs

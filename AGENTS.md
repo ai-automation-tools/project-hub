@@ -9,7 +9,7 @@ committed here, this file included, is published.
 
 | Path | What it is |
 |:---|:---|
-| `hub/hub.mjs` | Scanner, static server, markdown renderer + sanitizer, watcher, config loader (~2,450 lines) |
+| `hub/hub.mjs` | Scanner, static server, markdown renderer + sanitizer, watcher, config loader (~2,670 lines) |
 | `hub/index.html` | The entire UI — no framework, no build. Server fills `%TITLE%` `%FAVICON%` `%PORT%` `%NONCE%` per request |
 | `hub/{navigation,pictures,pictures-client,reports,open-native,webmarks,favorites}.mjs` | Route/bookmark logic (pure), lazy Pictures cache, signed report routes, native launch, favorites storage + favicons + embed check (server), favorites tree + bookmarks-file format (client, pure) |
 | `hub/*.test.mjs` | `node --test`, 113 tests, no framework |

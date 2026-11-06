@@ -35,7 +35,10 @@ marks one only the owner can do.
 > gate is closed: the last, `SECURITY.md` and a full-history secret scan, finished 2026-10-27
 > with no credentials found. A third audit on 2026-11-06 added P9-50 to P9-63
 > ([triage](#audit-2026-11-06)); its four security fixes (P9-50 to P9-53) shipped the same
-> day, along with P9-07, P9-08, P9-54 and P9-55. The queue now resumes at P9-09.
+> day, along with P9-07, P9-08, P9-54 and P9-55. Later that day P9-09, P9-10, P9-11, P9-12,
+> P9-17, P9-18 and P9-25 shipped too: repo change lists with diffs, routine pass/fail,
+> roadmap progress, a "Changed this week" list and an on-demand link check. The queue now
+> resumes at P9-19.
 
 <a id="shipped"></a>
 
@@ -111,9 +114,9 @@ dated notes in [the P9 record](#p9).
 - [x] P9-18 · "Changed this week" view. A landing-page list of documents modified in the last 7 days across every root, newest first, built from data the scan already has — done 2026-11-06. `recentDocs()` filters the walk's existing mtimes to documents (`md`, `txt`, `html`, `pdf` and similar) from the last 7 days that pass `resolveId`, newest first. The payload carries the newest 100 plus the total. The landing page shows a `Changed this week` section under the stats, 12 rows to start (name, folder, age) with `show all`. Live: 3,030 documents changed this week on this machine, so the cap matters; the list costs 15 KB of payload
 - [ ] P9-19 · Frontmatter tags. Show a document's frontmatter (tags, dates, status) in a small metadata strip, and let search filter by tag. `frontmatter()` already parses it
 - [ ] P9-20 · Scan-time history in the status panel. Keep the last 20 scan durations in memory and draw a tiny inline sparkline. This makes a slow scan visible before it becomes a complaint
-- [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `hub/markdown.mjs`, and the scanner into `hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 2,450 lines (2026-11-06), the file is the largest single thing a weekly run has to read after `index.html` (P9-63)
+- [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `hub/markdown.mjs`, and the scanner into `hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 2,670 lines (2026-11-06), the file is the largest single thing a weekly run has to read after `index.html` (P9-63)
 - [ ] P9-22 · Syntax check in CI. `node --check` over every `hub/*.mjs`, plus a check that the inline script in `index.html` parses. No new dependencies
-- [ ] P9-23 · Keep the demo showing what shipped. Add fixture content to `demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't show them yet: enough documents of each kind that the root and type chips (P9-02) narrow something, and a few near-miss names so the typo fallback (P9-03) has something to find. Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land
+- [ ] P9-23 · Keep the demo showing what shipped. Add fixture content to `demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't show them yet: enough documents of each kind that the root and type chips (P9-02) narrow something, and a few near-miss names so the typo fallback (P9-03) has something to find. Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land. P9-17's half is done: `signal-api` carries a small roadmap (6/11), and the build captures the dirty `atlas-web` repo's changes and diffs for P9-10
 - [ ] P9-37 · Repos before Live Sites on a project page. Eleven Live Sites cards fill the first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list with one row per site (name, domain, status dot)
 - [ ] P9-38 · Make "N need attention" actionable. On the Projects landing cards it's plain grey text. Color it orange and link it to the uncommitted repos. Count repos that are behind their upstream as needing attention too, not only dirty ones (audit A2). Fill a missing card description from the project README's first line so the cards are even
 - [ ] P9-39 · A quieter document header. The filename shows three times (breadcrumb, heading, viewer bar) and there are eleven buttons across two bars. Drop the viewer bar's filename, fold `copy Hub link`, `copy path` and `print` into one `⋯` menu, and say where the green `open` button opens. That also brings the header back to one row in a narrow window
@@ -139,7 +142,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-60 · Last change on a document (audit B3). For a document inside a repo, show "changed <ago> by <author> · <short sha>" in the reader header, from one `git log -1` per open, cached by the file's mtime
 - [ ] P9-61 · Backlinks (audit B1). After P9-11: invert its link index to show "linked from" under a document's outline, each entry jumping to the source
 - [ ] P9-62 · Weekly status digest (audit E1). After P9-12 and P9-18: one button (and `--digest` on the CLI) writes a dated Markdown file of repos that moved, documents changed this week, routine pass/fail, and attention items, all from the current scan
-- [ ] P9-63 · Split the inline script out of `index.html` (audit S1). P9-21 covers `hub.mjs` only; `index.html` is 226 KB with about 3,450 lines of inline module script. Move it out one seam per PR (tree + context menu, favorites/tabs, views), each new module added to `build-demo.mjs`'s copy list and the scaffold's `$engineFiles` (canonical in `agent-skills`), with `npm test` and the demo build green. Do it after P9-21
+- [ ] P9-63 · Split the inline script out of `index.html` (audit S1). P9-21 covers `hub.mjs` only; `index.html` is 230 KB with about 3,600 lines of inline module script. Move it out one seam per PR (tree + context menu, favorites/tabs, views), each new module added to `build-demo.mjs`'s copy list and the scaffold's `$engineFiles` (canonical in `agent-skills`), with `npm test` and the demo build green. Do it after P9-21
 
 <a id="the-record"></a>
 

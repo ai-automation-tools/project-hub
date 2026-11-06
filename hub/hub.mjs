@@ -573,6 +573,30 @@ function readHead(file, bytes = 4096, encoding = 'utf8') {
   finally { if (fd !== undefined) try { fs.closeSync(fd); } catch {} }
 }
 
+/** The last `bytes` of a file, or null when it can't be read. */
+function readTail(file, bytes = 16384) {
+  let fd;
+  try {
+    fd = fs.openSync(file, 'r');
+    const size = fs.fstatSync(fd).size, n = Math.min(size, bytes);
+    const buf = Buffer.alloc(n);
+    fs.readSync(fd, buf, 0, n, size - n);
+    return buf.toString('utf8');
+  } catch { return null; }
+  finally { if (fd !== undefined) try { fs.closeSync(fd); } catch {} }
+}
+
+// P9-12: a routine log's last line is usually the email or feedback notice, so the
+// result comes from the runner's own markers in the tail. Any [ERROR] means the run
+// failed; a [DONE] or a "completed"/exit-0 line means it finished; anything else
+// (a cleanup-only run, one still going, an unfamiliar runner) is unknown.
+export function routineStatus(tail) {
+  if (!tail) return 'unknown';
+  if (/^\[[\d:]+\] \[ERROR\]/m.test(tail)) return 'failed';
+  if (/^\[[\d:]+\] (\[DONE\]|\[INFO\] (completed (cleanly|with)|exit code: 0\b|Claude exited with code 0\.))/m.test(tail)) return 'ok';
+  return 'unknown';
+}
+
 /** readHead without holding the event loop: the content index reads ~11k files in one go. */
 async function readHeadAsync(file, bytes = 4096, encoding = 'utf8') {
   let handle;
@@ -1165,6 +1189,7 @@ function buildRoutines(dir) {
       if (files.length) {
         n.lastRun = files[files.length - 1].replace(/\.log$/i, '');
         n.lastLog = rel(path.join(logs, files[files.length - 1]));
+        n.lastStatus = routineStatus(readTail(path.join(logs, files[files.length - 1])));
       }
     }
     out.push(n);

@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -1140,4 +1140,19 @@ test('a cached git result is reused only while the repo and its working tree are
     assert.equal(ok({ now: now + 11 * 60_000 }), false, 'the relative commit time would be stale');
     assert.equal(gitHitValid(undefined, { sig: 'a', abs, touched: [], now }), false);
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+// P9-12: pass/fail comes from the runner's markers in a log's tail, not its last line.
+test('a routine log reads as ok, failed or unknown', () => {
+  const ok = '[08:02:22] [INFO] Claude exited with code 0.\n[08:02:25] [DONE] PR opened: x\n[08:02:28] [INFO] email: sent\n[08:02:28] [INFO] feedback: saved 1 new lesson(s)\n';
+  assert.equal(routineStatus(ok), 'ok');
+  assert.equal(routineStatus('[05:45:02] [INFO] exit code: 0\n[05:45:02] [INFO] completed cleanly.\n'), 'ok');
+  assert.equal(routineStatus('[09:00:03] [INFO] completed with 2 warning line(s).\n'), 'ok');
+  assert.equal(routineStatus('[08:02:22] [INFO] Claude exited with code 1.\n[08:02:24] [ERROR] Claude exited with code 1 after 1 attempt(s)\n[08:02:27] [INFO] email: sent\n'), 'failed');
+  // An [ERROR] quoted inside model output or a tool line is not the runner's own.
+  assert.equal(routineStatus('[10:00:00] [claude] grep found "[10:00:00] [ERROR] x"\n[10:00:01] [DONE] ok\n'), 'ok');
+  assert.equal(routineStatus('[14:24:15] [INFO] Cleanup requested.\n[14:24:15] [INFO] No worktree; nothing to remove.\n'), 'unknown');
+  assert.equal(routineStatus('[08:00:00] [INFO] exit code: 10\n'), 'unknown');
+  assert.equal(routineStatus(''), 'unknown');
+  assert.equal(routineStatus(null), 'unknown');
 });

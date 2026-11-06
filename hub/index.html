@@ -3353,6 +3353,11 @@ function bucketGrid(n, keyPrefix) {
       const slug = it.name.replace(/\.md$/i, '');
       // Routines have no filename worth showing here; the schedule is the useful column.
       tg.textContent = kind === 'routine' ? (it.sched || '') : slug === label ? '' : it.name;
+      // P9-12: say how the last run went next to the schedule, and make a failure stand out.
+      if (kind === 'routine' && it.lastStatus) {
+        tg.textContent += (tg.textContent ? ' · ' : '') + 'last ' + it.lastStatus;
+        if (it.lastStatus === 'failed') tg.style.color = 'var(--red)';
+      }
       top.append(nm, tg);
       row.append(top);
       if (it.desc) row.append(el('p', '', it.desc));
@@ -3708,6 +3713,7 @@ function viewEntity(page, n) {
       ['when', n.sched || '—'], ['task', n.taskName || '—'], ['runner', n.runner || '—'],
       ['target', n.target || '—'], ['branch', n.branchPrefix || '—'],
       ['runs logged', n.runs != null ? String(n.runs) : '—'], ['last run', n.lastRun || 'never'],
+      ['last result', n.lastStatus || '—'],
     ])
     : boxKV('Meta', [
       ['kind', KIND_LABEL[n.kind]], ['runtime', n.cli || '—'],

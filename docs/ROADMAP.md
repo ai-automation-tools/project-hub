@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-106_passing-8B5CF6?style=for-the-badge" alt="106 tests passing">
+  <img src="https://img.shields.io/badge/tests-107_passing-8B5CF6?style=for-the-badge" alt="107 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
@@ -102,7 +102,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-49 · The positive native-launch path. Rejections are covered by HTTP checks and the menu wiring is confirmed, but no "open in …" action has ever been clicked through to a running application. One click per action on this machine, then note the result under [Verification still needed](#verification-still-needed) 🔒 Needs owner
 - [ ] P9-10 · Repo changes detail (P7-18 / #23). "uncommitted" on a repo card expands into the changed filenames. A read-only diff loads on demand for one file at a time, size-capped
 - [ ] P9-11 · On-demand document link check (P7-19). An endpoint plus a panel listing broken relative links, missing images, and missing heading targets, each linked to its source document. It never runs as part of a routine scan
-- [ ] P9-12 · Routine pass/fail, not just run count (#24). Read the last line of the newest log for each routine and show ok / failed / unknown beside the run count
+- [x] P9-12 · Routine pass/fail, not just run count (#24). Read the last line of the newest log for each routine and show ok / failed / unknown beside the run count — done 2026-11-06. The last line turned out to be the wrong place to look: across the 101 newest logs on this machine it is almost always the email or feedback notice. `routineStatus()` reads the last 16 KB instead and uses the runner's own markers: any `[ERROR]` line is failed; a `[DONE]`, `completed cleanly`/`completed with`, or exit-0 line is ok; anything else is unknown. Live result: 95 ok, 2 failed (both real `[ERROR]` runs), 4 unknown (three cleanup-only runs and one still in progress), and 5 routines with no logs show `—`. The routine page has a `last result` row, and the Routines list shows `last ok` / `last failed` beside the schedule, with failures in red
 - [ ] P9-13 · Related report files (P7-17). Group a report's `.md` / `.html` / `.pdf` / charts into one entry with format buttons, inferred from shared basenames in one folder
 - [ ] P9-14 · Copy context for an agent (P7-21). Multi-select files, then copy a compact list of titles, relative paths, and hub links. Content stays out unless explicitly included, and is capped
 - [ ] P9-15 · Saved views (P7-20). Save a search plus its filters under a name, list saved views above Bookmarks, and give each one a hub link

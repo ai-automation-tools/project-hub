@@ -99,13 +99,21 @@ what builds it*:
 
 1. **Stat strip** — the counts, and the page's own table of contents.
 2. **Repos** (`#sec-repos`) — the table, with live git state.
-3. **Readmes** (`#sec-docs`) — the root docs for each scanned root.
-4. **Project CLIs** (`#sec-project-clis`) and **User CLIs** (`#sec-user-clis`) — the
+3. **Draft Initiatives** (`#sec-drafts`) — pre-repo work under `Repos/Private/Draft/`, when
+   there is any.
+4. **Live Sites** (`#sec-live-sites`) — one card per row of the root README's "Live sites"
+   table, when it has one. It sits below the repos so a long list of deployments never
+   pushes the repo table off the first screen.
+5. **Readmes** (`#sec-docs`) — the root docs for each scanned root.
+6. **Project CLIs** (`#sec-project-clis`) and **User CLIs** (`#sec-user-clis`) — the
    runtime cards, last because that block is the tallest and the one you scroll into
    rather than past.
 
+The Projects page (all projects together) follows the same rule: the project cards, the
+stat strip and "Changed this week", then repos, then Live Sites.
+
 The stat tiles carry a `link` field naming the heading id they scroll to, set server-side
-in `../hub/hub.mjs` alongside the count itself, so a new stat wires its own jump. Two notes on
+in `../hub/scan.mjs` alongside the count itself, so a new stat wires its own jump. Two notes on
 the scroll:
 
 - `#view` is the scroll container, not the window — the page body never scrolls, so an

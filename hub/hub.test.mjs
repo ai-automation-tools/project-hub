@@ -1346,3 +1346,16 @@ test('routine file chips load into the page instead of navigating to a non-tree 
   assert.ok(block.includes('loadDoc(id, body)'), 'a chip must load its file into the Document panel');
   assert.ok(!block.includes('go(id)'), 'go() ignores ids that are not tree nodes');
 });
+
+// P9-37: eleven Live Sites cards filled a project page's first screen before any repo.
+test('project and portfolio pages put the repo table before Live Sites', () => {
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  for (const [fn, next] of [['function viewOverview(', '// portfolio ----'], ['function viewPortfolio(', '\n}\n']]) {
+    const start = ui.indexOf(fn);
+    const body = ui.slice(start, ui.indexOf(next, start + fn.length));
+    const repos = body.indexOf('repoTableSection(');
+    const sites = body.indexOf("foldable('Live Sites'");
+    assert.ok(repos > 0 && sites > 0, `${fn} is missing the repo table or Live Sites`);
+    assert.ok(repos < sites, `${fn} must render repos before Live Sites`);
+  }
+});

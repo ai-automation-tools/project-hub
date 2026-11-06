@@ -89,7 +89,8 @@ rows, centred titles), relative images resolved through the server, and relative
 wired to jump inside the hub. YAML frontmatter is stripped before rendering — it is
 vault metadata for Obsidian and the agents, so every doc opens on its real first line
 rather than a block of `title:` / `tags:` / `updated:`. The scanner still parses it for
-the `name` and `description` it uses as titles and blurbs.
+the `name` and `description` it uses as titles and blurbs, and its tags, `status` and dates
+show in a small strip above the body (see the metadata strip under the reader tools below).
 
 ## Page order
 

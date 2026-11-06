@@ -26,6 +26,9 @@ fails loudly.
 | The content | Invented. Every workspace, repo, person and domain in it is fictional |
 | Live updates | Absent. There is no server to stream changes from, so the event stream is never opened |
 | Opening files | Absent. A hosted page has no filesystem to open; the button says so |
+| Uncommitted changes | Real. The build captures each dirty fixture repo's change list and the diff of every changed file |
+| Content search | Absent, except the fixture's `tag:` searches, which the build captures ahead of time. Any other query needs the server's index |
+| Link check | Absent. It reads every document under a folder on request, so there is no fixed answer to capture |
 | Pictures | Not configured in the fixture |
 | Settings | Real, and remembered per browser like the local hub's |
 | Favorites | Absent. Both sources are served by the local server, so the view says the server is needed |

@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Docs: the architecture diagram is re-pinned after P9-37, its reader and watcher citations moved three lines
 - Project pages: the repo table now comes straight after the stats, with Live Sites below it, so a long list of deployments no longer fills the first screen. The Projects page follows the same order *(roadmap: P9-37)*
 - Docs: the architecture diagram is re-pinned after P9-23, with the demo build and reader citations moved to their new lines
 - Routines: the prompt, JSON and latest-log chips on a routine page now open those files in the page's Document panel. They called a navigation that ignores files outside the tree, so they had never done anything

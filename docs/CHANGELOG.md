@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Docs: the architecture diagram is re-pinned after the "Changed this week" fold change
 - Projects page: "Changed this week" starts folded, with its count still in the heading. Opening it is remembered, like every other section's fold
 - Docs: the architecture diagram is re-pinned after P9-37, its reader and watcher citations moved three lines
 - Project pages: the repo table now comes straight after the stats, with Live Sites below it, so a long list of deployments no longer fills the first screen. The Projects page follows the same order *(roadmap: P9-37)*

@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -1013,4 +1013,29 @@ test('content search is opt-in, never runs in a scan, and only indexes what reso
   // has to reach it as typed or "Émile" can never be found.
   assert.ok(ui.includes('searchContents(contents, asTyped,') && !ui.includes('searchContents(contents, q,'), 'content search must send the query as typed');
   assert.ok(ui.includes('aria-controls="search-results content-results pictures-results"'), 'the combobox must own the content results');
+});
+
+test('resolveId serves roots and walked runtime paths, never runtime session state (P9-50)', () => {
+  // Real absolute paths for this platform; a hardcoded drive letter is relative on Linux CI.
+  const abs = (...p) => path.resolve(os.tmpdir(), ...p).replace(/\\/g, '/');
+  const home = abs('you');
+  const work = abs('Work');
+  const runtimes = [
+    { dir: `${home}/.claude`, dirs: ['skills', 'agents'], files: ['settings.json'] },
+    { dir: `${home}/.gemini/antigravity-cli`, dirs: ['builtin/skills'], files: [] },
+  ];
+  const serve = runtimeServePaths(runtimes);
+  const resolveId = createResolveId({ serveDirs: [work, ...serve.dirs], serveExact: serve.exact, base: work, home });
+  assert.equal(resolveId('Example_Workspace/README.md'), `${work}/Example_Workspace/README.md`);
+  assert.equal(resolveId('~/.claude/skills/x/SKILL.md'), `${home}/.claude/skills/x/SKILL.md`);
+  assert.equal(resolveId('~/.claude/settings.json'), `${home}/.claude/settings.json`);
+  assert.equal(resolveId('~/.claude'), `${home}/.claude`, 'the runtime folder itself stays openable');
+  assert.equal(resolveId('~/.gemini/antigravity-cli/builtin/skills/a.md'), `${home}/.gemini/antigravity-cli/builtin/skills/a.md`);
+  for (const id of ['~/.claude/projects/p/session.jsonl', '~/.claude/settings.json.bak', '~/.claude/skillsx/a.md',
+    '~/.gemini/antigravity-cli/brain/b.md', '~/.codex/sessions/s.jsonl', '../outside.md', abs('Elsewhere', 'a.md')]) {
+    assert.equal(resolveId(id), null, `${id} must be refused`);
+  }
+  assert.equal(resolveId('Example_Workspace/keys/token.txt'), null, 'SECRET_DIRS');
+  assert.equal(resolveId('Example_Workspace/certs/a.md'), null, 'SECRET_DIRS');
+  assert.equal(resolveId('Example_Workspace/id.pem'), null, 'CREDENTIAL_FILE');
 });

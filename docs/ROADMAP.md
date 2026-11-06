@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-119_passing-8B5CF6?style=for-the-badge" alt="119 tests passing">
+  <img src="https://img.shields.io/badge/tests-120_passing-8B5CF6?style=for-the-badge" alt="120 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 

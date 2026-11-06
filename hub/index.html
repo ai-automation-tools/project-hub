@@ -3313,14 +3313,21 @@ const scopeOf = n => (n.scope === 'user' ? 'user' : 'project');
 // pages should agree, and a per-node set would grow without bound.
 let COLLAPSED = new Set();
 try { COLLAPSED = new Set(JSON.parse(localStorage.getItem('hub.collapsed') || '[]')); } catch {}
+// Sections that start folded. For these the set records an expansion instead, under
+// `open:<label>`, so an entry saved back when the section started open can't flip it.
+const FOLDED_BY_DEFAULT = new Set(['Changed this week']);
+function foldIsOpen(key) {
+  return FOLDED_BY_DEFAULT.has(key) ? COLLAPSED.has('open:' + key) : !COLLAPSED.has(key);
+}
 function remember(key, open) {
-  open ? COLLAPSED.delete(key) : COLLAPSED.add(key);
+  if (FOLDED_BY_DEFAULT.has(key)) open ? COLLAPSED.add('open:' + key) : COLLAPSED.delete('open:' + key);
+  else open ? COLLAPSED.delete(key) : COLLAPSED.add(key);
   try { localStorage.setItem('hub.collapsed', JSON.stringify([...COLLAPSED])); } catch {}
 }
 
 /** Wrap a section heading and its blocks in a <details> that folds. */
-// P9-18: documents changed in the last 7 days across every root, newest first. Twelve
-// rows to start with so it doesn't push the repos off the page; "show all" opens the rest.
+// P9-18: documents changed in the last 7 days across every root, newest first. Folded by
+// default (FOLDED_BY_DEFAULT); opened, it shows twelve rows, and "show all" the rest.
 function recentSection(recent) {
   const list = el('div', 'filelist recent');
   const render = (all) => {
@@ -3349,7 +3356,7 @@ function recentSection(recent) {
 
 function foldable(key, head, ...blocks) {
   const d = el('details', 'fold');
-  d.open = !COLLAPSED.has(key);
+  d.open = foldIsOpen(key);
   const sum = el('summary');
   sum.append(el('span', 'fchev', '\u25b8'), head);
   const body = el('div', 'foldbody');
@@ -3362,7 +3369,7 @@ function foldable(key, head, ...blocks) {
 /** A .panel that folds -- its `.ph` header row is the summary. */
 function foldPanel(key, cls = 'panel') {
   const d = el('details', cls);
-  d.open = !COLLAPSED.has(key);
+  d.open = foldIsOpen(key);
   d.addEventListener('toggle', () => remember(key, d.open));
   return d;
 }

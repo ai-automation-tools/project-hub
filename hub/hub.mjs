@@ -1930,6 +1930,7 @@ const STARTED = Date.now();
 // than a single number. The 2026-08-31 outage was invisible partly because nothing kept
 // any history at all.
 const scanLog = [];
+export const SCAN_LOG_MAX = 20;
 let scanCount = 0, watcherTicks = 0, readErrorsAtLastScan = 0;
 
 /** One scan, serialised and gzipped: what the worker posts back, or what runs inline. */
@@ -2022,7 +2023,8 @@ function rescan(fresh) {
     dirty = false;
     scanCount++;
     scanLog.push({ at: cached.at, ms: out.meta.ms, bytes: out.json.length, gzip: out.gzip.length, nodes: out.meta.nodes, errs: out.errs, timings: out.meta.timings });
-    if (scanLog.length > 10) scanLog.shift();
+    // P9-20: twenty is enough for the status panel's sparkline to show a trend.
+    if (scanLog.length > SCAN_LOG_MAX) scanLog.shift();
     return cached;
   })().catch((e) => { touchedAll = true; throw e; }) // the changes it consumed went unseen
     .finally(() => { scanning = null; lastScanEnd = Date.now(); });

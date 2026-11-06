@@ -429,6 +429,10 @@ h2.sec.flash{animation:secflash 1.4s ease-out}
 .filelist i{font-style:normal;color:var(--dimmer);width:8px}
 .filelist .more{margin-top:7px;padding-top:7px;border-top:1px solid var(--line-a);color:var(--dimmer)}
 .filelist .more:hover{color:var(--blue)}
+.sparkrow{display:flex;align-items:center;gap:10px;margin:4px 0 2px;font-family:var(--mono);font-size:10.5px;color:var(--dimmer)}
+.sparkrow svg{flex:none;display:block}
+.sparkrow polyline{fill:none;stroke:var(--blue);stroke-width:1.5;stroke-linejoin:round}
+.sparkrow circle{fill:var(--blue)}
 .docmeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 18px;font-family:var(--mono);font-size:11px;color:var(--dimmer)}
 .docmeta .tagchip{color:var(--blue);text-decoration:none;border:1px solid var(--line-a);border-radius:999px;padding:1px 8px}
 .docmeta .tagchip:hover{color:var(--fg);border-color:var(--dimmest)}
@@ -2368,6 +2372,29 @@ function skippedNote(count, suffix = '') {
   return note;
 }
 
+// P9-20: the last scan durations (up to 20, oldest first) as a tiny inline SVG, so a scan
+// that is slowly getting slower shows up here before anyone notices it in use.
+function scanSparkline(ms) {
+  const w = 160, hgt = 28, max = Math.max(...ms), min = Math.min(...ms), span = max - min || 1;
+  const pts = ms.map((v, i) => `${(i / (ms.length - 1) * (w - 4) + 2).toFixed(1)},${(hgt - 3 - (v - min) / span * (hgt - 6)).toFixed(1)}`);
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${w} ${hgt}`); svg.setAttribute('width', w); svg.setAttribute('height', hgt);
+  svg.setAttribute('role', 'img');
+  const label = `last ${ms.length} scans: ${fmtMs(min)} to ${fmtMs(max)}, latest ${fmtMs(ms[ms.length - 1])}`;
+  svg.setAttribute('aria-label', label);
+  const line = document.createElementNS(ns, 'polyline');
+  line.setAttribute('points', pts.join(' '));
+  const dot = document.createElementNS(ns, 'circle');
+  const [lx, ly] = pts[pts.length - 1].split(',');
+  dot.setAttribute('cx', lx); dot.setAttribute('cy', ly); dot.setAttribute('r', '2.5');
+  svg.append(line, dot);
+  const row = el('div', 'sparkrow');
+  row.append(svg, el('span', '', `${ms.length} scans · ${fmtMs(min)}–${fmtMs(max)}`));
+  row.title = label;
+  return row;
+}
+
 function statusRow(into, label, value, warn) {
   const row = el('div', 'kv' + (warn ? ' warn' : ''));
   row.append(el('span', '', label), el('b', '', String(value)));
@@ -2410,6 +2437,7 @@ async function showStatusPanel(anchor) {
   statusRow(panel, 'finished', scan.at ? new Date(scan.at).toLocaleTimeString() : '—');
   statusRow(panel, 'age', scan.ageSec == null ? '—' : fmtAgo(Date.now() - scan.ageSec * 1000) || 'just now');
   statusRow(panel, 'duration', fmtMs(scan.ms));
+  if ((h.recentScanMs || []).length > 1) panel.append(scanSparkline(h.recentScanMs));
   statusRow(panel, 'indexed', (scan.nodes ?? 0).toLocaleString() + ' nodes');
   statusRow(panel, 'payload', scan.gzipMb == null ? '—' : scan.gzipMb + ' MB gzipped');
 

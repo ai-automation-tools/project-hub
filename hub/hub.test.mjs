@@ -1296,3 +1296,17 @@ test('tag: content search matches frontmatter tags exactly, and tags are reused 
   assert.match(ui, /chip\.href = searchHash\('tag:' \+ t, false, 200, \{ content: true \}\);/);
   assert.match(ui, /if \(meta\) host\.prepend\(metaStrip\(meta\)\);/);
 });
+
+// P9-20: scan-time history in the status panel.
+test('the status panel draws the last 20 scan durations as a sparkline', () => {
+  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  assert.match(src, /export const SCAN_LOG_MAX = 20;/);
+  assert.match(src, /if \(scanLog\.length > SCAN_LOG_MAX\) scanLog\.shift\(\);/);
+  assert.match(src, /recentScanMs: scanLog\.map\(\(x\) => x\.ms\),/);
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.match(ui, /if \(\(h\.recentScanMs \|\| \[\]\)\.length > 1\) panel\.append\(scanSparkline\(h\.recentScanMs\)\);/);
+  // Colors come from CSS: a var() in an SVG presentation attribute never resolves.
+  const fn = ui.slice(ui.indexOf('function scanSparkline('), ui.indexOf('function statusRow('));
+  assert.doesNotMatch(fn, /setAttribute\('(stroke|fill)', 'var\(/);
+  assert.match(ui, /\.sparkrow polyline\{fill:none;stroke:var\(--blue\)/);
+});

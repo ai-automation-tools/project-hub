@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Docs: end-of-day pass. The roadmap status note covers everything shipped on 2026-11-06, P9-18 notes the folded default, and P9-63 has the current `index.html` size (234 KB)
 - Docs: the architecture diagram is re-pinned after the "Changed this week" fold change
 - Projects page: "Changed this week" starts folded, with its count still in the heading. Opening it is remembered, like every other section's fold
 - Docs: the architecture diagram is re-pinned after P9-37, its reader and watcher citations moved three lines

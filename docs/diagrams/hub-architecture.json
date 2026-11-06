@@ -10,7 +10,7 @@
       "url": "https://github.com/ai-automation-tools/project-hub.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "57099714ebb3f1ffc2a3f143685fce4d7bf6dd95"
+      "revision": "326bef3413a7bc8a9e8378774eec1656a8fd3d2b"
     }
   },
   "components": [
@@ -52,14 +52,14 @@
         },
         {
           "path": "hub/index.html",
-          "line": 4177,
-          "end_line": 4182,
+          "line": 4188,
+          "end_line": 4193,
           "label": "open a document via /api/file"
         },
         {
           "path": "hub/index.html",
-          "line": 4503,
-          "end_line": 4513,
+          "line": 4514,
+          "end_line": 4524,
           "label": "EventSource on /api/events"
         }
       ]
@@ -341,14 +341,14 @@
         },
         {
           "path": "demo/build-demo.mjs",
-          "line": 175,
-          "end_line": 197,
+          "line": 210,
+          "end_line": 232,
           "label": "spawn hub.mjs on the fixture"
         },
         {
           "path": "demo/build-demo.mjs",
-          "line": 310,
-          "end_line": 327,
+          "line": 364,
+          "end_line": 381,
           "label": "manifest and the unmodified UI"
         }
       ]

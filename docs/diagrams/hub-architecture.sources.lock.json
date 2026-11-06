@@ -1,11 +1,11 @@
 {
-  "revision": "57099714ebb3f1ffc2a3f143685fce4d7bf6dd95",
+  "revision": "326bef3413a7bc8a9e8378774eec1656a8fd3d2b",
   "files": {
     ".github/workflows/demo.yml": "f50b8bca3586b6a53f92b0f03860e980f55ba3a7",
-    "demo/build-demo.mjs": "62c5cecfce8a2dd0d15fd3601c750933aa6561a5",
+    "demo/build-demo.mjs": "01b4fa6c6389bfece321c04fd2dada8d57a2421e",
     "hub/Watch-Hubs.ps1": "a2465916054442702fc14d13104c3d00cfc8b7cb",
     "hub/hub.mjs": "0001f4d45691e4547639cb8ca138b9a1a1aeb356",
-    "hub/index.html": "270b5666c3e8568c6eeae46868482319e381990a",
+    "hub/index.html": "6aed97921888e873aba279011f37c8564c74d659",
     "hub/open-native.mjs": "a34160f09941f3c4d616ea6236cc6cf061a396b2",
     "hub/scan.mjs": "78d82473e93150c47ca37f536b24f2a37733bb1c"
   }

@@ -1,3 +1,8 @@
+---
+tags: [api, reliability]
+status: draft
+---
+
 # Rate limits
 
 Enforced in the service, per API key, in a fixed window.

@@ -67,6 +67,7 @@ Every path-addressed route resolves through `resolveId()`: the configured roots,
 | Path | What it does |
 |:---|:---|
 | `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Pictures is a metadata-only root. Gzipped. |
+| `/api/file` (Markdown) | Also returns `meta`, the document's frontmatter tags, `status` and date fields, or `null` when it has none (P9-19). |
 | `/api/stat` | Modification times for one folder's immediate children, keyed by name. On demand, for the list view. |
 | `/api/links?path=` | On-demand link check over the Markdown under one folder (first 2,000 documents): relative links and images that don't resolve, heading anchors that don't exist (same slugs as the renderer), and targets outside the roots, each with its line. Never part of a scan. Same-origin only. |
 | `/api/repo/changes?path=` | A repo's uncommitted files from `git status` (code, path, old path for renames), capped at 300. Same-origin only. |
@@ -76,7 +77,7 @@ Every path-addressed route resolves through `resolveId()`: the configured roots,
 | `/api/pictures?path=` | Immediate children of a Pictures folder, or a file and its ancestor path. |
 | `/api/pictures?action=search&q=&kind=&offset=&limit=` | Separate cached metadata search, up to 200 hits per page. Built only when requested. |
 | `/api/pictures?action=status` | Pictures cache/index version and read/build metrics. |
-| `/api/content?q=` | Opt-in search inside Markdown and text files (P9-04): up to 1000 files ranked by occurrences, each with a snippet, plus the index size and what it left out. The index is built on the first call, never during a scan. GET only; 400 under two characters. `/api/health` reports `contentIndex` once it exists. |
+| `/api/content?q=` | Opt-in search inside Markdown and text files (P9-04): up to 1000 files ranked by occurrences, each with a snippet, plus the index size and what it left out. The index is built on the first call, never during a scan. GET only; 400 under two characters. `/api/health` reports `contentIndex` once it exists. `q=tag:name` matches frontmatter tags exactly instead of the text (P9-19). |
 | `/api/file?path=` | One text document, rendered to HTML. PDF/image input returns 415. |
 | `/api/raw?path=` | File bytes, including PDF MIME and byte ranges; `&download=1` requests attachment delivery. HTML redirects to the contained preview route. |
 | `/api/preview?path=` | Redirects an HTML report to its signed directory URL. Like `/api/raw`, refused (403) to a cross-site request; the signed `/api/artifact/…` route is not, since the report's opaque-origin frame reads as cross-site. |

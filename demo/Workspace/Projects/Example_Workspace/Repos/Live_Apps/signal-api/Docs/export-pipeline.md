@@ -1,3 +1,9 @@
+---
+tags: [exports, reliability]
+status: current
+last_updated: 2026-10-14
+---
+
 # Export pipeline
 
 Four stages. Each one writes something a human can find afterwards, which is the whole

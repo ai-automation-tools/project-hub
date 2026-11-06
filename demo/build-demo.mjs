@@ -243,6 +243,7 @@ try {
   const seen = new Set();
   const slugs = new Map();
   let files = 0, folders = 0, assets = 0;
+  const tags = new Set();
 
   for (const node of flat) {
     const id = node.id;
@@ -266,7 +267,9 @@ try {
       for (const raw of [false, true]) {
         const r = await get('/api/file?path=' + encodeURIComponent(id) + (raw ? '&raw=1' : ''));
         if (!r.ok) continue;
-        record(keyOf('/api/file', raw ? { path: id, raw: '1' } : { path: id }), await r.text());
+        const body = await r.text();
+        record(keyOf('/api/file', raw ? { path: id, raw: '1' } : { path: id }), body);
+        if (!raw) for (const t of JSON.parse(body).meta?.tags || []) tags.add(t);
       }
       files++;
     }
@@ -296,7 +299,15 @@ try {
     }
   }
   if (!diffs) throw new Error('no repo diffs captured: the fixture should have a dirty repo');
-  log(`captured ${folders} folders, ${files} documents, ${assets} assets, ${diffs} diffs`);
+  // P9-19: a tag in the reader runs a `tag:` search. Free-text search can't be captured,
+  // but the fixture's tags are a short, known list, so each one's answer is.
+  for (const t of tags) {
+    const r = await get('/api/content?q=' + encodeURIComponent('tag:' + t));
+    if (!r.ok) throw new Error(`/api/content answered ${r.status} for tag:${t}`);
+    record(keyOf('/api/content', { q: 'tag:' + t }), await r.text());
+  }
+  if (!tags.size) throw new Error('no frontmatter tags captured: the fixture should have tagged documents');
+  log(`captured ${folders} folders, ${files} documents, ${assets} assets, ${diffs} diffs, ${tags.size} tags`);
 
   write(path.join(SITE, 'api', 'manifest.json'), JSON.stringify(manifest));
 

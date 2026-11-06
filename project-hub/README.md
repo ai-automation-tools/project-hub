@@ -491,6 +491,11 @@ with the other document actions:
 
 Hovering a code block shows a **copy** button in its corner.
 
+A document with frontmatter shows a strip above its body: its **tags**, its `status`, and any
+date field (`date`, `created`, `last_updated`…). Click a tag to list every document carrying
+it. That is a `tag:name` search inside documents, which you can also type into the search
+box: it matches frontmatter tags exactly (case-insensitive, with or without `#`), not the text.
+
 Width and text size are remembered per browser. The outline and the source toggle reset each
 session, so a new tab always opens on the rendered document with the outline closed.
 

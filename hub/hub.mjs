@@ -623,10 +623,39 @@ export function frontmatter(text) {
       const parts = [];
       while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) parts.push(lines[++i].trim());
       val = parts.join(' ');
+    } else if (val === '') {
+      // P9-19: a block list (`tags:` then `  - a` lines) reads as "a, b", like a flow list.
+      const items = [];
+      while (i + 1 < lines.length && /^\s*-\s+\S/.test(lines[i + 1])) items.push(lines[++i].replace(/^\s*-\s+/, '').replace(/^["']|["']$/g, '').trim());
+      if (items.length) val = items.join(', ');
     }
     out[key] = val.replace(/^["']|["']$/g, '').trim();
   }
   return out;
+}
+
+/**
+ * P9-19: a document's tags from its frontmatter -- `tags:` (or `tag:` / `keywords:`) as a
+ * flow list `[a, b]`, a block list, or a comma- or space-separated string. Lowercased,
+ * without a leading `#`, deduplicated.
+ */
+export function docTags(fm) {
+  const raw = String(fm.tags || fm.tag || fm.keywords || '').replace(/^\[|\]$/g, '').trim();
+  if (!raw) return [];
+  const parts = raw.includes(',') ? raw.split(',') : raw.split(/\s+/);
+  return [...new Set(parts.map((t) => t.trim().replace(/^["'#]+|["']+$/g, '').toLowerCase()).filter(Boolean))];
+}
+
+/** The frontmatter worth showing above a document: tags, status, and any date field. */
+export function docMeta(text) {
+  const fm = frontmatter(text);
+  const meta = {};
+  const tags = docTags(fm);
+  if (tags.length) meta.tags = tags;
+  if (fm.status) meta.status = fm.status;
+  const dates = Object.entries(fm).filter(([k, v]) => v && /date|created|updated|modified|reviewed/i.test(k));
+  if (dates.length) meta.dates = dates;
+  return Object.keys(meta).length ? meta : null;
 }
 
 /** First real sentence of a markdown doc — used as a card blurb. */
@@ -2053,9 +2082,12 @@ export async function buildContentIndex(docs, prev = new Map(), read = (abs, n) 
     const want = Math.min(d.size, caps.perFile);
     if (bytes + want > caps.total) { skipped++; continue; }
     const old = prev.get(d.id);
-    const text = old && old.size === d.size && old.mtime === d.mtime ? old.text : await read(d.abs, want);
+    const reuse = old && old.size === d.size && old.mtime === d.mtime;
+    const text = reuse ? old.text : await read(d.abs, want);
     if (text == null) { unread++; continue; }
-    entries.set(d.id, { size: d.size, mtime: d.mtime, text });
+    // Tags are parsed once per read, so a tag: query never re-parses 11k heads.
+    const tags = reuse ? old.tags : docTags(frontmatter(Buffer.from(text.slice(0, 4096), 'latin1').toString('utf8')));
+    entries.set(d.id, { size: d.size, mtime: d.mtime, text, tags });
     bytes += want;
     if (d.size > caps.perFile) clipped++;
   }
@@ -2073,6 +2105,14 @@ export async function buildContentIndex(docs, prev = new Map(), read = (abs, n) 
 export function searchContent(index, q, limit = CONTENT_HITS_MAX) {
   const needle = String(q || '').trim();
   if (needle.length < 2) return { hits: [], total: 0 };
+  // P9-19: `tag:name` matches frontmatter tags exactly instead of searching the text.
+  const tag = /^tag:\s*(.+)$/i.exec(needle)?.[1].trim().replace(/^#/, '').toLowerCase();
+  if (tag) {
+    const hits = [];
+    for (const [id, { tags }] of index.entries) if (tags?.includes(tag)) hits.push({ id, count: 1, snippet: 'tags: ' + tags.join(', ') });
+    hits.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    return { hits: hits.slice(0, limit), total: hits.length };
+  }
   const bytes = Buffer.from(needle, 'utf8').toString('latin1');
   const re = new RegExp([...bytes].map((c) => /[a-z]/i.test(c) ? `[${c.toLowerCase()}${c.toUpperCase()}]`
     : c.replace(/[.*+?^${}()|[\]\\/-]/g, '\\$&')).join(''), 'g');
@@ -2405,7 +2445,7 @@ const server = http.createServer(async (req, res) => {
     const asSource = url.searchParams.get('raw') === '1' || !/\.md$/i.test(abs);
     const payload = asSource
       ? { html: `<pre class="code"><code>${text.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</code></pre>` }
-      : { html: md2html(text) };
+      : { html: md2html(text), meta: docMeta(text) };
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify(payload));
     return;

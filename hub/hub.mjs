@@ -1115,6 +1115,18 @@ function stampNode(node, file) {
   Object.defineProperty(node, 'mtime', { value: stamp.mtime, enumerable: false });
 }
 
+// P9-18: documents modified in the last week, newest first, from the mtimes the walk
+// already took. Capped so a mass edit (a formatter run, a branch switch) can't bloat the
+// payload; the client says when the cap was hit.
+export const RECENT_DAYS = 7, RECENT_DOCS_MAX = 100;
+const RECENT_FILE = /\.(md|mdx|markdown|txt|rst|adoc|html?|pdf)$/i;
+export function recentDocs(flat, now, allowed = (n) => !!resolveId(n.id)) {
+  const since = now - RECENT_DAYS * 86_400_000;
+  const hits = flat.filter((n) => n.mtime > since && n.mtime <= now + 60_000 && RECENT_FILE.test(n.name) && allowed(n));
+  hits.sort((a, b) => b.mtime - a.mtime);
+  return { total: hits.length, docs: hits.slice(0, RECENT_DOCS_MAX).map((n) => ({ id: n.id, name: n.name, mtime: n.mtime })) };
+}
+
 export function scanSignature(flat, repos) {
   let sig = 0;
   const mix = (str) => { for (let i = 0; i < str.length; i++) sig = (Math.imul(sig, 31) + str.charCodeAt(i)) | 0; };
@@ -1468,6 +1480,7 @@ async function scan(fresh = false, touched = true) {
   // Pre-repo R&D under Repos/Private/Draft/ (#34) — no git state to show, so a lighter list than
   // `repos`: just enough to card it on the overview and jump to its folder page.
   const draftList = drafts.map((d) => ({ id: d.id, name: d.name, desc: d.desc || '' }));
+  const recent = recentDocs(flat, Date.now());
 
   // Modification times cover equal-byte-count edits, including bucket entry docs.
   const sig = scanSignature(flat, repos);
@@ -1489,7 +1502,7 @@ async function scan(fresh = false, touched = true) {
     home: HOME, base: BASE,
     roots: ROOTS.map((r) => ({ name: r.name, dir: r.dir })),
     sharedRoots: SHARED_ROOTS.map((r) => ({ name: r.name, dir: r.dir, tint: r.tint })),
-    tree, stats, rootDocs, liveSites, drafts: draftList,
+    tree, stats, rootDocs, liveSites, drafts: draftList, recent,
     runtimes: runtimes.map((r) => ({
       id: r.id, name: r.name, desc: r.desc, config: r.config, counts: r.counts,
       scope: r.scope || 'project', mcp: (r.mcp || []).length, plugins: (r.plugins || []).length,

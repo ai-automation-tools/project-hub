@@ -184,6 +184,40 @@ test('heading routes preserve old links and round-trip punctuation and Unicode',
   assert.equal(markdownLink('A [draft]', 'http://localhost/#A B'), '[A \\[draft\\]](<http://localhost/#A%20B>)');
 });
 
+// P9-09: the two verification gaps that need no browser.
+test('malformed or missing heading destinations resolve safely', () => {
+  // Empty fragments mean "the document itself", not a heading named ''.
+  assert.deepEqual(documentTarget('Docs/README.md', '#'), { id: 'Docs/README.md', heading: '' });
+  assert.deepEqual(documentTarget('Docs/README.md', 'Other.md#'), { id: 'Docs/Other.md', heading: '' });
+  assert.deepEqual(parseRoute('#Docs/a.md?heading='), { id: 'Docs/a.md', heading: '' });
+  assert.deepEqual(parseRoute('#Docs/a.md?foo=1'), { id: 'Docs/a.md', heading: '' });
+  // A bad escape in the fragment rejects the link; one in the route's query stays literal.
+  assert.equal(documentTarget('Docs/README.md', 'Other.md#%E0'), null);
+  assert.deepEqual(parseRoute('#Docs/a.md?heading=%zz'), { id: 'Docs/a.md', heading: '%zz' });
+  // Only the first # splits; a link that climbs past the top is rejected, not clamped.
+  assert.deepEqual(documentTarget('Docs/README.md', 'Other.md#a#b'), { id: 'Docs/Other.md', heading: 'a#b' });
+  assert.equal(documentTarget('Docs/README.md', '../../x.md'), null);
+  assert.deepEqual(documentTarget('Docs/Guide/README.md', '../x.md'), { id: 'Docs/x.md', heading: '' });
+  // The reader reports both failures instead of failing silently.
+  assert.match(ui, /if \(!target\) \{ toast\('invalid document link'\); return; \}/);
+  assert.match(ui, /else if \(S\.sel === id\) toast\('anchor not found: ' \+ S\.heading\)/);
+});
+
+test('copy-link output keeps paths with spaces intact', () => {
+  const id = 'Docs/My Notes/a b.md';
+  const hash = routeHash(id, 'Set up');
+  assert.equal(hash, '#Docs%2FMy%20Notes%2Fa%20b.md?heading=Set%20up');
+  assert.doesNotMatch(hash, / /);
+  assert.deepEqual(parseRoute(hash), { id, heading: 'Set up' });
+  assert.deepEqual(documentTarget('Docs/README.md', './My%20Notes/a b.md#Set up'), { id, heading: 'Set up' });
+  const link = 'http://127.0.0.1:4273/' + routeHash(id);
+  assert.equal(markdownLink('a b (c).md', link), '[a b (c).md](<http://127.0.0.1:4273/#Docs%2FMy%20Notes%2Fa%20b.md>)');
+  assert.equal(markdownLink('x', 'http://h/#a b<c>'), '[x](<http://h/#a%20b%3Cc%3E>)');
+  // Copy Hub Link and Copy as Markdown Link both build on routeHash.
+  assert.match(ui, /function hubLink\(id, heading = ''\) \{ return location\.origin \+ location\.pathname \+ routeHash\(id, heading\); \}/);
+  assert.match(ui, /copy\(markdownLink\(n\.name, hubLink\(n\.id\)\)\)/);
+});
+
 test('same-length edits change the scan signature without changing descriptions', () => {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-revision-test-'));
   const file = path.join(folder, 'report.md');

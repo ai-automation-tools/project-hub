@@ -139,7 +139,8 @@ export function documentTarget(fromId, href) {
     const parts = fromId.split('/').slice(0, -1);
     for (const part of file.split('/')) {
       if (part === '.' || !part) continue;
-      if (part === '..') parts.pop(); else parts.push(decodeURIComponent(part));
+      if (part === '..') { if (!parts.length) return null; parts.pop(); }
+      else parts.push(decodeURIComponent(part));
     }
     return { id: parts.join('/'), heading };
   } catch { return null; }

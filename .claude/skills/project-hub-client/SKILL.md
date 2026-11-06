@@ -51,7 +51,7 @@ pages are the reason to click them. A kind with no branch lands in `viewFolder` 
 fine — reach for a new view only when the folder listing is actually wrong.
 
 A new `kind` needs the five client tables kept in step: `TINT`, `ROUND`, `DIRISH`,
-`ENTITY`, `KIND_LABEL` — plus the server-side `TINT` in `hub.mjs`. See the
+`ENTITY`, `KIND_LABEL` — plus the server-side `TINT` in `scan.mjs`. See the
 [`project-hub-scan`](../project-hub-scan/SKILL.md) skill.
 
 Every view takes `(page, n)` and appends to `page`. Build with `el(tag, cls, txt)` and

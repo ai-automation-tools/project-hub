@@ -27,7 +27,9 @@ mounts gets a config folder of its own under `../projects/`. See
 
 | File | What it is |
 |:---|:---|
-| `hub.mjs` | Scanner, static server, markdown renderer, filesystem watcher, config loader. Zero dependencies. |
+| `hub.mjs` | Entry point: static server and routes, filesystem watcher, content search. Re-exports `scan.mjs` and `markdown.mjs`. Zero dependencies. |
+| `scan.mjs` | Config loader, roots and deny lists, `resolveId()`, the tree walk, git state and the scan payload. The scan worker thread loads this file alone. |
+| `markdown.mjs` | Frontmatter, the markdown renderer and `sanitizeHtml()`, heading slugs, the link check. |
 | `index.html` | The whole UI — vanilla JS, no framework, no build. Carries `%TITLE%`, `%FAVICON%`, `%PORT%` and `%NONCE%` placeholders the server fills per request. |
 | `pictures.mjs` | Independent asynchronous Pictures browse/search cache; project scans never walk this root. |
 | `pictures-client.mjs` | Attaches only requested Pictures nodes to the client tree and retains them across project refreshes. |
@@ -387,7 +389,7 @@ top-level roots next to Documents. `SHARED_ROOTS` (whatever `sharedRoots` names 
 `Documents`, `Pictures`, `Automations`, `Links`) stay top-level, and
 — along with `USER_RUNTIMES`
 (`~/.claude`, `~/.codex`, `~/.gemini`, `~/.agents`, `~/.config/opencode`) — are identical
-regardless of which projects are mounted, so they stay hardcoded in `hub.mjs` and are
+regardless of which projects are mounted, so they stay hardcoded in `scan.mjs` and are
 scanned exactly once no matter how many projects there are — before the merge, running
 three hubs meant scanning this same content three times over.
 

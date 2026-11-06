@@ -1,6 +1,6 @@
 # Scan internals — the tables you will have to edit
 
-Everything below is in `hub/hub.mjs` unless noted.
+The tables below are in `hub/scan.mjs`, the endpoints in `hub/hub.mjs`, and the markdown rules in `hub/markdown.mjs`, unless noted.
 
 ## The endpoints
 

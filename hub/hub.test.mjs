@@ -19,6 +19,9 @@ import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, 
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+// P9-21: the server is three files; a source pin on scanner code reads them together.
+const serverSource = () => ['hub.mjs', 'scan.mjs', 'markdown.mjs']
+  .map((f) => fs.readFileSync(path.join(HERE, f), 'utf8')).join('\n');
 const ROOT = path.join(HERE, '..');
 const HUB_DIRS = ['project-hub'];
 
@@ -122,7 +125,7 @@ test('no stray control bytes in any source file', () => {
 // nodes the client already walks. It is built client-side now; putting it back on the
 // wire would silently undo the largest payload win this project has had.
 test('the scan payload does not carry a server-built search index', () => {
-  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const src = serverSource();
   const ret = /return \{\s*\n\s*sig: String\(sig\),[\s\S]*?\n  \};/.exec(src);
   assert.ok(ret, 'could not find the scan payload literal');
   assert.doesNotMatch(ret[0], /^\s*(index|flat),?\s*$/m, 'payload includes an index again');
@@ -842,7 +845,7 @@ test('the source toggle asks for raw explicitly, and every reader tool is wired'
 // failed and why, and the UI stops describing the index as "only docs and config".
 
 test('read errors are recorded with a path and a reason, bounded and paths-only', () => {
-  const server = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const server = serverSource();
   const note = /function noteReadError\([\s\S]*?\n\}/.exec(server)?.[0] || '';
   assert.ok(note, 'noteReadError not found');
   assert.ok(note.includes('readErrorLog.delete(file)') && note.includes('readErrorLog.set(file'),
@@ -1001,7 +1004,7 @@ test('content search is a case-insensitive literal match ranked by occurrences, 
 });
 
 test('content search is opt-in, never runs in a scan, and only indexes what resolveId admits', () => {
-  const server = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const server = serverSource();
   assert.ok(/contentDocs = flat\.filter\([^\n]*resolveId\(n\.id\)/.test(server), 'the content index must be gated by resolveId');
   const scanFn = /async function scan\(fresh = false[^)]*\) \{[\s\S]*?\n\}/.exec(server)[0];
   assert.ok(!scanFn.includes('buildContentIndex('), 'a scan must never read documents for content search');

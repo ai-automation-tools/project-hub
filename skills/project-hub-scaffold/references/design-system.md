@@ -209,7 +209,7 @@ children.
 
 ## Markdown rendering rules
 
-- Rendered server-side (`md2html()` in `hub.mjs`) and served as HTML via `/api/file`.
+- Rendered server-side (`md2html()` in `markdown.mjs`) and served as HTML via `/api/file`.
 - Headings get GitHub-style slug `id`s so in-document anchors (`#some-heading`) resolve.
 - YAML frontmatter is parsed for metadata and stripped from the rendered body.
 - Fenced code is escaped, never interpreted; inline code is the mono font at `.9em` in an

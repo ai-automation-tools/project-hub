@@ -9,7 +9,9 @@ committed here, this file included, is published.
 
 | Path | What it is |
 |:---|:---|
-| `hub/hub.mjs` | Scanner, static server, markdown renderer + sanitizer, watcher, config loader (~2,670 lines) |
+| `hub/hub.mjs` | Entry point: static server and routes, watcher, content search (~860 lines). Re-exports everything below |
+| `hub/scan.mjs` | Config loader, roots, `resolveId()` deny gate, tree walk, git state, scan payload. Also what the scan worker thread loads (~1,480 lines) |
+| `hub/markdown.mjs` | Frontmatter, markdown renderer + `sanitizeHtml()`, heading slugs, link check (~440 lines) |
 | `hub/index.html` | The entire UI — no framework, no build. Server fills `%TITLE%` `%FAVICON%` `%PORT%` `%NONCE%` per request |
 | `hub/{navigation,pictures,pictures-client,reports,open-native,webmarks,favorites}.mjs` | Route/bookmark logic (pure), lazy Pictures cache, signed report routes, native launch, favorites storage + favicons + embed check (server), favorites tree + bookmarks-file format (client, pure) |
 | `hub/*.test.mjs` | `node --test`, 116 tests, no framework |
@@ -60,5 +62,5 @@ with a >100-captured-responses check. `demo.yml` deploys the demo on push to `ma
 - **Single branch `main`** — no `mike_desktop`. Small direct commits are fine; roadmap-routine work arrives as PRs.
 - Imperative-mood subjects, no Conventional Commits prefix (match `git log`).
 - Ticking a P9 roadmap item adds a line to `docs/CHANGELOG.md` tagged *(roadmap: P9-NN)* in the same commit.
-- `hub.mjs` changes need a hub restart to take effect; `index.html` changes need only a browser refresh.
+- `hub.mjs` / `scan.mjs` / `markdown.mjs` changes need a hub restart to take effect; `index.html` changes need only a browser refresh.
 - The watchdog restarts a stopped hub within 15 minutes — disable its task first if you mean to keep it down.

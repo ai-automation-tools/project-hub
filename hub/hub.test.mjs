@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -214,6 +214,9 @@ test('markdown headings get GitHub-style slug ids so in-doc anchors resolve', ()
   // Repeated heading text gets GitHub's -1, -2, … suffix.
   assert.equal(slugifyHeading('Notes', seen), 'notes');
   assert.equal(slugifyHeading('Notes', seen), 'notes-1');
+  // P9-11 found this: GitHub keeps the space a leading emoji leaves behind.
+  assert.equal(slugifyHeading('🔧 Setup', new Map()), '-setup');
+  assert.equal(slugifyHeading('  Setup  ', new Map()), 'setup');
 
   const html = md2html('## Phase 0 — what shipped\n\ntext\n\n## Phase 0 — what shipped\n\nmore');
   assert.match(html, /<h2 id="phase-0--what-shipped">Phase 0 — what shipped<\/h2>/);
@@ -1219,4 +1222,41 @@ test('recent documents are the last 7 days, newest first, documents only, capped
   assert.equal(capped.docs.length, RECENT_DOCS_MAX);
   assert.equal(capped.total, RECENT_DOCS_MAX + 5);
   assert.equal(capped.docs[0].id, 'B/0.md');
+});
+
+// P9-11: the on-demand link check.
+test('link targets skip code; heading anchors match the renderer and explicit anchors', () => {
+  const md = [
+    '[a](other.md#Setup) ![img](pics/x.png "title") [ext](https://x.dev) `[no](code.md)`',
+    '```', '[fenced](nope.md)', '```', '<img src="logo.svg">', '[angle](<My Notes.md>)',
+  ].join('\n');
+  assert.deepEqual(linkTargets(md).map((l) => [l.href, l.image, l.line]), [
+    ['other.md#Setup', false, 1], ['pics/x.png', true, 1], ['https://x.dev', false, 1],
+    ['logo.svg', true, 5], ['My Notes.md', false, 6],
+  ]);
+  const ids = headingAnchors('# Set up & run\n## Set up & run\n```\n# not a heading\n```\n<a id="audit-1"></a>\n');
+  assert.deepEqual([...ids].sort(), ['audit-1', 'set-up--run', 'set-up--run-1']);
+});
+
+test('checkLinks reports missing files, images, headings and out-of-root targets', async () => {
+  const root = path.resolve(os.tmpdir(), 'lc-root');
+  const files = {
+    [path.join(root, 'a.md')]: '# Top\n[ok](b.md#Intro) [bad heading](b.md#nope) [gone](c.md) ![pic](img/x.png)\n[self](#top) [selfbad](#missing) [out](../../etc/passwd) [web](https://x.dev) [bad%](%E0.md)\n',
+    [path.join(root, 'b.md')]: '# Intro\n',
+  };
+  const r = await checkLinks([{ id: 'R/a.md', abs: path.join(root, 'a.md') }], {
+    allowed: (abs) => abs.startsWith(root),
+    read: async (abs) => files[abs] ?? null,
+    exists: (abs) => abs in files,
+  });
+  assert.equal(r.links, 8);
+  assert.deepEqual(r.problems.map((p) => [p.kind, p.href]), [
+    ['missing heading', 'b.md#nope'], ['missing file', 'c.md'], ['missing image', 'img/x.png'],
+    ['missing heading', '#missing'], ['outside roots', '../../etc/passwd'], ['malformed', '%E0.md'],
+  ]);
+  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const route = src.slice(src.indexOf("url.pathname === '/api/links'"), src.indexOf("url.pathname === '/api/repo/changes'"));
+  assert.match(route, /if \(!sameOrigin\(req\)\) \{ res\.writeHead\(403\)/);
+  assert.match(route, /if \(!resolveId\.real\(id\)\) \{ res\.writeHead\(403\)/);
+  assert.match(route, /allowed: \(abs\) => !!resolveId\(abs\)/);
 });

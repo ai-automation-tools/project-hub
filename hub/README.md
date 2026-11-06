@@ -68,6 +68,7 @@ Every path-addressed route resolves through `resolveId()`: the configured roots,
 |:---|:---|
 | `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Pictures is a metadata-only root. Gzipped. |
 | `/api/stat` | Modification times for one folder's immediate children, keyed by name. On demand, for the list view. |
+| `/api/links?path=` | On-demand link check over the Markdown under one folder (first 2,000 documents): relative links and images that don't resolve, heading anchors that don't exist (same slugs as the renderer), and targets outside the roots, each with its line. Never part of a scan. Same-origin only. |
 | `/api/repo/changes?path=` | A repo's uncommitted files from `git status` (code, path, old path for renames), capped at 300. Same-origin only. |
 | `/api/repo/diff?path=&file=` | One changed file's diff against HEAD, or an untracked file's text, cut at 256 KB. Serves only a file `git status` lists, and only if it passes the deny list. Same-origin only. |
 | `/api/file?raw=1` | The same document as escaped source instead of rendered markdown — the view-source toggle. |

@@ -1597,18 +1597,87 @@ const isBlockHtml = (l) => {
 // "phase-0--what-shipped" with the double hyphen every doc in this repo already links
 // to. Repeats of the same heading text get -1, -2, … appended, matching GitHub.
 export function slugifyHeading(text, seen) {
-  let s = text
+  // Trim the heading text, not the result: "🔧 Setup" loses its emoji but keeps the
+  // space after it, so GitHub slugs it "-setup" and house-style READMEs link to that.
+  let s = text.trim()
     .replace(/`([^`]+)`/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
     .replace(/<[^>]+>/g, '')
     .toLowerCase()
     .replace(/[^\p{L}\p{N} _-]/gu, '')
-    .trim()
     .replace(/ /g, '-');
   if (!s) s = 'section';
   const n = seen.get(s) || 0;
   seen.set(s, n + 1);
   return n === 0 ? s : `${s}-${n}`;
+}
+
+// P9-11: an on-demand link check. Never part of a scan: it reads every document under one
+// folder, so it runs only when someone asks. Headings use slugifyHeading exactly as the
+// renderer does, plus explicit <a id>/<a name> anchors, so "missing heading" means the
+// reader's own jump would fail too.
+export function linkTargets(text) {
+  const out = [];
+  let fence = false;
+  text.split(/\r?\n/).forEach((raw, i) => {
+    if (/^\s*(```|~~~)/.test(raw)) { fence = !fence; return; }
+    if (fence) return;
+    const line = raw.replace(/`[^`]*`/g, '');
+    // `(<a b.md>)` may hold spaces; a bare destination ends at the first space.
+    for (const m of line.matchAll(/(!?)\[[^\]]*\]\(\s*(?:<([^>]+)>|([^)\s]+))(?:\s+"[^"]*")?\s*\)/g)) out.push({ href: m[2] ?? m[3], image: !!m[1], line: i + 1 });
+    for (const m of line.matchAll(/<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi)) out.push({ href: m[1], image: true, line: i + 1 });
+  });
+  return out;
+}
+
+export function headingAnchors(text) {
+  const seen = new Map(), ids = new Set();
+  let fence = false;
+  for (const line of text.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(line)) { fence = !fence; continue; }
+    if (fence) continue;
+    const h = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (h) ids.add(slugifyHeading(h[2], seen));
+    for (const m of line.matchAll(/<a\s+[^>]*\b(?:id|name)\s*=\s*["']([^"']+)["']/gi)) ids.add(m[1]);
+  }
+  return ids;
+}
+
+export const LINKCHECK_MAX_DOCS = 2000;
+/**
+ * docs: [{ id, abs }] markdown files. allowed(abs) says whether a target may be probed at
+ * all (outside the roots it is reported, not looked at). read(abs) returns text or null.
+ */
+export async function checkLinks(docs, { allowed, read, exists = fs.existsSync }) {
+  const problems = [], anchors = new Map();
+  const anchorsOf = async (abs) => {
+    if (!anchors.has(abs)) { const t = await read(abs); anchors.set(abs, t == null ? null : headingAnchors(t)); }
+    return anchors.get(abs);
+  };
+  let links = 0;
+  for (const doc of docs.slice(0, LINKCHECK_MAX_DOCS)) {
+    const text = await read(doc.abs);
+    if (text == null) continue;
+    for (const { href, image, line } of linkTargets(text)) {
+      if (/^[a-z][a-z0-9+.-]*:|^\/\//i.test(href)) continue;   // http:, mailto:, data:, //host
+      links++;
+      const hash = href.indexOf('#');
+      let file = (hash < 0 ? href : href.slice(0, hash)).split('?')[0];
+      let heading = hash < 0 ? '' : href.slice(hash + 1);
+      try { file = decodeURIComponent(file); heading = decodeURIComponent(heading); }
+      catch { problems.push({ doc: doc.id, line, href, kind: 'malformed' }); continue; }
+      const target = file ? path.resolve(path.dirname(doc.abs), file) : doc.abs;
+      const report = (kind) => problems.push({ doc: doc.id, line, href, kind });
+      if (file && file.startsWith('/')) { report('absolute'); continue; }
+      if (!allowed(target)) { report('outside roots'); continue; }
+      if (!exists(target)) { report(image ? 'missing image' : 'missing file'); continue; }
+      if (heading && /\.(md|mdx|markdown)$/i.test(target)) {
+        const ids = await anchorsOf(target);
+        if (ids && !ids.has(heading) && !ids.has(heading.toLowerCase())) report('missing heading');
+      }
+    }
+  }
+  return { docs: Math.min(docs.length, LINKCHECK_MAX_DOCS), totalDocs: docs.length, links, problems };
 }
 
 // GitHub alert-callout kinds, in the order GitHub itself checks them.
@@ -2365,6 +2434,23 @@ const server = http.createServer(async (req, res) => {
     if (!times) { res.writeHead(404).end('not found'); return; }
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify(times));
+    return;
+  }
+
+  if (url.pathname === '/api/links') {
+    if (!sameOrigin(req)) { res.writeHead(403).end('cross-origin request refused'); return; }
+    const id = (url.searchParams.get('path') || '').replace(/\/$/, '');
+    if (!resolveId.real(id)) { res.writeHead(403).end('outside roots'); return; }
+    // contentDocs is already deny-listed and limited to what /api/file would serve.
+    const docs = contentDocs.filter((d) => /\.(md|mdx|markdown)$/i.test(d.name)
+      && (d.id === id || d.id.startsWith(id + '/')));
+    const t0 = Date.now();
+    const result = await checkLinks(docs, {
+      allowed: (abs) => !!resolveId(abs),
+      read: (abs) => readHeadAsync(abs, 1 << 20),
+    });
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify({ ...result, ms: Date.now() - t0 }));
     return;
   }
 

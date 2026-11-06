@@ -429,6 +429,12 @@ h2.sec.flash{animation:secflash 1.4s ease-out}
 .filelist i{font-style:normal;color:var(--dimmer);width:8px}
 .filelist .more{margin-top:7px;padding-top:7px;border-top:1px solid var(--line-a);color:var(--dimmer)}
 .filelist .more:hover{color:var(--blue)}
+.linkcheck{margin-top:4px}
+.filelist.linkprobs div{gap:10px;cursor:pointer}
+.filelist.linkprobs .lpdoc{color:var(--fg-mid);margin-top:8px}
+.filelist.linkprobs .lpdoc:first-child{margin-top:0}
+.filelist.linkprobs i{width:auto;min-width:34px;text-align:right}
+.filelist.linkprobs b{font-weight:400;color:var(--orange);flex:none;min-width:104px}
 .filelist.recent div{gap:10px}
 .filelist.recent span{color:var(--fg-mid);flex:0 1 auto}
 .filelist.recent em{font-style:normal;color:var(--dimmer);flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2897,6 +2903,48 @@ function openBtn(id, label = 'open folder') {
   b.onclick = () => requestOpen(id, '', b);
   return b;
 }
+// P9-11: check every Markdown link under this folder, on demand. Results open in a box
+// under the page header, grouped by document; each row jumps to its source.
+function linkCheckBtn(id) {
+  const b = el('button', 'btn', 'check links');
+  b.title = 'Find broken relative links, missing images and missing heading targets in the Markdown under this folder';
+  b.onclick = async () => {
+    const header = b.closest('.row').parentElement;
+    let box = header.nextElementSibling?.classList.contains('linkcheck') ? header.nextElementSibling : null;
+    if (!box) { box = el('div', 'box linkcheck'); header.after(box); }
+    box.textContent = 'checking links…';
+    b.disabled = true;
+    try {
+      const r = await fetch('/api/links?path=' + encodeURIComponent(id));
+      if (!r.ok) throw new Error(await r.text() || r.status);
+      const d = await r.json();
+      box.textContent = '';
+      const capped = d.totalDocs > d.docs ? ` (first ${d.docs} of ${d.totalDocs})` : '';
+      box.append(el('div', 'cap', `Link check — ${d.problems.length} problem${d.problems.length === 1 ? '' : 's'} in ${d.links} links across ${d.docs} documents${capped} · ${(d.ms / 1000).toFixed(1)} s`));
+      if (!d.problems.length) { box.append(el('div', 'empty', 'every relative link, image and heading target resolves')); return; }
+      const byDoc = new Map();
+      for (const p of d.problems) (byDoc.get(p.doc) || byDoc.set(p.doc, []).get(p.doc)).push(p);
+      const list = el('div', 'filelist linkprobs');
+      for (const [doc, ps] of byDoc) {
+        const head = el('div', 'lpdoc');
+        head.append(el('span', '', doc.slice(id.length + 1) || doc));
+        activate(head, () => go(doc));
+        list.append(head);
+        for (const p of ps) {
+          const row = el('div');
+          row.append(el('i', '', String(p.line)), el('b', '', p.kind), el('span', '', p.href));
+          row.title = `${doc}, line ${p.line}: ${p.kind}`;
+          activate(row, () => go(doc));
+          list.append(row);
+        }
+      }
+      box.append(list);
+    } catch (e) { box.textContent = 'link check failed — ' + e.message; }
+    finally { b.disabled = false; }
+  };
+  return b;
+}
+
 function codeBtn(id, label = 'open in VS Code') {
   const b = el('button', 'btn', label);
   b.onclick = () => requestOpen(id, '&in=code', b);
@@ -3562,7 +3610,7 @@ function viewDocFirst(page, n) {
   back.onclick = () => { S.docOff.add(n.id); renderView(); };
   headerBlock(page, {
     title: n.name, path: absOf(n.id), lede: n.desc || '',
-    actions: [back, copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')],
+    actions: [back, linkCheckBtn(n.id), copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')],
   });
   const panel = foldPanel('Document');
   const ph = phRow();
@@ -3592,7 +3640,7 @@ function viewFolder(page, n) {
   }
   headerBlock(page, {
     title: n.name, path: absOf(n.id), lede: n.desc || '',
-    actions: [readmeBtn(n), toggle, copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')]
+    actions: [readmeBtn(n), toggle, linkCheckBtn(n.id), copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')]
       .filter(Boolean),
   });
   const kids = n.children || [];
@@ -3662,7 +3710,7 @@ function viewRepo(page, n) {
   const st = el('span', 'mono', n.state || ''); st.style.cssText = `font-size:10.5px;color:${n.dot}`; tags.push(st);
   headerBlock(page, {
     title: n.name, tags, path: absOf(n.id),
-    actions: [copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')],
+    actions: [linkCheckBtn(n.id), copyBtn(winPath(n.id)), codeBtn(n.id), openBtn(n.id, 'open folder')],
   });
 
   const split = el('div', 'split');

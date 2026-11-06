@@ -57,6 +57,12 @@
         'this is a hosted demo — searching inside documents needs Project Hub running on your own machine',
         { status: 501 }));
     }
+    // The link check reads every document under a folder on request, so it has no fixed answer to capture.
+    if (url.pathname === '/api/links') {
+      return Promise.resolve(new Response(
+        'this is a hosted demo — checking links needs Project Hub running on your own machine',
+        { status: 501 }));
+    }
     // No Pictures root is configured in the demo fixture, so the browser never opens one.
     if (url.pathname === '/api/pictures') {
       return Promise.resolve(json({ error: 'Pictures is not part of the demo' }, 404));

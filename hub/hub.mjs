@@ -1903,7 +1903,7 @@ const sameOrigin = (req) => {
   return site === undefined || site === 'same-origin' || site === 'none';
 };
 
-const handleReport = createReportHandler({ resolveId, toId: rel });
+const handleReport = createReportHandler({ resolveId, toId: rel, sameOrigin });
 const BROWSER_DIRS = browserDirs({ home: os.homedir(), localAppData: process.env.LOCALAPPDATA });
 const favicons = createFavicons();
 const frameable = createFrameCheck();

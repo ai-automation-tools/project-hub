@@ -19,7 +19,7 @@ const within = (root, file) => {
   return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
 };
 
-export function createReportHandler({ resolveId, toId }) {
+export function createReportHandler({ resolveId, toId, sameOrigin = () => true }) {
   // Signed directory capabilities expire at server restart. A framed script cannot
   // substitute a broader root to turn its assets endpoint into a general file API.
   const key = crypto.randomBytes(32);
@@ -69,6 +69,10 @@ export function createReportHandler({ resolveId, toId }) {
         // This header is deliberately limited to the signed, directory-contained route.
         res.setHeader('access-control-allow-origin', '*');
       } else {
+        // P9-53: the path-addressed entry points are the hub's own; a foreign page has no
+        // business reading them. /api/artifact stays open to its opaque-origin frame, whose
+        // requests read cross-site -- the HMAC token, which only this page is handed, is its gate.
+        if (!sameOrigin(req)) { fail(res, 403, 'same-origin only'); return true; }
         file = resolveId(url.searchParams.get('path') || '');
         if (!file) { fail(res, 403, 'outside roots'); return true; }
         const real = await fs.realpath(file);

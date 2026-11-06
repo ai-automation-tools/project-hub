@@ -310,7 +310,9 @@ test('report HTTP delivery resolves assets, serves PDFs, and confines signed dir
     const rel = path.relative(root, file);
     return rel.startsWith('..') || path.isAbsolute(rel) ? null : file;
   };
-  const handler = createReportHandler({ resolveId: resolve, toId: relative });
+  // Same rule as hub.mjs's sameOrigin().
+  const sameOrigin = (req) => [undefined, 'same-origin', 'none'].includes(req.headers['sec-fetch-site']);
+  const handler = createReportHandler({ resolveId: resolve, toId: relative, sameOrigin });
   const server = http.createServer(async (req, res) => {
     if (!await handler(req, res, new URL(req.url, 'http://localhost'))) res.writeHead(404).end();
   });
@@ -321,6 +323,15 @@ test('report HTTP delivery resolves assets, serves PDFs, and confines signed dir
     const redirect = await get('/api/raw?path=report/page.html', { redirect: 'manual' });
     assert.equal(redirect.status, 302);
     const entry = new URL(redirect.headers.get('location'), base);
+    // P9-53: a foreign page can't reach the path-addressed routes; the token route still
+    // serves the report's own opaque-origin frame, which reads cross-site.
+    const crossSite = { headers: { 'sec-fetch-site': 'cross-site' }, redirect: 'manual' };
+    for (const route of ['/api/raw?path=report/page.html', '/api/raw?path=report/report.pdf', '/api/preview?path=report/page.html']) {
+      const refused = await get(route, crossSite);
+      assert.equal(refused.status, 403, route); await refused.text();
+    }
+    const framed = await get(new URL('app.js', entry), crossSite);
+    assert.equal(framed.status, 200); await framed.text();
     const html = await get(entry);
     assert.equal(html.headers.get('content-security-policy'), REPORT_CSP);
     assert.ok(!REPORT_CSP.includes('allow-same-origin'));

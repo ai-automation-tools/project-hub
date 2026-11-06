@@ -1016,20 +1016,23 @@ test('content search is opt-in, never runs in a scan, and only indexes what reso
 });
 
 test('resolveId serves roots and walked runtime paths, never runtime session state (P9-50)', () => {
-  const home = 'C:/Users/you';
+  // Real absolute paths for this platform; a hardcoded drive letter is relative on Linux CI.
+  const abs = (...p) => path.resolve(os.tmpdir(), ...p).replace(/\\/g, '/');
+  const home = abs('you');
+  const work = abs('Work');
   const runtimes = [
     { dir: `${home}/.claude`, dirs: ['skills', 'agents'], files: ['settings.json'] },
     { dir: `${home}/.gemini/antigravity-cli`, dirs: ['builtin/skills'], files: [] },
   ];
   const serve = runtimeServePaths(runtimes);
-  const resolveId = createResolveId({ serveDirs: ['D:/Work', ...serve.dirs], serveExact: serve.exact, base: 'D:/Work', home });
-  assert.equal(resolveId('Example_Workspace/README.md'), 'D:/Work/Example_Workspace/README.md');
+  const resolveId = createResolveId({ serveDirs: [work, ...serve.dirs], serveExact: serve.exact, base: work, home });
+  assert.equal(resolveId('Example_Workspace/README.md'), `${work}/Example_Workspace/README.md`);
   assert.equal(resolveId('~/.claude/skills/x/SKILL.md'), `${home}/.claude/skills/x/SKILL.md`);
   assert.equal(resolveId('~/.claude/settings.json'), `${home}/.claude/settings.json`);
   assert.equal(resolveId('~/.claude'), `${home}/.claude`, 'the runtime folder itself stays openable');
   assert.equal(resolveId('~/.gemini/antigravity-cli/builtin/skills/a.md'), `${home}/.gemini/antigravity-cli/builtin/skills/a.md`);
   for (const id of ['~/.claude/projects/p/session.jsonl', '~/.claude/settings.json.bak', '~/.claude/skillsx/a.md',
-    '~/.gemini/antigravity-cli/brain/b.md', '~/.codex/sessions/s.jsonl', '../outside.md', 'D:/Elsewhere/a.md']) {
+    '~/.gemini/antigravity-cli/brain/b.md', '~/.codex/sessions/s.jsonl', '../outside.md', abs('Elsewhere', 'a.md')]) {
     assert.equal(resolveId(id), null, `${id} must be refused`);
   }
   assert.equal(resolveId('Example_Workspace/keys/token.txt'), null, 'SECRET_DIRS');

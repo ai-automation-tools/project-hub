@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Certificate expiry report</title>
+<style>
+  body { font: 15px/1.6 ui-sans-serif, system-ui, sans-serif; margin: 0; padding: 32px; background: #0e1114; color: #dbe1e8; }
+  h1 { font-size: 20px; margin: 0 0 4px; color: #f0a35e; }
+  p.sub { margin: 0 0 24px; color: #79838f; }
+  table { border-collapse: collapse; width: 100%; max-width: 640px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #22272e; }
+  th { color: #79838f; font-weight: 500; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  td.soon { color: #f0a35e; }
+</style>
+<h1>Certificate expiry</h1>
+<p class="sub">cert-expiry-watch &middot; weekly run &middot; 6 certificates checked, 1 inside 30 days</p>
+<table>
+  <tr><th>Host</th><th>Issuer</th><th>Days left</th></tr>
+  <tr><td>example.test</td><td>public CA</td><td class="n">71</td></tr>
+  <tr><td>app.example.test</td><td>public CA</td><td class="n">71</td></tr>
+  <tr><td>api.example.test</td><td>public CA</td><td class="n">64</td></tr>
+  <tr><td>status.example.test</td><td>public CA</td><td class="n">48</td></tr>
+  <tr><td>sync.internal.test</td><td>internal CA</td><td class="n soon">19</td></tr>
+  <tr><td>ledger.internal.test</td><td>internal CA</td><td class="n">203</td></tr>
+</table>

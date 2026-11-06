@@ -1,0 +1,8 @@
+{
+  "taskName": "Docs Sweep - Example Workspace",
+  "description": "Weekly: bring each Live_Apps repo's README and Docs/ index in line with what the code actually does, one PR per repo.",
+  "repo": "D:/Work/Projects/Example_Workspace/Repos/Live_Apps",
+  "branchPrefix": "docs/sweep",
+  "runner": "claude",
+  "schedule": { "dayOfWeek": "Mon", "at": "07:00" }
+}

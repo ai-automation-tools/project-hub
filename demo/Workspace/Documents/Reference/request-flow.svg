@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 110" width="520" height="110" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect width="520" height="110" rx="10" fill="#0e1114"/>
+  <g fill="none" stroke="#3a424c">
+    <rect x="20" y="36" width="110" height="38" rx="6"/>
+    <rect x="205" y="36" width="110" height="38" rx="6"/>
+    <rect x="390" y="36" width="110" height="38" rx="6"/>
+  </g>
+  <path d="M130 55 H200 M315 55 H385" stroke="#5fe3a1" stroke-width="1.5" marker-end="url(#a)"/>
+  <defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L8 4 L0 8z" fill="#5fe3a1"/></marker></defs>
+  <text x="75" y="60" text-anchor="middle" fill="#dbe1e8">atlas-web</text>
+  <text x="260" y="60" text-anchor="middle" fill="#dbe1e8">signal-api</text>
+  <text x="445" y="60" text-anchor="middle" fill="#dbe1e8">export queue</text>
+  <text x="165" y="28" text-anchor="middle" fill="#79838f" font-size="11">HTTPS</text>
+  <text x="350" y="28" text-anchor="middle" fill="#79838f" font-size="11">enqueue</text>
+</svg>

@@ -9,3 +9,4 @@ it has been useful in two workspaces; until then it stays workspace-scoped.
 | `commands/` | Two slash commands |
 | `agents/` | One sub-agent |
 | `output-styles/` | One response style |
+| `routines/` | Two scheduled jobs and their run logs |

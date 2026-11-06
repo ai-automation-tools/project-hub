@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>signal-api latency, October 2026</title>
+<style>
+  body { font: 15px/1.6 ui-sans-serif, system-ui, sans-serif; margin: 0; padding: 32px; background: #0e1114; color: #dbe1e8; }
+  h1 { font-size: 20px; margin: 0 0 4px; color: #6cb6ff; }
+  p.sub { margin: 0 0 24px; color: #79838f; }
+  table { border-collapse: collapse; width: 100%; max-width: 640px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #22272e; }
+  th { color: #79838f; font-weight: 500; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  td.over { color: #f47067; }
+</style>
+<h1>Latency report</h1>
+<p class="sub">signal-api &middot; October 2026 &middot; p95 budget 250 ms</p>
+<table>
+  <tr><th>Route</th><th>p50</th><th>p95</th><th>p99</th></tr>
+  <tr><td>GET /signals</td><td class="n">38 ms</td><td class="n">121 ms</td><td class="n">240 ms</td></tr>
+  <tr><td>GET /signals/:id</td><td class="n">12 ms</td><td class="n">41 ms</td><td class="n">88 ms</td></tr>
+  <tr><td>POST /exports</td><td class="n">64 ms</td><td class="n over">288 ms</td><td class="n over">610 ms</td></tr>
+  <tr><td>GET /exports/:id</td><td class="n">9 ms</td><td class="n">30 ms</td><td class="n">72 ms</td></tr>
+</table>
+<p class="sub" style="margin-top:20px">POST /exports is over budget on the large-export days; see Docs/export-pipeline.md, stage 2.</p>

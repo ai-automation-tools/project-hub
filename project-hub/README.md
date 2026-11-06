@@ -600,7 +600,9 @@ The `● scanned 09:32` line in the sidebar footer is a button. Click it (or tab
 Enter) for the detail behind it:
 
 - **Last successful scan** — when it finished, how old it is, how long it took, how many nodes
-  it indexed and how big the payload was.
+  it indexed and how big the payload was. Under the duration, a small line chart shows the
+  last 20 scans since the hub started (fastest to slowest beside it), so a scan that keeps
+  getting slower is visible before it becomes a problem.
 - **Where the time went** — walking folders, reading git, assembling, serializing, compressing.
   Git is usually the slow one.
 - **Roots** — the mounted projects, and whether Pictures has been loaded or searched yet.

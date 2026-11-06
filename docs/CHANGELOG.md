@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Status panel: a sparkline of the last 20 scan durations under the latest one, so a slowing scan is visible early *(roadmap: P9-20)*
 - Reader: a document's frontmatter tags, status and dates show in a strip above it, and each tag opens a `tag:` search inside documents that matches tags exactly *(roadmap: P9-19)*
 - Docs: the user manual covers the repo Changes box, the roadmap column, routine pass/fail, "Changed this week" and the link check; the roadmap status note, `hub.mjs` line counts and P9-23/P9-63 figures are current; the architecture diagram is re-pinned to current code, with its cards covering link-following, git-status reuse, repo diffs and the link check
 - Link check: a `check links` button on folder and repo pages lists broken relative links, missing images and missing heading targets in the Markdown below, each linked to its source line. Headings that start with an emoji now get GitHub's slug (`🔧 Setup` → `-setup`), so links to them jump correctly *(roadmap: P9-11)*

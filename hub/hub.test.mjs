@@ -1313,3 +1313,26 @@ test('the status panel draws the last 20 scan durations as a sparkline', () => {
   assert.doesNotMatch(fn, /setAttribute\('(stroke|fill)', 'var\(/);
   assert.match(ui, /\.sparkrow polyline\{fill:none;stroke:var\(--blue\)/);
 });
+
+// P9-22: a syntax error in a module only the browser loads, or in the page's inline script,
+// fails no import above. `node --check` parses without running or resolving imports.
+test('every hub module and both inline scripts in index.html parse', async () => {
+  const { execFile } = await import('node:child_process');
+  // In parallel: one process per file, and a Windows spawn costs most of a second.
+  const check = (file) => new Promise((resolve, reject) => execFile(process.execPath, ['--check', file],
+    (err, _out, stderr) => (err ? reject(new Error(`${path.basename(file)} does not parse:\n${stderr}`)) : resolve())));
+  const files = fs.readdirSync(HERE).filter((f) => f.endsWith('.mjs')).map((f) => path.join(HERE, f));
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  const scripts = [...ui.matchAll(/<script( type="module")? nonce="%NONCE%">([\s\S]*?)<\/script>/g)];
+  assert.equal(scripts.length, 2, 'expected the theme script and the app module');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-syntax-'));
+  try {
+    for (const [i, m] of scripts.entries()) {
+      // Classic script as CommonJS, module as ESM; the %PORT% placeholder sits inside quotes.
+      const file = path.join(dir, `inline-${i}${m[1] ? '.mjs' : '.cjs'}`);
+      fs.writeFileSync(file, m[2]);
+      files.push(file);
+    }
+    await Promise.all(files.map(check));
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

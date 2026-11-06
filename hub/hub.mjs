@@ -739,7 +739,21 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
       const full = path.join(dir, e.name);
       const id = rel(full);
 
-      if (e.isDirectory()) {
+      // P9-07: a link (a junction too, on Windows) is neither a file nor a directory to
+      // readdir. A skill linked in from ~/.agents was walked as a file and read as one
+      // (EISDIR), and a dangling link failed its read (ENOENT), once per scan. Follow a
+      // link only into a bucket item, which reads one level and stops, so no cycle is
+      // possible; a link to a folder anywhere else is left out rather than walked, and a
+      // dangling one has nothing to show.
+      let isDir = e.isDirectory();
+      if (e.isSymbolicLink()) {
+        let st;
+        try { st = fs.statSync(full); } catch { continue; }
+        if (st.isDirectory() && !ctx.bucket) continue;
+        isDir = st.isDirectory();
+      }
+
+      if (isDir) {
         if (SKIP_DIRS.has(e.name)) continue;
         if (e.name.startsWith('.') && !DOT_OK.has(e.name)) continue;
         if (ctx.repo && SECRET_DIRS.has(e.name.toLowerCase())) continue;

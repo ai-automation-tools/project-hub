@@ -1197,17 +1197,38 @@ const git = async (cwd, args) => {
   } finally { gitRelease(); }
 };
 
-// git is ~90% of scan time (2 spawns × 32 repos). A short TTL keeps watcher-driven
-// rescans instant; the rescan button passes fresh=1 to bypass it.
-// ponytail: time-based cache, swap for .git mtime invalidation if 15s ever feels stale.
+// git is most of a scan (19s of 35s on 2026-11-06), and the old 15s TTL ran it again on
+// every watcher rescan. P9-08: a repo's last result is reused while nothing that could
+// change it has moved -- the git files a commit, checkout, stage or fetch writes (the
+// signature below), and its working tree, which git doesn't notice until asked, so the
+// watcher's changed paths are passed in as `touched`. GIT_MAX_AGE bounds how stale the
+// relative commit time ("3 hours ago") can get on a quiet repo. The rescan button
+// passes fresh=1 and bypasses all of it.
 const gitCache = new Map();
-const GIT_TTL = 15_000;
+const GIT_MAX_AGE = 10 * 60_000;
+const GIT_SIG_FILES = ['index', 'HEAD', 'logs/HEAD', 'FETCH_HEAD', 'packed-refs', 'refs/heads'];
 
-async function gitStateCached(repo, fresh) {
+/** mtimes of the files git rewrites when a repo's state moves; null when `.git` isn't a folder (worktree, submodule). */
+export function gitSignature(abs) {
+  if (!safeIsDir(path.join(abs, '.git'))) return null;
+  return GIT_SIG_FILES.map((f) => { try { return fs.statSync(path.join(abs, '.git', f)).mtimeMs; } catch { return 0; } }).join(':');
+}
+
+/** Whether a cached git result still holds. `touched` is lowercase absolute paths changed since the last scan, or true for "assume everything". */
+export function gitHitValid(hit, { sig, abs, touched, now }) {
+  if (!hit || !sig || hit.sig !== sig || now - hit.at >= GIT_MAX_AGE) return false;
+  if (touched === true) return false;
+  const prefix = posix(abs).toLowerCase() + '/';
+  for (const p of touched) if (p.startsWith(prefix)) return false;
+  return true;
+}
+
+async function gitStateCached(repo, fresh, touched) {
+  const sig = gitSignature(repo.abs);
   const hit = gitCache.get(repo.abs);
-  if (!fresh && hit && Date.now() - hit.at < GIT_TTL) return hit.val;
+  if (!fresh && gitHitValid(hit, { sig, abs: repo.abs, touched, now: Date.now() })) return hit.val;
   const val = await gitState(repo);
-  gitCache.set(repo.abs, { at: Date.now(), val });
+  gitCache.set(repo.abs, { at: Date.now(), sig, val });
   return val;
 }
 
@@ -1264,13 +1285,13 @@ export function scopeRepos(repos, projects) {
 let contentDocs = [], contentSig = '', contentIndex = null;
 export const CONTENT_FILE = /\.(md|mdx|markdown|txt|rst|adoc)$/i;
 
-async function scan(fresh = false) {
+async function scan(fresh = false, touched = true) {
   const t0 = Date.now();
   const { tree, repos, runtimes, flat, drafts } = scanTree();
   const walkMs = Date.now() - t0;
 
   await Promise.all(repos.map(async (r) => {
-    Object.assign(r, await gitStateCached(r, fresh));
+    Object.assign(r, await gitStateCached(r, fresh, touched));
     r.dot = DOT[r.state] || TINT.file;
   }));
 
@@ -1692,8 +1713,8 @@ const scanLog = [];
 let scanCount = 0, watcherTicks = 0, readErrorsAtLastScan = 0;
 
 /** One scan, serialised and gzipped: what the worker posts back, or what runs inline. */
-async function scanPayload(fresh) {
-  const data = await scan(fresh);
+async function scanPayload(fresh, touched) {
+  const data = await scan(fresh, touched);
   const serializeStart = Date.now();
   const json = Buffer.from(JSON.stringify(data));
   const serializeMs = Date.now() - serializeStart;
@@ -1718,7 +1739,7 @@ async function scanPayload(fresh) {
 }
 
 let scanWorker = null, workerDescCache = null;
-function workerScan(fresh) {
+function workerScan(fresh, touched) {
   if (!scanWorker) {
     scanWorker = new Worker(new URL(import.meta.url), { argv: ['--config', CONFIG_FILE], workerData: { hubScanWorker: true } });
   }
@@ -1730,7 +1751,7 @@ function workerScan(fresh) {
     const onError = (e) => { lost(); settle(reject, e); };
     const onExit = (code) => { lost(); settle(reject, new Error(`scan worker exited with code ${code}`)); };
     w.on('message', onMessage); w.on('error', onError); w.on('exit', onExit);
-    w.postMessage({ fresh });
+    w.postMessage({ fresh, touched });
   });
 }
 /** The worker read the config at startup, so a mounted root or a new depth needs a fresh one. */
@@ -1743,13 +1764,25 @@ function restartScanWorker() {
 // Posted buffers arrive as plain Uint8Arrays.
 const asBuffer = (u8) => Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength);
 
+// P9-08: working-tree paths the watcher saw change since the last scan began, for the git
+// cache. `touchedAll` means "assume every repo moved": before the first scan, after a
+// failed one, or once more paths changed than are worth keeping.
+let touchedPaths = new Set(), touchedAll = true;
+const TOUCHED_MAX = 5000;
+function noteTouched(abs) {
+  if (touchedPaths.size >= TOUCHED_MAX) touchedAll = true;
+  else touchedPaths.add(posix(abs).toLowerCase());
+}
+
 function rescan(fresh) {
   if (scanning) return scanning;
+  const touched = touchedAll ? true : [...touchedPaths];
+  touchedPaths = new Set(); touchedAll = false;
   scanning = (async () => {
     let out = null;
     if (IS_MAIN) {
       try {
-        out = await workerScan(fresh);
+        out = await workerScan(fresh, touched);
         out.json = asBuffer(out.json);
         out.gzip = asBuffer(out.gzip);
         // The worker counts its own read errors; fold them into this thread's view.
@@ -1764,20 +1797,21 @@ function rescan(fresh) {
         out = null;
       }
     }
-    if (!out) out = await scanPayload(fresh);
+    if (!out) out = await scanPayload(fresh, touched);
     cached = { json: out.json, gzip: out.gzip, at: Date.now() };
     dirty = false;
     scanCount++;
     scanLog.push({ at: cached.at, ms: out.meta.ms, bytes: out.json.length, gzip: out.gzip.length, nodes: out.meta.nodes, errs: out.errs, timings: out.meta.timings });
     if (scanLog.length > 10) scanLog.shift();
     return cached;
-  })().finally(() => { scanning = null; lastScanEnd = Date.now(); });
+  })().catch((e) => { touchedAll = true; throw e; }) // the changes it consumed went unseen
+    .finally(() => { scanning = null; lastScanEnd = Date.now(); });
   return scanning;
 }
 
-if (SCAN_WORKER) parentPort.on('message', async ({ fresh }) => {
+if (SCAN_WORKER) parentPort.on('message', async ({ fresh, touched }) => {
   try {
-    const out = await scanPayload(fresh);
+    const out = await scanPayload(fresh, touched);
     // Transfer rather than copy, but only buffers that own their whole ArrayBuffer --
     // transferring a slice of Node's shared pool would detach the pool.
     const own = (b) => b.byteOffset === 0 && b.byteLength === b.buffer.byteLength;
@@ -2333,6 +2367,7 @@ function watchDir(dir) {
         return;
       }
       if (ignoreWatchEvent(dir, name)) return;
+      noteTouched(path.join(dir, String(name)));
       bump(posix(name));
     }));
   } catch (e) {

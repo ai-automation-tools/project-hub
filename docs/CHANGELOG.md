@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Routines: each routine shows whether its last run passed, failed or is unknown, read from the runner's markers in the newest log, with failures in red in the Routines list *(roadmap: P9-12)*
 - Links: a relative link that climbs above the top of its root is rejected instead of opening a same-named document higher up; heading-destination and copy-link-with-spaces cases now have unit tests *(roadmap: P9-09)*
 - Docs: `SECURITY.md` scope and the `hub/README.md` endpoint notes now cover link-following, runtime serve paths and the cross-site gate; the roadmap's status note and the `hub.mjs` line counts are current
 - Content search: the first "inside documents" query no longer freezes the hub for ~10 s while it builds the index; reads are asynchronous and other requests keep answering in milliseconds *(roadmap: P9-55)*

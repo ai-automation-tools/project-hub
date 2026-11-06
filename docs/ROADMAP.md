@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/now-P9_weekly_backlog-F59E0B?style=for-the-badge" alt="Now: P9, the weekly backlog">
   <img src="https://img.shields.io/badge/stage-public,_demo_live_since_2026--09--11-2ea44f?style=for-the-badge" alt="Stage: public, demo live since 2026-09-11">
-  <img src="https://img.shields.io/badge/tests-109_passing-8B5CF6?style=for-the-badge" alt="109 tests passing">
+  <img src="https://img.shields.io/badge/tests-110_passing-8B5CF6?style=for-the-badge" alt="110 tests passing">
   <a href="README.md"><img src="https://img.shields.io/badge/↩-docs_home-6B7280?style=for-the-badge" alt="Back to docs"></a>
 </p>
 
@@ -107,7 +107,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-14 · Copy context for an agent (P7-21). Multi-select files, then copy a compact list of titles, relative paths, and hub links. Content stays out unless explicitly included, and is capped
 - [ ] P9-15 · Saved views (P7-20). Save a search plus its filters under a name, list saved views above Bookmarks, and give each one a hub link
 - [ ] P9-16 · `--init` for a new workspace (#21). `node hub.mjs --init <dir>` writes a commented `hub.config.json` skeleton for a new workspace and prints the next step. It never overwrites an existing config
-- [ ] P9-17 · Roadmap progress on repo cards. Count `- [ ]` / `- [x]` in each repo's `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos in the lab now carry one, and the routines work them weekly
+- [x] P9-17 · Roadmap progress on repo cards. Count `- [x]` / `- [x]` in each repo's `docs/ROADMAP.md` (or `Docs/`) and show a small progress bar with the counts. Most repos in the lab now carry one, and the routines work them weekly — done 2026-11-06. `roadmapProgress()` counts `[x]` as done and `[ ]`, `[-]` (claimed) and `[!]` (blocked) as open, skipping fenced code. The scan reads each repo's roadmap once per change, cached by mtime. The Repos table has a `roadmap` column with a bar and `done/total` (hover for the open count), hidden below 640px with the other middle columns, and a repo page has a `roadmap` row in its Git box. Live: 37 of 47 repos carry one; this repo reads 35/72. The demo fixture's `signal-api` now has a small roadmap, so the hosted demo shows a bar too (P9-23)
 - [ ] P9-18 · "Changed this week" view. A landing-page list of documents modified in the last 7 days across every root, newest first, built from data the scan already has
 - [ ] P9-19 · Frontmatter tags. Show a document's frontmatter (tags, dates, status) in a small metadata strip, and let search filter by tag. `frontmatter()` already parses it
 - [ ] P9-20 · Scan-time history in the status panel. Keep the last 20 scan durations in memory and draw a tiny inline sparkline. This makes a slow scan visible before it becomes a complaint

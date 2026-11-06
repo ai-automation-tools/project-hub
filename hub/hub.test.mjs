@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -1181,4 +1181,21 @@ test('the repo diff route is same-origin, serves only listed files, and applies 
   assert.match(route, /const abs = resolveId\.real\(id\);/);
   assert.match(route, /const hit = changes\.files\.find\(\(f\) => f\.path === file\);\n\s+if \(!hit\) \{ res\.writeHead\(404\)/);
   assert.ok(route.includes("if (!resolveId.real(id.replace(/\\/$/, '') + '/' + file)) {\n        res.writeHead(403)"));
+});
+
+// P9-17: roadmap progress on repo cards.
+test('roadmap progress counts done and open checkboxes outside code fences', () => {
+  const md = [
+    '# Roadmap', 'Markers: `- [ ]` open, `- [x]` done',
+    '- [x] P1 · shipped', '- [X] P2 · shipped', '  - [ ] nested open', '* [ ] star bullet',
+    '- [-] claimed by a run', '- [!] blocked', '- [ ]no space after is not an item',
+    '```md', '- [ ] example inside a fence', '- [x] also an example', '```',
+    '~~~', '- [ ] tilde fence', '~~~', '1. [ ] numbered lists are not counted',
+  ].join('\r\n');
+  assert.deepEqual(roadmapProgress(md), { open: 4, done: 2 });
+  assert.equal(roadmapProgress('# No items\n\nJust prose.\n'), null);
+  assert.equal(roadmapProgress(''), null);
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.match(ui, /tr\.append\(n, el\('span', 'm', r\.group\), br, st, roadmapBar\(r\.roadmap\), cm\);/);
+  assert.match(ui, /\.trow>:nth-child\(n\+2\):nth-child\(-n\+5\)\{display:none\}/);
 });

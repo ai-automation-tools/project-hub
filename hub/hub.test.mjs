@@ -1080,3 +1080,35 @@ test('resolveId.real follows junctions and refuses ones that leave the roots (P9
     assert.equal(resolveId.real('outside/secret.md'), null);
   } finally { fs.rmSync(work, { recursive: true, force: true }); }
 });
+
+test('linked skills are read as folders, and dangling or folder links elsewhere are left out (P9-07)', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-links-'));
+  const kind = process.platform === 'win32' ? 'junction' : 'dir';
+  try {
+    const shared = path.join(root, 'shared', 'linked-skill');
+    fs.mkdirSync(shared, { recursive: true });
+    fs.writeFileSync(path.join(shared, 'SKILL.md'), '---\nname: linked-skill\ndescription: Lives in the shared pile.\n---\n# Linked\n');
+    const skills = path.join(root, 'runtime', 'skills');
+    fs.mkdirSync(skills, { recursive: true });
+    fs.symlinkSync(shared, path.join(skills, 'linked-skill'), kind);
+    fs.mkdirSync(path.join(root, 'gone'));
+    fs.symlinkSync(path.join(root, 'gone'), path.join(skills, 'dangling'), kind);
+    fs.rmdirSync(path.join(root, 'gone'));
+    const docs = path.join(root, 'docs');
+    fs.mkdirSync(docs);
+    fs.writeFileSync(path.join(docs, 'README.md'), '# Docs');
+    fs.symlinkSync(path.join(root, 'shared'), path.join(docs, 'loop'), kind);
+
+    const { flat } = scanTree({
+      projects: [], sharedRoots: [{ name: 'Docs', dir: docs.split(path.sep).join('/') }],
+      userRuntimes: [{ name: 'Test', dir: path.join(root, 'runtime').split(path.sep).join('/'), dirs: ['skills'], files: [] }],
+    });
+    const skill = flat.find((n) => n.name === 'linked-skill');
+    assert.ok(skill, 'the linked skill is listed');
+    assert.ok(skill.doc?.endsWith('linked-skill/SKILL.md'), `doc points into the folder: ${skill.doc}`);
+    assert.equal(skill.desc, 'Lives in the shared pile.');
+    assert.ok(!flat.some((n) => n.name === 'dangling'), 'a dangling link is left out');
+    assert.ok(!flat.some((n) => n.name === 'loop'), 'a folder link outside a bucket is not walked or shown as a file');
+    assert.ok(flat.some((n) => n.name === 'README.md'), 'the rest of the root still scans');
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});

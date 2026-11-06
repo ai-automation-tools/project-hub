@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Scan: skills linked in by symlink or junction are read as folders, and dangling links are skipped quietly, so they no longer show up as read errors in the status panel *(roadmap: P9-07)*
 - Scan: stop collecting the `artifacts` list no page has read since the Artifacts shelf went away, and drop the duplicate `MAX_DEPTH` *(roadmap: P9-54)*
 - Security: `/api/raw` and `/api/preview` refuse cross-site requests, like the hub's other side-effecting routes; the signed artifact route still serves report frames *(roadmap: P9-53)*
 - Security: markdown link and image targets are quote-escaped and checked by `safeUrl()`, so `[x](a" onmouseover=…)` and `javascript:` links render as text instead of relying on the CSP *(roadmap: P9-51)*

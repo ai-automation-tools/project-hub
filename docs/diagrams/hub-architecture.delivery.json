@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "receiptId": "2fac25f0-9872-4a40-a504-1fe53aa580e2",
+  "receiptId": "391362a3-5c08-4b63-af78-799926c6f0d1",
   "status": "current",
   "command": "deliver",
   "type": "architecture",
   "input": "docs/diagrams/hub-architecture.json",
   "output": "docs/diagrams/hub-architecture.html",
   "specification": {
-    "sha256": "fefd12a7cd7cff3ca88e0573e49f79364c1d11066503956c03b15273a26cf32c",
+    "sha256": "1547c84a99e071fcbdfb98b2a298353d27aaf3fa7d57c834b7518442871e7b8e",
     "bytes": 11895
   },
   "artifact": {
-    "sha256": "18a45ebaaaa222e9111e1d2b29665ba68bcd9a3f0e52210e8354d9f84aa413b3",
+    "sha256": "89c59c331d140105fa31cd0a3b514450fd4f11326dc53bab56d4e4144ae341ec",
     "bytes": 844706
   }
 }

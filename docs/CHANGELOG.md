@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Docs: the architecture diagram is re-pinned after P9-23, with the demo build and reader citations moved to their new lines
 - Routines: the prompt, JSON and latest-log chips on a routine page now open those files in the page's Document panel. They called a navigation that ignores files outside the tree, so they had never done anything
 - Demo: the fixture now shows every shipped feature. PDFs, images and more HTML reports give each search type chip something to narrow to; three common misspellings exercise the typo fallback; a passing and a failing routine show run status; files are aged so "Changed this week" lists a subset; and the demo README lists what to try *(roadmap: P9-23)*
 - Docs: the engine reference gains a "Repo and document insights" section (changes and diffs, roadmap progress, routine pass/fail, changed this week, link check, tag search), the metadata strip, scan history, and the current test count (117), and no longer calls narrow-pane layout and connection recovery unverified. The README, user manual, demo README and the scaffold feature snapshot cover the same work

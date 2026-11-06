@@ -429,6 +429,10 @@ h2.sec.flash{animation:secflash 1.4s ease-out}
 .filelist i{font-style:normal;color:var(--dimmer);width:8px}
 .filelist .more{margin-top:7px;padding-top:7px;border-top:1px solid var(--line-a);color:var(--dimmer)}
 .filelist .more:hover{color:var(--blue)}
+.docmeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 18px;font-family:var(--mono);font-size:11px;color:var(--dimmer)}
+.docmeta .tagchip{color:var(--blue);text-decoration:none;border:1px solid var(--line-a);border-radius:999px;padding:1px 8px}
+.docmeta .tagchip:hover{color:var(--fg);border-color:var(--dimmest)}
+.docmeta .mstatus{color:var(--orange)}
 .linkcheck{margin-top:4px}
 .filelist.linkprobs div{gap:10px;cursor:pointer}
 .filelist.linkprobs .lpdoc{color:var(--fg-mid);margin-top:8px}
@@ -4127,11 +4131,26 @@ function viewImage(page, n) {
   page.append(panel);
 }
 
+// P9-19: a document's frontmatter tags, status and dates, above the rendered body. A tag
+// runs a `tag:` search inside documents, which matches frontmatter tags exactly.
+function metaStrip(meta) {
+  const strip = el('div', 'docmeta');
+  for (const t of meta.tags || []) {
+    const chip = el('a', 'tagchip', '#' + t);
+    chip.href = searchHash('tag:' + t, false, 200, { content: true });
+    chip.title = 'documents tagged ' + t;
+    strip.append(chip);
+  }
+  if (meta.status) strip.append(el('span', 'mstatus', meta.status));
+  for (const [k, v] of meta.dates || []) strip.append(el('span', 'mdate', `${k.replace(/[_-]/g, ' ')} ${v}`));
+  return strip;
+}
+
 async function loadDoc(id, host, opts = {}) {
   try {
     const r = await fetch('/api/file?path=' + encodeURIComponent(id) + (opts.source ? '&raw=1' : ''));
     if (!r.ok) throw new Error(await r.text());
-    const { html } = await r.json();
+    const { html, meta } = await r.json();
     host.innerHTML = html;
 
     // Repo-relative images only resolve through the server; absolute ones load as-is.
@@ -4159,6 +4178,8 @@ async function loadDoc(id, host, opts = {}) {
         else toast('not indexed: ' + target.id);
       };
     }
+    // After the link pass, which would otherwise rewrite the tag links as document links.
+    if (meta) host.prepend(metaStrip(meta));
     addCopyButtons(host);
     if (opts.outline) buildOutline(host, opts.outline);
   } catch (e) {
@@ -4350,7 +4371,8 @@ async function searchContents(host, q, keep) {
     const found = data.hits.filter(h => S.byId.has(h.id) && keep(h.id));
     const hits = found.slice(0, 200);
     host.textContent = '';
-    host.append(el('h2', 'sec', `Inside documents — showing ${hits.length} of ${found.length} file${found.length === 1 ? '' : 's'} containing “${q}”`));
+    const tagged = /^tag:\s*(.+)$/i.exec(q)?.[1];
+    host.append(el('h2', 'sec', `Inside documents — showing ${hits.length} of ${found.length} file${found.length === 1 ? '' : 's'} ` + (tagged ? `tagged “${tagged.replace(/^#/, '')}”` : `containing “${q}”`)));
     const partial = [data.total > data.hits.length && `only the ${data.hits.length} files with the most matches were returned`,
       data.skipped && `${data.skipped} files left out by the index size cap`,
       data.clipped && `${data.clipped} long files searched only in their first ${data.perFileKb} KB`,

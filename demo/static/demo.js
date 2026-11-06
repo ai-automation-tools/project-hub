@@ -51,8 +51,9 @@
         'this is a hosted demo — opening files and folders needs Project Hub running on your own machine',
         { status: 501 }));
     }
-    // Content search answers any query from a server-side index, so no crawl can capture it.
-    if (url.pathname === '/api/content') {
+    // Content search answers any query from a server-side index, so no crawl can capture it
+    // -- except the fixture's `tag:` searches, which the build records ahead of time.
+    if (url.pathname === '/api/content' && !/^tag:/i.test(url.searchParams.get('q') || '')) {
       return Promise.resolve(new Response(
         'this is a hosted demo — searching inside documents needs Project Hub running on your own machine',
         { status: 501 }));

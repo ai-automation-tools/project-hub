@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -1259,4 +1259,40 @@ test('checkLinks reports missing files, images, headings and out-of-root targets
   assert.match(route, /if \(!sameOrigin\(req\)\) \{ res\.writeHead\(403\)/);
   assert.match(route, /if \(!resolveId\.real\(id\)\) \{ res\.writeHead\(403\)/);
   assert.match(route, /allowed: \(abs\) => !!resolveId\(abs\)/);
+});
+
+// P9-19: frontmatter tags, the reader's metadata strip, and tag: search.
+test('frontmatter tags parse from flow lists, block lists and plain strings', () => {
+  assert.deepEqual(docTags(frontmatter('---\ntags: [AI, "agents", #ops]\n---\n')), ['ai', 'agents', 'ops']);
+  assert.deepEqual(docTags(frontmatter('---\ntags:\n  - Roadmap\n  - "release"\ntitle: x\n---\n')), ['roadmap', 'release']);
+  assert.deepEqual(docTags(frontmatter('---\ntags: alpha beta alpha\n---\n')), ['alpha', 'beta']);
+  assert.deepEqual(docTags(frontmatter('---\nkeywords: one, two\n---\n')), ['one', 'two']);
+  assert.deepEqual(docTags(frontmatter('# no frontmatter\n')), []);
+  // An empty key with no list after it stays empty, as before.
+  assert.equal(frontmatter('---\nname:\ndescription: d\n---\n').name, '');
+  assert.deepEqual(docMeta('---\ntags: [a]\nstatus: draft\nlast_updated: 2026-11-06\ncreated: 2026-01-02\nauthor: x\n---\n# T\n'),
+    { tags: ['a'], status: 'draft', dates: [['last_updated', '2026-11-06'], ['created', '2026-01-02']] });
+  assert.equal(docMeta('# plain\n'), null);
+});
+
+test('tag: content search matches frontmatter tags exactly, and tags are reused across rebuilds', async () => {
+  const files = {
+    '/w/a.md': '---\ntags: [ops, agents]\n---\nmentions agents in text\n',
+    '/w/b.md': '---\ntags: [opsec]\n---\n',
+    '/w/c.md': 'tag:ops appears only as text\n',
+  };
+  const docs = Object.keys(files).map((abs, i) => ({ id: 'W/' + path.basename(abs), abs, size: files[abs].length, mtime: i }));
+  let reads = 0;
+  const read = async (abs) => { reads++; return Buffer.from(files[abs], 'utf8').toString('latin1'); };
+  const index = await buildContentIndex(docs, new Map(), read);
+  assert.deepEqual(searchContent(index, 'tag:ops').hits.map((h) => h.id), ['W/a.md']);
+  assert.deepEqual(searchContent(index, 'tag: #OPS').hits.map((h) => h.id), ['W/a.md']);
+  assert.equal(searchContent(index, 'tag:ops').hits[0].snippet, 'tags: ops, agents');
+  assert.equal(searchContent(index, 'tag:none').total, 0);
+  const again = await buildContentIndex(docs, index.entries, read);
+  assert.equal(reads, 3);
+  assert.deepEqual(again.entries.get('W/a.md').tags, ['ops', 'agents']);
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.match(ui, /chip\.href = searchHash\('tag:' \+ t, false, 200, \{ content: true \}\);/);
+  assert.match(ui, /if \(meta\) host\.prepend\(metaStrip\(meta\)\);/);
 });

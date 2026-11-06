@@ -46,7 +46,7 @@ tracing, search, light/dark, and SVG/PNG export.
 ## 🔁 Keeping it current
 
 Every component cites code by path and line range, pinned to the commit in `meta.repository.revision`.
-The cited files are `hub/hub.mjs`, `hub/index.html`, `hub/open-native.mjs`, `hub/Watch-Hubs.ps1`,
+The cited files are `hub/hub.mjs`, `hub/scan.mjs`, `hub/index.html`, `hub/open-native.mjs`, `hub/Watch-Hubs.ps1`,
 `demo/build-demo.mjs` and `.github/workflows/demo.yml`. `hub.mjs` and `index.html` change often,
 so expect the check to name them; each time, the diagram may describe logic that moved or no
 longer exists, and it counts as stale until someone has re-read that code.

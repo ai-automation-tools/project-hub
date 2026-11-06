@@ -16,6 +16,8 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Security: markdown link and image targets are quote-escaped and checked by `safeUrl()`, so `[x](a" onmouseover=…)` and `javascript:` links render as text instead of relying on the CSP *(roadmap: P9-51)*
+- Security: `/api/file`, `/api/stat` and `/api/open` follow junctions and symlinks, and refuse targets outside the roots or inside a deny-listed folder *(roadmap: P9-52)*
 - Security: `/api/file`, `/api/stat`, `/api/open` and content search no longer reach agent-runtime session state (`~/.claude/projects`, `~/.codex/sessions`, Antigravity `brain/`). Each runtime is served only where the scan walks it; `resolveId()` now has a direct test *(roadmap: P9-50)*
 - Roadmap: queued the 2026-11-06 audit's verified findings as P9-50 to P9-63, with the rejected ones and why
 

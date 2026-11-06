@@ -790,7 +790,7 @@ test('the stat endpoint resolves through resolveId and the list view is wired', 
   const handler = /if \(url\.pathname === '\/api\/stat'\) \{[\s\S]*?\n  \}/.exec(server)?.[0] || '';
   assert.ok(handler, '/api/stat handler not found');
   // Same gate every other path-addressed endpoint uses; without it this reads any folder.
-  assert.ok(handler.includes('resolveId('), '/api/stat must resolve through resolveId');
+  assert.ok(handler.includes('resolveId.real('), '/api/stat must resolve through resolveId, links followed (P9-52)');
   assert.ok(handler.includes("403"), '/api/stat must refuse paths outside the roots');
 
   const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
@@ -1038,4 +1038,45 @@ test('resolveId serves roots and walked runtime paths, never runtime session sta
   assert.equal(resolveId('Example_Workspace/keys/token.txt'), null, 'SECRET_DIRS');
   assert.equal(resolveId('Example_Workspace/certs/a.md'), null, 'SECRET_DIRS');
   assert.equal(resolveId('Example_Workspace/id.pem'), null, 'CREDENTIAL_FILE');
+});
+
+test('markdown link and image targets cannot break out of their attribute or run script (P9-51)', () => {
+  const link = md2html('[x](a" onmouseover="alert(1))');
+  // The payload survives only as text inside the one quoted value; the tag has no other attribute.
+  assert.ok(link.includes('<a href="a&quot; onmouseover=&quot;alert(1" data-md-link>x</a>'), link);
+  const img = md2html('![a" onerror="x](b.png)');
+  assert.ok(img.includes('<img src="b.png" alt="a&quot; onerror=&quot;x">'), img);
+  for (const bad of ['[x](javascript:alert(1))', '[x](JavaScript:alert(1))', '[x](java\tscript:alert(1))',
+    '[x](java\nscript:alert(1))', '![i](data:text/html,x)', '[x](vbscript:x)']) {
+    const html = md2html(bad);
+    assert.ok(!/href=|src=/.test(html), `${JSON.stringify(bad)} kept its target: ${html}`);
+  }
+  assert.ok(md2html('[ok](./b.md)').includes('<a href="./b.md" data-md-link>ok</a>'));
+  assert.ok(md2html('[s](https://x.y/?a=1&b=2)').includes('href="https://x.y/?a=1&amp;b=2"'));
+  assert.ok(md2html('![d](./d.svg)').includes('<img src="./d.svg" alt="d">'));
+});
+
+test('resolveId.real follows junctions and refuses ones that leave the roots (P9-52)', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-real-'));
+  const work = fs.realpathSync.native(tmp).replace(/\\/g, '/');
+  const kind = process.platform === 'win32' ? 'junction' : 'dir';
+  try {
+    for (const d of ['root/inside', 'outside', 'real-root', 'root/inside/keys']) fs.mkdirSync(path.join(work, d), { recursive: true });
+    fs.writeFileSync(path.join(work, 'root/inside/a.md'), 'a');
+    fs.writeFileSync(path.join(work, 'outside/secret.md'), 's');
+    fs.writeFileSync(path.join(work, 'real-root/b.md'), 'b');
+    fs.writeFileSync(path.join(work, 'root/inside/keys/k.md'), 'k');
+    fs.symlinkSync(path.join(work, 'outside'), path.join(work, 'root/escape'), kind);
+    fs.symlinkSync(path.join(work, 'root/inside'), path.join(work, 'root/alias'), kind);
+    fs.symlinkSync(path.join(work, 'root/inside/keys'), path.join(work, 'root/plain'), kind);
+    fs.symlinkSync(path.join(work, 'real-root'), path.join(work, 'linked-root'), kind);
+    const resolveId = createResolveId({ serveDirs: [`${work}/root`, `${work}/linked-root`], base: work, home: work });
+    assert.equal(resolveId('root/escape/secret.md'), `${work}/root/escape/secret.md`, 'the name alone looks fine');
+    assert.equal(resolveId.real('root/escape/secret.md'), null, 'a junction out of the roots is refused');
+    assert.equal(resolveId.real('root/alias/a.md'), `${work}/root/inside/a.md`, 'a junction within the roots is followed');
+    assert.equal(resolveId.real('root/plain/k.md'), null, 'the deny-list applies to the target');
+    assert.equal(resolveId.real('linked-root/b.md'), `${work}/real-root/b.md`, 'a root that is itself a junction still works');
+    assert.equal(resolveId.real('root/missing.md'), `${work}/root/missing.md`, 'a missing file is left for the caller to 404');
+    assert.equal(resolveId.real('outside/secret.md'), null);
+  } finally { fs.rmSync(work, { recursive: true, force: true }); }
 });

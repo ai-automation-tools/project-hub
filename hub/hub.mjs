@@ -395,20 +395,37 @@ const SERVE_DIRS = [
 ];
 // `serveDirs` is read on every call, so roots added or removed in Settings take effect live.
 export function createResolveId({ serveDirs, serveExact = [], base, home }) {
-  return function resolveId(id) {
+  const within = (lo, d) => lo === d.toLowerCase() || lo.startsWith(d.toLowerCase() + '/');
+  // The scanner already keeps credential stores out of the tree, but this endpoint is
+  // addressed by path rather than by index — a hand-typed /api/file?path=…/keys/… would
+  // still read the file. Same deny-list, enforced where the bytes actually leave.
+  const denied = (relPath, abs) => posix(relPath).split('/').some((s) => SECRET_DIRS.has(s.toLowerCase()))
+    || CREDENTIAL_FILE.test(path.basename(abs));
+  function resolveId(id) {
     const abs = posix(id.startsWith('~/') ? path.resolve(home, id.slice(2)) : path.resolve(base, id));
     const lo = abs.toLowerCase();
-    const ok = serveExact.some((d) => lo === d.toLowerCase())
-      || serveDirs.some((d) => lo === d.toLowerCase() || lo.startsWith(d.toLowerCase() + '/'));
-    if (!ok) return null;
-    // The scanner already keeps credential stores out of the tree, but this endpoint is
-    // addressed by path rather than by index — a hand-typed /api/file?path=…/keys/… would
-    // still read the file. Same deny-list, enforced where the bytes actually leave.
-    const segs = posix(path.relative(base, abs)).split('/');
-    if (segs.some((s) => SECRET_DIRS.has(s.toLowerCase()))) return null;
-    if (CREDENTIAL_FILE.test(path.basename(abs))) return null;
-    return abs;
+    if (!serveExact.some((d) => lo === d.toLowerCase()) && !serveDirs.some((d) => within(lo, d))) return null;
+    return denied(path.relative(base, abs), abs) ? null : abs;
+  }
+  // P9-52: resolveId() judges the name it was given; a junction named `notes.md` inside a
+  // root can point anywhere. `real()` follows links and judges the target too -- against
+  // the lexical roots, or against a root's own real path, so a root that is itself a
+  // junction keeps working. A path that doesn't exist comes back as-is for the caller's 404.
+  resolveId.real = (id) => {
+    const abs = resolveId(id);
+    if (!abs) return null;
+    let real;
+    try { real = posix(fs.realpathSync.native(abs)); } catch { return abs; }
+    if (resolveId(real)) return real;
+    const lo = real.toLowerCase();
+    for (const d of serveDirs) {
+      let r;
+      try { r = posix(fs.realpathSync.native(d)); } catch { continue; }
+      if (within(lo, r)) return denied(path.relative(r, real), real) ? null : real;
+    }
+    return null;
   };
+  return resolveId;
 }
 const resolveId = createResolveId({ serveDirs: SERVE_DIRS, serveExact: RUNTIME_SERVE.exact, base: BASE, home: HOME });
 
@@ -1530,11 +1547,15 @@ export function md2html(src) {
     }
   };
 
+  // P9-51: `esc()` leaves quotes alone (right for text), so anything landing inside an
+  // attribute gets them escaped too, and a target is kept only if safeUrl() admits it --
+  // otherwise `[x](a" onmouseover=…)` or `[x](javascript:…)` was held back by the CSP alone.
+  const q = (v) => v.replace(/"/g, '&quot;');
   function inline(s) {
     return esc(s)
       .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" data-md-link>$1</a>')
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt, src) => safeUrl(src) ? `<img src="${q(src)}" alt="${q(alt)}">` : alt)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, href) => safeUrl(href) ? `<a href="${q(href)}" data-md-link>${text}</a>` : text)
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|\W)\*([^*\n]+)\*/g, '$1<em>$2</em>');
   }
@@ -2148,7 +2169,7 @@ const server = http.createServer(async (req, res) => {
 
   if (url.pathname === '/api/file') {
     const p = url.searchParams.get('path') || '';
-    const abs = resolveId(p);
+    const abs = resolveId.real(p);
     if (!abs) { res.writeHead(403).end('outside roots'); return; }
     if (['pdf', 'image'].includes(kindOfFile(abs))) { res.writeHead(415).end('binary file: use preview or download'); return; }
     let text = '';
@@ -2182,7 +2203,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url.pathname === '/api/stat') {
-    const abs = resolveId(url.searchParams.get('path') || '');
+    const abs = resolveId.real(url.searchParams.get('path') || '');
     if (!abs) { res.writeHead(403).end('outside roots'); return; }
     const times = folderStamps(abs);
     if (!times) { res.writeHead(404).end('not found'); return; }
@@ -2196,7 +2217,7 @@ const server = http.createServer(async (req, res) => {
     // so a foreign page's <img src="...:4273/api/open?path=..."> would fire it without
     // ever needing to read the response.
     if (!sameOrigin(req)) { res.writeHead(403).end('cross-origin request refused'); return; }
-    const abs = resolveId(url.searchParams.get('path') || '');
+    const abs = resolveId.real(url.searchParams.get('path') || '');
     if (!abs) { res.writeHead(403).end('outside roots'); return; }
     if (!fs.existsSync(abs)) { res.writeHead(404).end('path no longer exists'); return; }
     const destination = url.searchParams.get('in');

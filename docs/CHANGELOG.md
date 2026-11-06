@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Link check: a `check links` button on folder and repo pages lists broken relative links, missing images and missing heading targets in the Markdown below, each linked to its source line. Headings that start with an emoji now get GitHub's slug (`🔧 Setup` → `-setup`), so links to them jump correctly *(roadmap: P9-11)*
 - Landing page: a "Changed this week" list of documents modified in the last 7 days across every root, newest first *(roadmap: P9-18)*
 - Repos: a roadmap column shows each repo's `docs/ROADMAP.md` progress as a bar with done/total, and the repo page lists done and open counts *(roadmap: P9-17)*
 - Repos: a dirty repo's page lists its changed files, and clicking one shows its diff (or an untracked file's text), size-capped and behind the same deny list as every other read *(roadmap: P9-10)*

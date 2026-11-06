@@ -1,0 +1,50 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 983 >>
+stream
+BT /F2 18 Tf 72 760 Td (Incident review, Q3 2026) Tj ET
+BT /F1 11 Tf 72 726 Td (Three incidents, none customer-visible for more than 40 minutes.) Tj ET
+BT /F1 11 Tf 72 709 Td () Tj ET
+BT /F1 11 Tf 72 699 Td (1. Export queue stall \(Aug 12\). One very large export held a worker; the queue) Tj ET
+BT /F1 11 Tf 72 682 Td (   drained in bursts. Fix: a per-job size cap and a separate pool for large jobs.) Tj ET
+BT /F1 11 Tf 72 665 Td (2. Expired internal certificate \(Sep 3\). The sync service's certificate was issued) Tj ET
+BT /F1 11 Tf 72 648 Td (   by the internal CA and missing from every dashboard. Fix: cert-expiry-watch.) Tj ET
+BT /F1 11 Tf 72 631 Td (3. Rate-limit double count \(Sep 21\). Two instances, per-process windows. Accepted) Tj ET
+BT /F1 11 Tf 72 614 Td (   as a known approximation; see signal-api/Docs/rate-limits.md.) Tj ET
+BT /F1 11 Tf 72 597 Td () Tj ET
+BT /F1 11 Tf 72 587 Td (What we are changing: on-call reads the export dashboard first, not last.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+7 0 obj
+<< /Title (Incident review, Q3 2026) >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001285 00000 n 
+0000001355 00000 n 
+0000001430 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R /Info 7 0 R >>
+startxref
+1485
+%%EOF

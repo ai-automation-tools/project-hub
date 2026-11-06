@@ -12,4 +12,5 @@
 *.png binary
 *.jpg binary
 *.zip binary
+*.pdf binary
 *.html text eol=lf

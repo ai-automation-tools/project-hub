@@ -3889,7 +3889,8 @@ function viewEntity(page, n) {
   const docPath = n.doc || n.id;
   const doc = foldPanel('Document');
   const ph = phRow();
-  ph.append(el('span', '', docPath.split('/').pop()), el('em', '', 'rendered'));
+  const docName = el('span', '', docPath.split('/').pop()), docMode = el('em', '', 'rendered');
+  ph.append(docName, docMode);
   doc.append(ph);
   const body = el('div', 'md'); body.textContent = 'loading…';
   doc.append(body);
@@ -3908,13 +3909,23 @@ function viewEntity(page, n) {
       ['file', docPath.split('/').pop()], ['size', fmtSize(n.size) || '—'],
     ]));
   if (n.kind === 'routine') {
+    // A job's prompt, JSON and logs are not tree nodes (a routine is one leaf), so go() had
+    // nothing to open and these chips did nothing. They swap the Document panel instead.
     const jump = el('div', 'chips');
-    for (const [id, label] of [[n.prompt, 'prompt.md'], [n.metaFile, (n.metaFile || '').split('/').pop()], [n.lastLog, 'latest log']]) {
-      if (!id) continue;
+    const files = [[n.doc, docPath.split('/').pop()], [n.prompt, 'prompt.md'], [n.metaFile, (n.metaFile || '').split('/').pop()], [n.lastLog, 'latest log']];
+    const shown = new Set();
+    for (const [id, label] of files) {
+      if (!id || shown.has(id)) continue;
+      shown.add(id);
       const c = el('div', 'chip');
       const d = el('span', 'dot'); d.style.cssText = `background:${TINT.routine};width:6px;height:6px;flex:0 0 6px`;
       c.append(d, el('span', '', label));
-      activate(c, () => go(id));
+      activate(c, () => {
+        docName.textContent = id.split('/').pop();
+        docMode.textContent = /\.md$/i.test(id) ? 'rendered' : 'source';
+        body.textContent = 'loading…';
+        loadDoc(id, body);
+      });
       jump.append(c);
     }
     if (jump.childElementCount) side.append(jump);

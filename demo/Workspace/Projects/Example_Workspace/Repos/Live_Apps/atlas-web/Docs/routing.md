@@ -2,6 +2,8 @@
 
 Three segments: `(marketing)`, `(app)` and `(export)`.
 
+![The three route segments under the root layout](images/route-map.svg)
+
 `(export)` is separate because its pages poll, and polling inside the shared layout kept
 the app shell re-rendering on a timer. Splitting the segment gave it its own layout and
 the shell went quiet.

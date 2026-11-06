@@ -171,6 +171,41 @@ for (const r of REPOS) {
   }
 }
 
+// P9-18 / P9-23: a fresh copy stamps every file with the build time, so "Changed this week"
+// would list the whole fixture. Age everything a month, then bring a handful back into the
+// week at staggered times -- the list shows a subset, and folder lists sort by something.
+// The dirty repos' edits above are left as they are: they really did just change.
+const HOUR = 3_600_000;
+const RECENT = {
+  'Projects/Example_Workspace/Repos/Live_Apps/signal-api/reports/latency-2026-10.html': 5,
+  'Projects/Example_Workspace/Repos/Live_Apps/signal-api/Docs/ROADMAP.md': 20,
+  'Projects/Example_Workspace/Repos/Live_Apps/atlas-web/Docs/accessibility-checklist.md': 30,
+  'Automations/cert-expiry-report.html': 44,
+  'Projects/Identity_Workspace/Docs/maintenance-window.md': 70,
+  'Projects/Example_Workspace/Repos/Tools/studio-kit/Docs/dependency-audit.md': 96,
+  'Documents/Reference/incident-review-2026-q3.pdf': 120,
+  'Projects/Finance_Workspace/Docs/month-end-close.pdf': 140,
+};
+const stamped = new Set(REPOS.filter((r) => r.state === 'dirty').flatMap((r) => ['README.md', 'NOTES.md'].map((f) => path.join(WORKSPACE, r.dir, f))));
+let aged = 0;
+function age(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === '.git') continue;
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) { age(p); continue; }
+    if (stamped.has(p)) continue;
+    // 30-40 days back, stepped so neighbouring files don't share a timestamp.
+    const t = new Date(Date.now() - (30 * 24 + (aged++ * 7) % 240) * HOUR);
+    fs.utimesSync(p, t, t);
+  }
+}
+age(WORKSPACE);
+age(HOME);
+for (const [file, hours] of Object.entries(RECENT)) {
+  const t = new Date(Date.now() - hours * HOUR);
+  fs.utimesSync(path.join(WORKSPACE, file), t, t);
+}
+
 // ── 3. run the real hub against it ─────────────────────────────────────────
 const CONFIG = path.join(HUB_ROOT, 'project-hub', 'hub.config.json');
 log('starting hub on', PORT, '…');
@@ -283,6 +318,25 @@ try {
       assets++;
     }
   }
+  // P9-12: a routine is one leaf in the tree, but its page renders the job's README or
+  // prompt and links its JSON and latest log -- files that are not tree nodes themselves.
+  let routineFiles = 0;
+  const routines = flat.filter((n) => n.kind === 'routine');
+  for (const n of routines) {
+    for (const id of new Set([n.doc, n.prompt, n.metaFile, n.lastLog].filter(Boolean))) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      for (const raw of [false, true]) {
+        const r = await get('/api/file?path=' + encodeURIComponent(id) + (raw ? '&raw=1' : ''));
+        if (!r.ok) throw new Error(`/api/file answered ${r.status} for routine file ${id}`);
+        record(keyOf('/api/file', raw ? { path: id, raw: '1' } : { path: id }), await r.text());
+      }
+      routineFiles++;
+    }
+  }
+  if (!routines.some((n) => n.lastStatus === 'ok') || !routines.some((n) => n.lastStatus === 'failed')) {
+    throw new Error('the fixture should have one passing and one failing routine');
+  }
   // P9-10: a dirty repo's page lists its changes and loads one diff per click. The
   // fixture's dirty repos are tiny, so every listed file's diff is captured up front.
   let diffs = 0;
@@ -307,7 +361,7 @@ try {
     record(keyOf('/api/content', { q: 'tag:' + t }), await r.text());
   }
   if (!tags.size) throw new Error('no frontmatter tags captured: the fixture should have tagged documents');
-  log(`captured ${folders} folders, ${files} documents, ${assets} assets, ${diffs} diffs, ${tags.size} tags`);
+  log(`captured ${folders} folders, ${files} documents, ${assets} assets, ${routines.length} routines (${routineFiles} files), ${diffs} diffs, ${tags.size} tags`);
 
   write(path.join(SITE, 'api', 'manifest.json'), JSON.stringify(manifest));
 

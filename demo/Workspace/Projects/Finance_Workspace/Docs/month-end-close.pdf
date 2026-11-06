@@ -1,0 +1,47 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 703 >>
+stream
+BT /F2 18 Tf 72 760 Td (Month-end close checklist) Tj ET
+BT /F1 11 Tf 72 726 Td (Owner: finance operations. Target: books closed by the third working day.) Tj ET
+BT /F1 11 Tf 72 709 Td () Tj ET
+BT /F1 11 Tf 72 699 Td (1. Run ledger-sync for the final day of the month and confirm zero rejects.) Tj ET
+BT /F1 11 Tf 72 682 Td (2. Reconcile every bank account; differences over 5.00 need a named reason.) Tj ET
+BT /F1 11 Tf 72 665 Td (3. Review rate-watch alerts raised during the month.) Tj ET
+BT /F1 11 Tf 72 648 Td (4. Lock the period in the ledger. Nothing posts to a locked period.) Tj ET
+BT /F1 11 Tf 72 631 Td (5. Send the close summary: balances, open differences, and anything carried over.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+7 0 obj
+<< /Title (Month-end close checklist) >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001005 00000 n 
+0000001075 00000 n 
+0000001150 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R /Info 7 0 R >>
+startxref
+1206
+%%EOF

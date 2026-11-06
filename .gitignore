@@ -11,6 +11,8 @@ favorites.json
 favorites.json.tmp
 *.log
 *.log.*
+# Fictional routine run logs the demo fixture needs (P9-12's pass/fail reads them).
+!/demo/Home/.claude/routines/jobs/*/logs/*.log
 *.pid
 node_modules/
 coverage/

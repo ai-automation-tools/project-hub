@@ -1336,3 +1336,13 @@ test('every hub module and both inline scripts in index.html parse', async () =>
     await Promise.all(files.map(check));
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+// P9-23 found it: a routine's prompt, JSON and log are not tree nodes, so go() returned
+// early and the routine page's chips did nothing. They load into the Document panel.
+test('routine file chips load into the page instead of navigating to a non-tree id', () => {
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  const block = ui.slice(ui.indexOf("if (n.kind === 'routine') {\n    // A job's prompt"), ui.indexOf('if (jump.childElementCount)'));
+  assert.ok(block.includes('[n.lastLog, \'latest log\']'), 'routine chips block not found');
+  assert.ok(block.includes('loadDoc(id, body)'), 'a chip must load its file into the Document panel');
+  assert.ok(!block.includes('go(id)'), 'go() ignores ids that are not tree nodes');
+});

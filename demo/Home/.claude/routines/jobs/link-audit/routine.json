@@ -1,0 +1,7 @@
+{
+  "taskName": "Link Audit - Documents",
+  "description": "Weekly: check every external link in the shared Documents root and file a list of the dead ones.",
+  "repo": "D:/Work/Documents",
+  "runner": "claude",
+  "schedule": { "dayOfWeek": "Tue", "at": "06:00" }
+}

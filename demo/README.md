@@ -50,6 +50,23 @@ server mounts several: `Example_Workspace` scopes its repos by group, the other 
 path prefix. The repo states are deliberately mixed — one dirty, one ahead, one behind —
 since a table where every row says `clean` demonstrates nothing.
 
+The same reasoning applies to the rest. Each shipped feature has fixture content that
+shows it doing something:
+
+| To see | Try |
+|:---|:---|
+| Root and type chips | Search `e`, then pick **PDF** (2), **Image** (3) or **HTML** (3), or a root |
+| Typo fallback | Search `maintainance`, `dependancy` or `accesibility`: no exact match, one close one |
+| Changed this week | The overview. The build ages the fixture a month, then brings eight files back into the week |
+| Routine pass/fail | **User CLIs → Claude Code → routines**: `docs-sweep` passed, `link-audit` failed. Its chips show the JSON and latest log |
+| Uncommitted changes | `atlas-web`, the dirty repo |
+| Roadmap progress | `signal-api` (6/11) |
+| Tags | `signal-api/Docs/export-pipeline.md` and `rate-limits.md` |
+| Images in a document | `atlas-web/Docs/routing.md`, `studio-kit/Docs/tokens.md` |
+
+The routine run logs are the only `.log` files the repo tracks; `.gitignore` makes an
+exception for them.
+
 ## Build it
 
 ```sh
@@ -77,7 +94,8 @@ Edit the files under `Workspace/` and `Home/` and rebuild — they are ordinary 
 config, read by the same scanner that reads yours. To add a workspace, add a folder under
 `Workspace/Projects/` and an entry to `PROJECT_CONFIGS` in `build-demo.mjs`. To add a repo,
 add the folder and a row in `REPOS`, which is also where its branch, author, commit subject
-and git state are set.
+and git state are set. A file that should appear under "Changed this week" goes in `RECENT`,
+with how many hours old to make it.
 
 The build rewrites a handful of exact string literals in `index.html` (the two template
 placeholders and the asset URLs). Each replacement asserts how many times it expects to

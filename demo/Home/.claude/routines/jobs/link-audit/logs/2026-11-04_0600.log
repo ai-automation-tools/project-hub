@@ -1,0 +1,4 @@
+[06:00:02] [INFO] link-audit starting (Documents, 33 links)
+[06:00:48] [WARN] portal.vendor.test: redirected to a login page, treating as unknown
+[06:01:15] [ERROR] portal.vendor.test: 12 consecutive redirects, giving up on the run
+[06:01:15] [INFO] wrote nothing; the previous dead-links list is unchanged

@@ -1333,6 +1333,36 @@ async function repoDiff(abs, file, code) {
   } finally { gitRelease(); }
 }
 
+// P9-17: roadmap progress from a repo's docs/ROADMAP.md. `[x]` is done; `[ ]`, `[-]`
+// (claimed by a run) and `[!]` (blocked) are all still open. Fenced code is skipped so
+// an example checklist doesn't count. Cached by mtime: a roadmap can run to 200 KB.
+export function roadmapProgress(text) {
+  let open = 0, done = 0, fence = false;
+  for (const line of text.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(line)) { fence = !fence; continue; }
+    if (fence) continue;
+    const m = /^\s*[-*+] \[([ xX!-])\]\s/.exec(line);
+    if (m) { if (m[1] === 'x' || m[1] === 'X') done++; else open++; }
+  }
+  return open + done ? { open, done } : null;
+}
+
+const roadmapCache = new Map();
+function repoRoadmap(abs) {
+  for (const dir of ['docs', 'Docs']) {
+    const file = path.join(abs, dir, 'ROADMAP.md');
+    let st;
+    try { st = fs.statSync(file); } catch { continue; }
+    const hit = roadmapCache.get(file);
+    if (hit && hit.mtime === st.mtimeMs) return hit.val;
+    let val = null;
+    try { val = roadmapProgress(fs.readFileSync(file, 'utf8')); } catch {}
+    roadmapCache.set(file, { mtime: st.mtimeMs, val });
+    return val;
+  }
+  return null;
+}
+
 // --ok is the state green; --green is the page's accent. Same colour in every scheme but obsidian.
 const DOT = { clean: 'var(--ok)', dirty: 'var(--orange)', behind: 'var(--blue)', ahead: 'var(--blue)', conflict: 'var(--red)' };
 
@@ -1371,6 +1401,7 @@ async function scan(fresh = false, touched = true) {
   await Promise.all(repos.map(async (r) => {
     Object.assign(r, await gitStateCached(r, fresh, touched));
     r.dot = DOT[r.state] || TINT.file;
+    r.roadmap = repoRoadmap(r.abs);
   }));
 
   const gitMs = Date.now() - t0 - walkMs;
@@ -1465,7 +1496,7 @@ async function scan(fresh = false, touched = true) {
     })),
     repos: appRepos.map((r) => ({
       id: r.id, name: r.name, group: r.group, branch: r.branch, state: r.state,
-      dot: r.dot, commit: r.commit, ago: r.ago,
+      dot: r.dot, commit: r.commit, ago: r.ago, roadmap: r.roadmap,
     })),
   };
 }

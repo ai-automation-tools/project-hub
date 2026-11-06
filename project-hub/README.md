@@ -131,7 +131,9 @@ Each becomes an ordinary `cli` node, so the runtime page, the counts, the tree, 
 search all work on it unchanged. The two category labels live in one `SCOPE` table in
 `index.html`; the overview, the folder pages, and the runtime tag all read from it, so
 renaming a category is a one-line edit. Only the declared sub-dirs are walked — `~/.claude`
-also carries sessions, caches, and a few hundred megabytes of plugin checkouts.
+also carries sessions, caches, and a few hundred megabytes of plugin checkouts — and only
+those sub-dirs and files are served, so a hand-typed `/api/file?path=~/.claude/projects/…`
+is refused (403).
 
 ### Routines
 

@@ -14,6 +14,11 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-06
+
+- Security: `/api/file`, `/api/stat`, `/api/open` and content search no longer reach agent-runtime session state (`~/.claude/projects`, `~/.codex/sessions`, Antigravity `brain/`). Each runtime is served only where the scan walks it; `resolveId()` now has a direct test *(roadmap: P9-50)*
+- Roadmap: queued the 2026-11-06 audit's verified findings as P9-50 to P9-63, with the rejected ones and why
+
 ## 2026-11-05
 
 - Bookmarks: export and import a `project-hub-bookmarks.json` file from the bottom of the Bookmarks sidebar, with a note explaining why each browser (and VS Code's Simple Browser) keeps its own list. Import merges by path and never overwrites. The sidebar header and the New Group button are now icon buttons.

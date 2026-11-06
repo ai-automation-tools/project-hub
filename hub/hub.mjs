@@ -377,24 +377,40 @@ const rel = (p) => {
 /** Absolute path for an id, or null when it points outside anything we serve. */
 // ~/.claude.json is deliberately absent: it is 320KB of session telemetry and the MCP
 // server names the hub needs are already lifted into the scan payload.
+// P9-50: a runtime is served only where the scan walks it -- its declared dirs and files.
+// Serving the whole `rt.dir` re-exposed what the walk skips on purpose: ~/.claude/projects,
+// ~/.codex/sessions, antigravity-cli/brain. The runtime folder itself stays reachable as
+// an exact path (its CLI page opens it and lists its stamps), never as a prefix.
+export function runtimeServePaths(runtimes) {
+  return {
+    dirs: runtimes.flatMap((rt) => [...rt.dirs, ...rt.files].map((p) => `${rt.dir}/${p}`)),
+    exact: runtimes.map((rt) => rt.dir),
+  };
+}
+const RUNTIME_SERVE = runtimeServePaths(USER_RUNTIMES);
 const SERVE_DIRS = [
   ...ROOTS.map((r) => r.dir),
-  ...USER_RUNTIMES.map((r) => r.dir),
+  ...RUNTIME_SERVE.dirs,
   `${HOME}/.gemini/config`, // Antigravity's global hooks.json -- a sibling of antigravity-cli/
 ];
-function resolveId(id) {
-  const abs = posix(id.startsWith('~/') ? path.resolve(HOME, id.slice(2)) : path.resolve(BASE, id));
-  const lo = abs.toLowerCase();
-  const ok = SERVE_DIRS.some((d) => lo === d.toLowerCase() || lo.startsWith(d.toLowerCase() + '/'));
-  if (!ok) return null;
-  // The scanner already keeps credential stores out of the tree, but this endpoint is
-  // addressed by path rather than by index — a hand-typed /api/file?path=…/keys/… would
-  // still read the file. Same deny-list, enforced where the bytes actually leave.
-  const segs = posix(path.relative(BASE, abs)).split('/');
-  if (segs.some((s) => SECRET_DIRS.has(s.toLowerCase()))) return null;
-  if (CREDENTIAL_FILE.test(path.basename(abs))) return null;
-  return abs;
+// `serveDirs` is read on every call, so roots added or removed in Settings take effect live.
+export function createResolveId({ serveDirs, serveExact = [], base, home }) {
+  return function resolveId(id) {
+    const abs = posix(id.startsWith('~/') ? path.resolve(home, id.slice(2)) : path.resolve(base, id));
+    const lo = abs.toLowerCase();
+    const ok = serveExact.some((d) => lo === d.toLowerCase())
+      || serveDirs.some((d) => lo === d.toLowerCase() || lo.startsWith(d.toLowerCase() + '/'));
+    if (!ok) return null;
+    // The scanner already keeps credential stores out of the tree, but this endpoint is
+    // addressed by path rather than by index — a hand-typed /api/file?path=…/keys/… would
+    // still read the file. Same deny-list, enforced where the bytes actually leave.
+    const segs = posix(path.relative(base, abs)).split('/');
+    if (segs.some((s) => SECRET_DIRS.has(s.toLowerCase()))) return null;
+    if (CREDENTIAL_FILE.test(path.basename(abs))) return null;
+    return abs;
+  };
 }
+const resolveId = createResolveId({ serveDirs: SERVE_DIRS, serveExact: RUNTIME_SERVE.exact, base: BASE, home: HOME });
 
 /** MCP server names out of a Claude/Gemini/OpenCode JSON config or a Codex config.toml. */
 function readMcp(file) {

@@ -29,11 +29,13 @@ Markers: `- [ ]` open, `- [-]` claimed by a run in progress, `- [x]` done, `- [!
 marks one only the owner can do.
 
 > [!NOTE]
-> **Where we are, 2026-10-27.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
+> **Where we are, 2026-11-06.** Phases 0 to 4 shipped 2026-08-31, followed by two audits (P5,
 > P7), the merge into one process (P6) and the Links root (P8). Since 2026-09-22 the weekly
 > routine has worked the P9 backlog, the live work queue below the release line. Every release
 > gate is closed: the last, `SECURITY.md` and a full-history secret scan, finished 2026-10-27
-> with no credentials found.
+> with no credentials found. A third audit on 2026-11-06 added P9-50 to P9-63
+> ([triage](#audit-2026-11-06)); its four security fixes (P9-50 to P9-53) shipped the same
+> day, along with P9-07, P9-08, P9-54 and P9-55. The queue now resumes at P9-09.
 
 <a id="shipped"></a>
 
@@ -109,7 +111,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-18 · "Changed this week" view. A landing-page list of documents modified in the last 7 days across every root, newest first, built from data the scan already has
 - [ ] P9-19 · Frontmatter tags. Show a document's frontmatter (tags, dates, status) in a small metadata strip, and let search filter by tag. `frontmatter()` already parses it
 - [ ] P9-20 · Scan-time history in the status panel. Keep the last 20 scan durations in memory and draw a tiny inline sparkline. This makes a slow scan visible before it becomes a complaint
-- [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `hub/markdown.mjs`, and the scanner into `hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 1,950 lines, the file is the largest single thing a weekly run has to read
+- [ ] P9-21 · Split `hub.mjs`. Move markdown rendering and sanitizing into `hub/markdown.mjs`, and the scanner into `hub/scan.mjs`. Exports stay the same and every existing test passes unchanged. No behaviour change. At about 2,450 lines (2026-11-06), the file is the largest single thing a weekly run has to read after `index.html` (P9-63)
 - [ ] P9-22 · Syntax check in CI. `node --check` over every `hub/*.mjs`, plus a check that the inline script in `index.html` parses. No new dependencies
 - [ ] P9-23 · Keep the demo showing what shipped. Add fixture content to `demo/Workspace/` that shows off P9 features already shipped wherever the fixture can't show them yet: enough documents of each kind that the root and type chips (P9-02) narrow something, and a few near-miss names so the typo fallback (P9-03) has something to find. Extend it as P9-17 (roadmap progress) and P9-19 (frontmatter tags) land
 - [ ] P9-37 · Repos before Live Sites on a project page. Eleven Live Sites cards fill the first screen before any repo shows. Put Repos first, or turn Live Sites into a compact list with one row per site (name, domain, status dot)

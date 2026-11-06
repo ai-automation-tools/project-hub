@@ -62,6 +62,8 @@ node hub.mjs --config ..\project-hub\hub.config.json --scan   # writes scan.json
 
 ## Endpoints
 
+Every path-addressed route resolves through `resolveId()`: the configured roots, plus each agent runtime's walked sub-folders and files only (never `~/.claude/projects` or other session state), minus the deny list. `/api/file`, `/api/stat` and `/api/open` go through `resolveId.real()`, which also follows symlinks and junctions and judges the target. `/api/raw` and `/api/preview` refuse cross-site requests; the signed `/api/artifact/…` route doesn't, because the report's own sandboxed frame reads as cross-site.
+
 | Path | What it does |
 |:---|:---|
 | `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Pictures is a metadata-only root. Gzipped. |

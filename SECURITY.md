@@ -20,7 +20,9 @@ folders its config names to a browser on the same machine. There is no login, so
 loopback boundary and the checks below are the whole defence. Reports that matter most:
 
 - reading a file outside the configured roots, or one the deny list keeps out (folders
-  such as `secrets` or `.ssh`, key and certificate files), through any `/api/*` route
+  such as `secrets` or `.ssh`, key and certificate files), through any `/api/*` route,
+  including by way of a symlink or junction, or an agent runtime's session state (only the
+  sub-folders the scanner walks, such as `~/.claude/skills`, are served)
 - markdown, HTML or a filename in a scanned document that runs script in the hub page,
   past the sanitizer, the CSP nonce or the HTML preview sandbox
 - another website, or a page opened in a hub tab, driving the hub: a request that gets past

@@ -74,7 +74,7 @@ node hub.mjs --config ..\project-hub\hub.config.json --scan   # writes scan.json
 | `/api/content?q=` | Opt-in search inside Markdown and text files (P9-04): up to 1000 files ranked by occurrences, each with a snippet, plus the index size and what it left out. The index is built on the first call, never during a scan. GET only; 400 under two characters. `/api/health` reports `contentIndex` once it exists. |
 | `/api/file?path=` | One text document, rendered to HTML. PDF/image input returns 415. |
 | `/api/raw?path=` | File bytes, including PDF MIME and byte ranges; `&download=1` requests attachment delivery. HTML redirects to the contained preview route. |
-| `/api/preview?path=` | Redirects an HTML report to its signed directory URL. |
+| `/api/preview?path=` | Redirects an HTML report to its signed directory URL. Like `/api/raw`, refused (403) to a cross-site request; the signed `/api/artifact/…` route is not, since the report's opaque-origin frame reads as cross-site. |
 | `/api/artifact/<signed-directory>/<relative-path>` | Report and companion assets, contained to the report directory after resolving junctions/symlinks. HTML/SVG carry a response-level sandbox. |
 | `/api/open?path=` | Opens a path with PowerShell `Start-Process`; add `&in=code` for VS Code, or `&reveal=1` to select it in its parent Explorer window (`explorer /select,`) instead of opening it. Same-origin only. |
 | `/api/events` | Server-sent events; one `change` per settled watcher burst. |

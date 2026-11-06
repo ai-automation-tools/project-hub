@@ -68,6 +68,8 @@ Every path-addressed route resolves through `resolveId()`: the configured roots,
 |:---|:---|
 | `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Pictures is a metadata-only root. Gzipped. |
 | `/api/stat` | Modification times for one folder's immediate children, keyed by name. On demand, for the list view. |
+| `/api/repo/changes?path=` | A repo's uncommitted files from `git status` (code, path, old path for renames), capped at 300. Same-origin only. |
+| `/api/repo/diff?path=&file=` | One changed file's diff against HEAD, or an untracked file's text, cut at 256 KB. Serves only a file `git status` lists, and only if it passes the deny list. Same-origin only. |
 | `/api/file?raw=1` | The same document as escaped source instead of rendered markdown — the view-source toggle. |
 | `/api/health` | Uptime, scan history, `readErrors`, `state`, and `readErrorPaths` — the last twelve failing paths and their errno, for the status panel — and `recentChanges`, the last 20 paths the watcher reacted to. 503 when unwell. |
 | `/api/pictures?path=` | Immediate children of a Pictures folder, or a file and its ancestor path. |

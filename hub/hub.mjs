@@ -1292,6 +1292,47 @@ async function gitState(repo) {
   return s;
 }
 
+// P9-10: the changed files behind a repo's "uncommitted", and one file's diff on demand.
+// Read-only, and only what git itself reports, so a path can't be smuggled in: the diff
+// route serves a file only if it is in this list and it passes resolveId's deny list.
+export const CHANGES_MAX = 300;
+export const DIFF_MAX = 256 * 1024;
+
+/** `git status --porcelain=v1 -z` output to [{ code, path, from? }], capped. */
+export function parseStatusZ(out, max = CHANGES_MAX) {
+  const parts = out.split('\0'), files = [];
+  for (let i = 0; i < parts.length; i++) {
+    const e = parts[i];
+    if (e.length < 4) continue;
+    const f = { code: e.slice(0, 2), path: e.slice(3) };
+    // A rename or copy carries its old path as the next field.
+    if (/[RC]/.test(f.code)) f.from = parts[++i];
+    files.push(f);
+  }
+  return { files: files.slice(0, max), total: files.length };
+}
+
+const repoChanges = async (abs) =>
+  parseStatusZ(await git(abs, ['status', '--porcelain=v1', '-z', '--untracked-files=all']));
+
+/** One file's diff against HEAD, cut at DIFF_MAX; untracked files come back as their opening bytes. */
+async function repoDiff(abs, file, code) {
+  if (code === '??') {
+    const text = readHead(path.join(abs, file), DIFF_MAX) ?? '';
+    if (text.includes('\0')) return { untracked: true, binary: true, text: '' };
+    return { untracked: true, text, truncated: text.length >= DIFF_MAX };
+  }
+  await gitSlot();
+  try {
+    const out = await new Promise((res) => execFile('git',
+      ['-C', abs, 'diff', 'HEAD', '--no-color', '--no-ext-diff', '--', file],
+      { windowsHide: true, timeout: 20000, maxBuffer: DIFF_MAX },
+      // Over maxBuffer is still a usable diff: keep what arrived and say it was cut.
+      (err, stdout) => res({ text: String(stdout || '').slice(0, DIFF_MAX), cut: err?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' })));
+    return { text: out.text, truncated: out.cut || out.text.length >= DIFF_MAX };
+  } finally { gitRelease(); }
+}
+
 // --ok is the state green; --green is the page's accent. Same colour in every scheme but obsidian.
 const DOT = { clean: 'var(--ok)', dirty: 'var(--orange)', behind: 'var(--blue)', ahead: 'var(--blue)', conflict: 'var(--red)' };
 
@@ -2280,6 +2321,30 @@ const server = http.createServer(async (req, res) => {
     if (!times) { res.writeHead(404).end('not found'); return; }
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify(times));
+    return;
+  }
+
+  if (url.pathname === '/api/repo/changes' || url.pathname === '/api/repo/diff') {
+    if (!sameOrigin(req)) { res.writeHead(403).end('cross-origin request refused'); return; }
+    const id = url.searchParams.get('path') || '';
+    const abs = resolveId.real(id);
+    if (!abs) { res.writeHead(403).end('outside roots'); return; }
+    if (!fs.existsSync(path.join(abs, '.git'))) { res.writeHead(404).end('not a repo'); return; }
+    const changes = await repoChanges(abs);
+    let body = changes;
+    if (url.pathname === '/api/repo/diff') {
+      const file = url.searchParams.get('file') || '';
+      const hit = changes.files.find((f) => f.path === file);
+      if (!hit) { res.writeHead(404).end('not a changed file'); return; }
+      // The deny list applies to a changed file exactly as to any other read -- deleted
+      // ones too, since their diff is the old content.
+      if (!resolveId.real(id.replace(/\/$/, '') + '/' + file)) {
+        res.writeHead(403).end('outside roots'); return;
+      }
+      body = { file, code: hit.code, ...(await repoDiff(abs, file, hit.code)) };
+    }
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify(body));
     return;
   }
 

@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
@@ -1155,4 +1155,30 @@ test('a routine log reads as ok, failed or unknown', () => {
   assert.equal(routineStatus('[08:00:00] [INFO] exit code: 10\n'), 'unknown');
   assert.equal(routineStatus(''), 'unknown');
   assert.equal(routineStatus(null), 'unknown');
+});
+
+// P9-10: the changed-files list and the one-file diff behind "uncommitted".
+test('git status -z parses into changed files, renames included, capped', () => {
+  const out = ' M src/a b.md\0?? notes/new.md\0R  docs/new.md\0docs/old.md\0D  gone.txt\0UU both.md\0';
+  const { files, total } = parseStatusZ(out);
+  assert.equal(total, 5);
+  assert.deepEqual(files, [
+    { code: ' M', path: 'src/a b.md' },
+    { code: '??', path: 'notes/new.md' },
+    { code: 'R ', path: 'docs/new.md', from: 'docs/old.md' },
+    { code: 'D ', path: 'gone.txt' },
+    { code: 'UU', path: 'both.md' },
+  ]);
+  assert.deepEqual(parseStatusZ(''), { files: [], total: 0 });
+  const many = Array.from({ length: 5 }, (_, i) => ` M f${i}.md`).join('\0') + '\0';
+  assert.deepEqual(parseStatusZ(many, 2), { files: [{ code: ' M', path: 'f0.md' }, { code: ' M', path: 'f1.md' }], total: 5 });
+});
+
+test('the repo diff route is same-origin, serves only listed files, and applies the deny list', () => {
+  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const route = src.slice(src.indexOf("url.pathname === '/api/repo/changes'"), src.indexOf("url.pathname === '/api/open'"));
+  assert.match(route, /if \(!sameOrigin\(req\)\) \{ res\.writeHead\(403\)/);
+  assert.match(route, /const abs = resolveId\.real\(id\);/);
+  assert.match(route, /const hit = changes\.files\.find\(\(f\) => f\.path === file\);\n\s+if \(!hit\) \{ res\.writeHead\(404\)/);
+  assert.ok(route.includes("if (!resolveId.real(id.replace(/\\/$/, '') + '/' + file)) {\n        res.writeHead(403)"));
 });

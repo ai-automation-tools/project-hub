@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-06
 
+- Verified: when the hub stops and restarts, the page shows the connection banner, keeps the open view, and recovers about 2 s after restart with no reload; Retry works both while the hub is down and after it is back. Checked on a spare-port demo hub *(roadmap: P9-25)*
 - Routines: each routine shows whether its last run passed, failed or is unknown, read from the runner's markers in the newest log, with failures in red in the Routines list *(roadmap: P9-12)*
 - Links: a relative link that climbs above the top of its root is rejected instead of opening a same-named document higher up; heading-destination and copy-link-with-spaces cases now have unit tests *(roadmap: P9-09)*
 - Docs: `SECURITY.md` scope and the `hub/README.md` endpoint notes now cover link-following, runtime serve paths and the cross-site gate; the roadmap's status note and the `hub.mjs` line counts are current

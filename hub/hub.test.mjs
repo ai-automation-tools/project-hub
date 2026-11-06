@@ -1359,3 +1359,25 @@ test('project and portfolio pages put the repo table before Live Sites', () => {
     assert.ok(repos < sites, `${fn} must render repos before Live Sites`);
   }
 });
+
+// "Changed this week" starts folded. Its expansion is stored as `open:<label>`, so an entry
+// saved while the section still started open can't invert it.
+test('Changed this week is folded by default and remembers being opened', () => {
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.match(ui, /const FOLDED_BY_DEFAULT = new Set\(\['Changed this week'\]\);/);
+  assert.match(ui, /return foldable\('Changed this week',/);
+  const src = ui.slice(ui.indexOf('const FOLDED_BY_DEFAULT'), ui.indexOf('/** Wrap a section heading'));
+  const COLLAPSED = new Set(['Changed this week']);   // an entry from before the change
+  const localStorage = { setItem() {} };
+  const api = new Function('COLLAPSED', 'localStorage', src + '\nreturn { foldIsOpen, remember };')(COLLAPSED, localStorage);
+  assert.equal(api.foldIsOpen('Changed this week'), false, 'folded by default, whatever was stored before');
+  assert.equal(api.foldIsOpen('Repos'), true, 'other sections still start open');
+  api.remember('Changed this week', true);
+  assert.equal(api.foldIsOpen('Changed this week'), true, 'opening it is remembered');
+  api.remember('Changed this week', false);
+  assert.equal(api.foldIsOpen('Changed this week'), false);
+  api.remember('Repos', false);
+  assert.equal(api.foldIsOpen('Repos'), false);
+  const ui2 = ui.match(/d\.open = (\w+)\(key\);/g);
+  assert.deepEqual(ui2, ['d.open = foldIsOpen(key);', 'd.open = foldIsOpen(key);'], 'both fold helpers go through foldIsOpen');
+});

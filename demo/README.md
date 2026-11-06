@@ -57,7 +57,7 @@ shows it doing something:
 |:---|:---|
 | Root and type chips | Search `e`, then pick **PDF** (2), **Image** (3) or **HTML** (3), or a root |
 | Typo fallback | Search `maintainance`, `dependancy` or `accesibility`: no exact match, one close one |
-| Changed this week | The overview. The build ages the fixture a month, then brings eight files back into the week |
+| Changed this week | The Projects page: click the folded heading. The build ages the fixture a month, then brings eight files back into the week |
 | Routine pass/fail | **User CLIs → Claude Code → routines**: `docs-sweep` passed, `link-audit` failed. Its chips show the JSON and latest log |
 | Uncommitted changes | `atlas-web`, the dirty repo |
 | Roadmap progress | `signal-api` (6/11) |

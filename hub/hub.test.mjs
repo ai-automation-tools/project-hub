@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
-  setBookmarkGroup, renameBookmarkGroup, groupBookmarks,
+  setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks,
   resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -688,6 +688,16 @@ test('bookmark groups are a name on each bookmark and vanish when emptied', () =
   // A created-but-empty group is listed last; one that already has members isn't doubled.
   assert.deepEqual(groupBookmarks(list, ['Printer', 'GitHub org', ' ', 7]).map((g) => [g.name, g.entries.length]),
     [['', 2], ['GitHub org', 2], ['Printer', 0]]);
+});
+
+test('dragging a group header moves the whole group up or down', () => {
+  const list = ['A', 'B', 'C'].flatMap((g) => [{ path: g + '1', group: g }, { path: 'x' + g }, { path: g + '2', group: g }]);
+  const order = (l) => groupBookmarks(l).slice(1).map((g) => g.name + g.entries.map((e) => e.path.slice(1)).join(''));
+  assert.deepEqual(order(moveBookmarkGroup(list, 'C', 'A')), ['C12', 'A12', 'B12']);
+  assert.deepEqual(order(moveBookmarkGroup(list, 'A', 'B')), ['B12', 'A12', 'C12']);
+  assert.deepEqual(order(moveBookmarkGroup(list, 'A', 'C')), ['B12', 'C12', 'A12']);
+  assert.equal(moveBookmarkGroup(list, 'A', 'nope'), list, 'an unknown or empty target is a no-op');
+  assert.equal(moveBookmarkGroup(list, 'A', 'A'), list);
 });
 
 test('a bookmarks file round-trips and merges without clobbering what is already here', () => {

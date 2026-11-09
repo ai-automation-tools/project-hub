@@ -258,6 +258,22 @@ export function renameBookmarkGroup(list, from, to) {
 }
 
 /**
+ * Drag a group header onto another. Group order is first-appearance order, so the dragged
+ * group's bookmarks move as a block: before the target when moving up, after it when down.
+ */
+export function moveBookmarkGroup(list, from, to) {
+  const first = (g) => list.findIndex((e) => e.group === g);
+  if (!from || !to || from === to || first(from) < 0 || first(to) < 0) return list;
+  const down = first(from) < first(to);
+  const moving = list.filter((e) => e.group === from);
+  const rest = list.filter((e) => e.group !== from);
+  const groups = rest.map((e) => e.group);
+  const at = down ? groups.lastIndexOf(to) + 1 : groups.indexOf(to);
+  rest.splice(at, 0, ...moving);
+  return rest;
+}
+
+/**
  * Ungrouped first, then each group in the order its first bookmark appears, then any
  * `empty` (created, not yet filled) names that no bookmark carries.
  */

@@ -710,6 +710,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .pingrp .nm{font-weight:600}
 .pingrp .tw{font-size:10px;color:var(--dimmer);width:10px}
 .pingrp.drop{box-shadow:inset 0 0 0 1px var(--green)}
+.pingrp.dragging{opacity:.4}
 .pingrp + .pinlist .pin{margin-left:22px}
 .pingrp + .pinempty{padding-left:34px}
 /* "New Group" button: stuck to the bottom of the sidebar however long the list gets */
@@ -885,7 +886,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
-  setBookmarkGroup, renameBookmarkGroup, groupBookmarks, exportPins, importPins,
+  setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins,
   pushRecent, resolveBookmarks, absolutePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
@@ -1365,7 +1366,8 @@ function moveToGroup(path, group) {
 }
 
 // A group header: click folds it, double-click renames it, × ungroups (the bookmarks
-// stay), and a bookmark dropped on it joins the group.
+// stay), a bookmark dropped on it joins the group, and another header dropped on it moves.
+const GROUP_DRAG = 'application/x-hub-group';
 function groupHeader(name, count) {
   const open = !closedGroups.has(name);
   const head = el('div', 'pingrp');
@@ -1392,11 +1394,19 @@ function groupHeader(name, count) {
       emptyGroups = emptyGroups.map((n) => (n === name ? v : n));
     });
   });
+  // The header itself drags to reorder groups. Its own type, so a bookmark row ignores it.
+  head.draggable = true;
+  head.addEventListener('dragstart', (e) => { e.dataTransfer.setData(GROUP_DRAG, name); head.classList.add('dragging'); });
+  head.addEventListener('dragend', () => head.classList.remove('dragging'));
   head.addEventListener('dragover', (e) => { e.preventDefault(); head.classList.add('drop'); });
   head.addEventListener('dragleave', () => head.classList.remove('drop'));
   head.addEventListener('drop', (e) => {
     e.preventDefault();
-    moveToGroup(e.dataTransfer.getData('text/plain'), name);
+    const group = e.dataTransfer.getData(GROUP_DRAG);
+    if (group) {
+      pins.bookmarks = moveBookmarkGroup(pins.bookmarks, group, name);
+      emptyGroups = moveBookmark(emptyGroups, emptyGroups.indexOf(group), emptyGroups.indexOf(name));
+    } else moveToGroup(e.dataTransfer.getData('text/plain'), name);
     savePins(); renderPins();
   });
   return head;

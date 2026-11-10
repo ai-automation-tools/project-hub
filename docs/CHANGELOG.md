@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-10
+
+- Security: the HTML filter in the markdown renderer runs in linear time on a tag full of quotes (it backtracked exponentially, which could hang the hub on one document), and escapes a `<` that doesn't open a complete tag instead of passing it through. The favicon colours now escape every `#`
+
 ## 2026-11-06
 
 - Docs: end-of-day pass. The roadmap status note covers everything shipped on 2026-11-06, P9-18 notes the folded default, and P9-63 has the current `index.html` size (234 KB)

@@ -307,6 +307,17 @@ test('script and style take their contents with them', () => {
   assert.equal(sanitizeHtml('<div><script>alert(1)</script>ok</div>'), '<div>ok</div>');
 });
 
+test('a tag left unclosed becomes text, so a later > cannot finish it', () => {
+  assert.equal(sanitizeHtml('<div>x</div><img src=x onerror=y '), '<div>x</div>&lt;img src=x onerror=y ');
+  assert.equal(sanitizeHtml('<!-- open'), '&lt;!-- open');
+});
+
+test('a tag full of quotes is filtered in linear time', () => {
+  const t = Date.now();
+  sanitizeHtml('<a ' + '"'.repeat(5000));
+  assert.ok(Date.now() - t < 1000, 'the attribute pattern must not backtrack exponentially');
+});
+
 test('only http, https, mailto and relative URLs are kept', () => {
   for (const bad of ['javascript:alert(1)', 'JavaScript:alert(1)', 'data:text/html,x', 'vbscript:x']) {
     assert.doesNotMatch(sanitizeHtml(`<a href="${bad}">`), /href/, bad);

@@ -887,7 +887,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins,
-  pushRecent, resolveBookmarks, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
+  pushRecent, resolveBookmarks, keyOf, removeBookmark, duplicateBookmark, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
 import { PictureNodes } from '/pictures-client.mjs';
@@ -1280,6 +1280,7 @@ function pinSection(key, entries, drag) {
     const row = el('div', 'pin' + (S.sel === entry.path ? ' sel' : '') + (entry.unresolved ? ' gone' : ''));
     row.setAttribute('role', 'listitem');
     row.dataset.path = entry.path;
+    row.dataset.key = keyOf(entry);
     row.dataset.missing = String(!!entry.unresolved);
     row.dataset.renameable = String(!!drag);   // only bookmarks carry a custom label
     row.dataset.group = entry.group || '';
@@ -1290,7 +1291,7 @@ function pinSection(key, entries, drag) {
     x.setAttribute('aria-label', 'Remove ' + entry.label);
     activate(x, (ev) => {
       ev?.stopPropagation?.();
-      if (key === 'bookmarks') pins.bookmarks = pins.bookmarks.filter((e) => e.path !== entry.path);
+      if (key === 'bookmarks') pins.bookmarks = removeBookmark(pins.bookmarks, keyOf(entry));
       else pins.recent = pins.recent.filter((e) => e.path !== entry.path);
       savePins();
       renderPins();
@@ -1305,22 +1306,22 @@ function pinSection(key, entries, drag) {
     if (drag) {
       // Native drag-and-drop: manual ordering with no library and no pointer maths.
       row.draggable = true;
-      // Carries the path, not the index: groups split the list across sections. Dropping
-      // onto a row also moves the bookmark into that row's group.
-      row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', entry.path); row.classList.add('dragging'); });
+      // Carries the bookmark's key, not the index: groups split the list across sections.
+      // Dropping onto a row also moves the bookmark into that row's group.
+      row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', keyOf(entry)); row.classList.add('dragging'); });
       row.addEventListener('dragend', () => row.classList.remove('dragging'));
       row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drop'); });
       row.addEventListener('dragleave', () => row.classList.remove('drop'));
       row.addEventListener('drop', (e) => {
         e.preventDefault(); row.classList.remove('drop');
         const dragged = e.dataTransfer.getData('text/plain');
-        const at = (p) => pins.bookmarks.findIndex((b) => b.path === p);
-        pins.bookmarks = setBookmarkGroup(moveBookmark(pins.bookmarks, at(dragged), at(entry.path)), dragged, entry.group);
+        const at = (k) => pins.bookmarks.findIndex((b) => keyOf(b) === k);
+        pins.bookmarks = setBookmarkGroup(moveBookmark(pins.bookmarks, at(dragged), at(keyOf(entry))), dragged, entry.group);
         savePins(); renderPins();
       });
       name.addEventListener('dblclick', (e) => {
         e.stopPropagation();
-        inlineEdit(row, name, entry.label, '', (v) => { pins.bookmarks = renameBookmark(pins.bookmarks, entry.path, v); });
+        inlineEdit(row, name, entry.label, '', (v) => { pins.bookmarks = renameBookmark(pins.bookmarks, keyOf(entry), v); });
       });
     }
 
@@ -1329,7 +1330,7 @@ function pinSection(key, entries, drag) {
       const note = el('div', 'pinnote');
       const relink = el('button', '', 'relink to ' + entry.suggestion);
       relink.onclick = () => {
-        pins.bookmarks = pins.bookmarks.map((e) => (e.path === entry.path ? { ...e, path: entry.suggestion } : e));
+        pins.bookmarks = pins.bookmarks.map((e) => (keyOf(e) === keyOf(entry) ? { ...e, path: entry.suggestion } : e));
         savePins(); renderPins();
       };
       note.append('moved? ', relink);
@@ -1359,10 +1360,17 @@ function inlineEdit(host, target, value, placeholder, save) {
   input.focus(); input.select();
 }
 
-/** Put a bookmark in a group ('' = none), unfolding the group so it stays in view. */
-function moveToGroup(path, group) {
+/** Put a bookmark (by key) in a group ('' = none), unfolding the group so it stays in view. */
+function moveToGroup(key, group) {
   closedGroups.delete(group);
-  pins.bookmarks = setBookmarkGroup(pins.bookmarks, path, group);
+  pins.bookmarks = setBookmarkGroup(pins.bookmarks, key, group);
+}
+
+/** Another bookmark to the same document; `group` undefined keeps the original's group. */
+function copyBookmark(key, group) {
+  if (group !== undefined) closedGroups.delete(group);
+  pins.bookmarks = duplicateBookmark(pins.bookmarks, key, group);
+  toast(group ? 'bookmark copied to ' + group : 'bookmark duplicated');
 }
 
 // A group header: click folds it, double-click renames it, × ungroups (the bookmarks
@@ -2321,7 +2329,9 @@ function showCtxMenu(x, y, n, opts = {}) {
   menu.setAttribute('aria-label', n.name);
   menu.addEventListener('keydown', onCtxMenuKey);
   menu.append(
-    ctxItem(isBookmarked(pins.bookmarks, n.id) ? 'Remove Bookmark' : 'Add Bookmark', () => togglePin(n.id, n.name)),
+    // A bookmark row removes just itself; elsewhere this toggles every bookmark of the path.
+    opts.remove ? ctxItem('Remove Bookmark', opts.remove)
+      : ctxItem(isBookmarked(pins.bookmarks, n.id) ? 'Remove Bookmark' : 'Add Bookmark', () => togglePin(n.id, n.name)),
     ...(opts.rename ? [ctxItem('Rename Bookmark', opts.rename)] : []),
     ...(opts.groupItems || []),
     el('hr'),
@@ -2507,19 +2517,25 @@ function treeRowMenu(row, x, y, opts) {
 // enough for the copy actions, with the filesystem ones disabled. Rename reuses the
 // double-click editor rather than growing a second one.
 function pinRowMenu(row, x, y, opts) {
-  const path = row.dataset.path;
+  const path = row.dataset.path, key = row.dataset.key;
   const n = S.byId.get(path) || { id: path, name: row.querySelector('.nm').textContent, kind: 'file' };
   const bookmark = row.dataset.renameable === 'true';
   const current = row.dataset.group || '';
-  const move = (g) => { moveToGroup(path, g); savePins(); renderPins(); };
+  const move = (g) => { moveToGroup(key, g); savePins(); renderPins(); };
+  const copy = (g) => { copyBookmark(key, g); savePins(); renderPins(); };
   const others = groupBookmarks(pins.bookmarks, emptyGroups).map((g) => g.name).filter((g) => g && g !== current);
   showCtxMenu(x, y, n, {
     ...opts,
     groupItems: bookmark ? [
       ...others.map((g) => ctxItem('Move to ' + g, () => move(g))),
-      ctxItem('Move to New Group…', () => inlineEdit(row, row.querySelector('.nm'), '', 'group name', (g) => moveToGroup(path, g))),
+      ctxItem('Move to New Group…', () => inlineEdit(row, row.querySelector('.nm'), '', 'group name', (g) => moveToGroup(key, g))),
       ...(current ? [ctxItem('Remove from Group', () => move(''))] : []),
+      ctxItem('Duplicate Bookmark', () => copy(undefined)),
+      ...others.map((g) => ctxItem('Copy to ' + g, () => copy(g))),
+      ctxItem('Copy to New Group…', () => inlineEdit(row, row.querySelector('.nm'), '', 'group name', (g) => { if (g) copyBookmark(key, g); })),
+      ...(current ? [ctxItem('Copy to Ungrouped', () => copy(''))] : []),
     ] : [],
+    remove: bookmark ? () => { pins.bookmarks = removeBookmark(pins.bookmarks, key); savePins(); renderPins(); renderView(); toast('bookmark removed'); } : null,
     missing: row.dataset.missing === 'true',
     rename: row.dataset.renameable === 'true'
       ? () => row.querySelector('.nm')?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))

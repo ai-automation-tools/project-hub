@@ -59,7 +59,7 @@ with a >100-captured-responses check. `demo.yml` deploys the demo on push to `ma
 
 ## Workflow
 
-- **Single branch `main`** — no `mike_desktop`. Small direct commits are fine; roadmap-routine work arrives as PRs.
+- **Single branch `main`, and every change reaches it through a PR** — no `mike_desktop`, no direct commits. Cut a short topic branch from `origin/main`, push it, open a PR, merge on GitHub. That includes one-line fixes and the skill-overlay syncs from `agent-skills`. An org ruleset requires it.
 - Imperative-mood subjects, no Conventional Commits prefix (match `git log`).
 - Ticking a P9 roadmap item adds a line to `docs/CHANGELOG.md` tagged *(roadmap: P9-NN)* in the same commit.
 - `hub.mjs` / `scan.mjs` / `markdown.mjs` changes need a hub restart to take effect; `index.html` changes need only a browser refresh.

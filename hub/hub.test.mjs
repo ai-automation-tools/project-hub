@@ -16,7 +16,7 @@ import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfi
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks,
-  resolveBookmarks, RECENT_MAX, absolutePath, exportPins, importPins } from './navigation.mjs';
+  resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 // P9-21: the server is three files; a source pin on scanner code reads them together.
@@ -924,6 +924,15 @@ test('copy paths use the configured base, home and cross-drive ids', () => {
   assert.equal(absolutePath('F:/Reports/a.md', 'E:/Work'), 'F:/Reports/a.md');
   assert.equal(absolutePath('../Docs/a.md', '/work/projects'), '/work/Docs/a.md');
   assert.equal(absolutePath('@projects', 'E:/Work'), '');
+});
+
+test('vscode://file links resolve to an absolute path the hub can look up', () => {
+  assert.equal(vscodeFilePath('vscode://file/D:/Work/Docs/diagram.html'), 'D:/Work/Docs/diagram.html');
+  assert.equal(vscodeFilePath('vscode://file/D:/Work/a%20b.md:12:3'), 'D:/Work/a b.md');
+  assert.equal(vscodeFilePath('vscode://file/home/you/x.md'), '/home/you/x.md');
+  assert.equal(vscodeFilePath('vscode://file/D:/Work/Docs'), 'D:/Work/Docs');
+  assert.equal(vscodeFilePath('https://x.dev'), '');
+  assert.match(sanitizeHtml('<a href="vscode://file/D:/Work/x.html">'), /href="vscode:/);
 });
 
 // A module script that declares a name it also imports fails to load at all, and the page

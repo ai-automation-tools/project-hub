@@ -146,6 +146,17 @@ export function documentTarget(fromId, href) {
   } catch { return null; }
 }
 
+// `vscode://file/D:/x/y.html:12:3` -> 'D:/x/y.html'. Docs written for VS Code's preview
+// use these; the hub opens the target itself when it is indexed. '' when not one.
+export function vscodeFilePath(href) {
+  const m = /^vscode:\/\/file\/+(.+)$/i.exec(href || '');
+  if (!m) return '';
+  let p;
+  try { p = decodeURIComponent(m[1]); } catch { return ''; }
+  p = p.replace(/\\/g, '/').replace(/(\.[^/:]*)(?::\d+){1,2}$/, '$1');
+  return /^[A-Za-z]:\//.test(p) ? p : '/' + p;
+}
+
 export function markdownLink(label, destination) {
   return '[' + label.replace(/[\\\[\]]/g, '\\$&') + '](<' + destination.replace(/ /g, '%20').replace(/</g, '%3C').replace(/>/g, '%3E') + '>)';
 }

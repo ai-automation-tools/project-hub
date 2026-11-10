@@ -887,7 +887,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins,
-  pushRecent, resolveBookmarks, absolutePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
+  pushRecent, resolveBookmarks, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
 import { PictureNodes } from '/pictures-client.mjs';
@@ -4227,6 +4227,15 @@ async function loadDoc(id, host, opts = {}) {
       if (/^(https?:|mailto:)/i.test(href)) {
         a.target = '_blank'; a.rel = 'noreferrer';
         if (/^https?:/i.test(href)) followLink(a, a.href, a.textContent.trim());
+        continue;
+      }
+      // vscode://file/<abs> links (written for VS Code's preview) open in the hub when the
+      // target is indexed; otherwise the browser hands them to VS Code as before.
+      const vsPath = vscodeFilePath(href);
+      if (vsPath) {
+        const want = vsPath.toLowerCase();
+        const hit = [...S.byId.keys()].find(k => absOf(k).toLowerCase() === want);
+        if (hit) a.onclick = (e) => { e.preventDefault(); go(hit); };
         continue;
       }
       const target = documentTarget(id, href);

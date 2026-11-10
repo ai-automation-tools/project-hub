@@ -966,6 +966,7 @@ test('vscode://file links resolve to an absolute path the hub can look up', () =
   assert.equal(vscodeFilePath('vscode://file/D:/Work/Docs'), 'D:/Work/Docs');
   assert.equal(vscodeFilePath('https://x.dev'), '');
   assert.match(sanitizeHtml('<a href="vscode://file/D:/Work/x.html">'), /href="vscode:/);
+  assert.doesNotMatch(sanitizeHtml('<a href="vscode://some.extension/run?x=1">'), /href/);
 });
 
 // A module script that declares a name it also imports fails to load at all, and the page

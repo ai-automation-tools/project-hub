@@ -148,13 +148,15 @@ const TAG_ATTRS = {
 };
 const URL_ATTRS = new Set(['href', 'src', 'srcset']);
 
-/** http, https, mailto, vscode, or no scheme at all (relative paths and #anchors). */
+/** http, https, mailto, vscode://file/, or no scheme at all (relative paths and #anchors). */
 function safeUrl(value) {
   // Control characters and stray whitespace inside a scheme are a classic way to smuggle
   // `java\tscript:` past a naive check; browsers ignore them, so strip before testing.
   const v = value.replace(/[\u0000-\u0020]/g, '');
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(v);
-  return !scheme || /^(https?|mailto|vscode)$/i.test(scheme[1]);
+  // vscode: only for file links. Other vscode:// authorities are extension URI handlers,
+  // which a document has no business triggering.
+  return !scheme || /^(https?|mailto)$/i.test(scheme[1]) || /^vscode:\/\/file\//i.test(v);
 }
 
 const attrEsc = (v) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;')

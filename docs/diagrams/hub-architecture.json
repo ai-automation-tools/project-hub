@@ -10,7 +10,7 @@
       "url": "https://github.com/ai-automation-tools/project-hub.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "1b699e8da7ab00c05cc4c79b03b90a78d9f99d44"
+      "revision": "9b5f0a153844606010073998d518889ff1b4d32b"
     }
   },
   "components": [
@@ -46,20 +46,20 @@
       "sources": [
         {
           "path": "hub/index.html",
-          "line": 1045,
-          "end_line": 1053,
+          "line": 1046,
+          "end_line": 1054,
           "label": "load the tree from /api/scan"
         },
         {
           "path": "hub/index.html",
-          "line": 4198,
-          "end_line": 4203,
+          "line": 4224,
+          "end_line": 4229,
           "label": "open a document via /api/file"
         },
         {
           "path": "hub/index.html",
-          "line": 4524,
-          "end_line": 4534,
+          "line": 4559,
+          "end_line": 4569,
           "label": "EventSource on /api/events"
         }
       ]

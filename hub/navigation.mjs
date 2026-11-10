@@ -219,8 +219,9 @@ export function parseList(raw) {
   try { list = JSON.parse(raw); } catch { return []; }
   if (!Array.isArray(list)) return [];
   const seen = new Set();
-  return list.filter((e) => e && typeof e.path === 'string' && e.path && !seen.has(e.path) && seen.add(e.path))
+  return list.filter((e) => e && typeof e.path === 'string' && e.path && !seen.has(keyOf(e)) && seen.add(keyOf(e)))
     .map((e) => ({
+      ...(typeof e.key === 'string' && e.key && e.key !== e.path ? { key: e.key } : {}),
       path: e.path,
       label: typeof e.label === 'string' && e.label ? e.label : e.path.split('/').pop(),
       addedAt: Number.isFinite(e.addedAt) ? e.addedAt : 0,
@@ -258,9 +259,13 @@ const withGroup = (e, g) => {
   return cleanGroup(g) ? { ...rest, group: cleanGroup(g) } : rest;
 };
 
+// A bookmark's identity. The first bookmark of a path is keyed by the path itself, so lists
+// saved before duplicates existed need no migration; only a copy carries its own `key`.
+export const keyOf = (e) => e.key || e.path;
+
 /** '' (or whitespace) takes the bookmark out of its group. */
-export function setBookmarkGroup(list, path, group) {
-  return list.map((e) => (e.path === path ? withGroup(e, group) : e));
+export function setBookmarkGroup(list, key, group) {
+  return list.map((e) => (keyOf(e) === key ? withGroup(e, group) : e));
 }
 
 /** Renaming onto an existing name merges the two; renaming to '' ungroups every member. */
@@ -313,8 +318,27 @@ export function toggleBookmark(list, path, label, now = Date.now()) {
     : [...list, { path, label: label || path.split('/').pop(), addedAt: now }];
 }
 
-export function renameBookmark(list, path, label) {
-  return list.map((e) => (e.path === path ? { ...e, label: label || e.path.split('/').pop() } : e));
+export function renameBookmark(list, key, label) {
+  return list.map((e) => (keyOf(e) === key ? { ...e, label: label || e.path.split('/').pop() } : e));
+}
+
+export function removeBookmark(list, key) {
+  return list.filter((e) => keyOf(e) !== key);
+}
+
+/**
+ * A second bookmark to the same path, placed right after the original. `group` undefined
+ * keeps the original's group; a string (even '') puts the copy there.
+ */
+export function duplicateBookmark(list, key, group, now = Date.now()) {
+  const i = list.findIndex((e) => keyOf(e) === key);
+  if (i < 0) return list;
+  const src = list[i];
+  const keys = new Set(list.map(keyOf));
+  let n = 2;
+  while (keys.has(src.path + '#' + n)) n++;
+  const copy = withGroup({ ...src, key: src.path + '#' + n, addedAt: now }, group === undefined ? src.group : group);
+  return [...list.slice(0, i + 1), copy, ...list.slice(i + 1)];
 }
 
 /** Drag-to-reorder. Out-of-range indexes are a no-op rather than an exception. */

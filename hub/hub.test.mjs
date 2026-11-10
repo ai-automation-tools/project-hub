@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
-  setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks,
+  setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, keyOf, removeBookmark, duplicateBookmark,
   resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -688,6 +688,28 @@ test('bookmark groups are a name on each bookmark and vanish when emptied', () =
   // A created-but-empty group is listed last; one that already has members isn't doubled.
   assert.deepEqual(groupBookmarks(list, ['Printer', 'GitHub org', ' ', 7]).map((g) => [g.name, g.entries.length]),
     [['', 2], ['GitHub org', 2], ['Printer', 0]]);
+});
+
+test('one document can carry several bookmarks, each edited on its own', () => {
+  let list = parseList(JSON.stringify([{ path: 'a', group: 'G' }, { path: 'b' }]));
+  list = duplicateBookmark(list, 'a', undefined, 1);          // same group, right after
+  list = duplicateBookmark(list, 'a', 'H', 2);                // copy into another group
+  list = duplicateBookmark(list, 'a', '', 3);                 // copy out of any group
+  assert.deepEqual(list.map(keyOf), ['a', 'a#4', 'a#3', 'a#2', 'b'], 'each copy lands right after the original, with a unique key');
+  // Survives storage; the original keeps no key, so old saved lists need no migration.
+  list = parseList(JSON.stringify(list));
+  assert.ok(!('key' in list[0]));
+  assert.deepEqual(groupBookmarks(list).map((g) => [g.name, g.entries.length]), [['', 2], ['G', 2], ['H', 1]]);
+  // Rename, regroup and remove touch only the one copy.
+  const copy = list.find((e) => e.group === 'H');
+  list = renameBookmark(list, keyOf(copy), 'Other name');
+  assert.deepEqual(list.filter((e) => e.label === 'Other name').length, 1);
+  list = setBookmarkGroup(list, keyOf(copy), 'G');
+  assert.deepEqual(groupBookmarks(list).map((g) => [g.name, g.entries.length]), [['', 2], ['G', 3]]);
+  list = removeBookmark(list, keyOf(copy));
+  assert.equal(list.filter((e) => e.path === 'a').length, 3);
+  assert.ok(isBookmarked(list, 'a'));
+  assert.equal(duplicateBookmark(list, 'nope'), list, 'an unknown key is a no-op');
 });
 
 test('dragging a group header moves the whole group up or down', () => {

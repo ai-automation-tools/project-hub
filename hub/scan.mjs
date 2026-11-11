@@ -35,6 +35,9 @@ const CONFIG_DEFAULTS = {
   // Extra Host names the hub answers to, besides loopback — e.g. the MagicDNS name a
   // `tailscale serve` proxy forwards with. Exact names only; the bind stays 127.0.0.1.
   allowedHosts: [],
+  // Icons for the Explorer's top-level folders, set in Settings: { "<node id>": "<icon>" }.
+  // Icon names are the hub's built-in folder set (FOLDER_ICONS in index.html).
+  folderIcons: {},
 };
 const PROJECT_DEFAULTS = {
   name: '', dir: '',
@@ -86,6 +89,11 @@ export function loadConfig(file) {
       return { tint: 'var(--dimmer)', ...r, dir: normalizeDir(r.dir) };
     }),
     favicon: { ...CONFIG_DEFAULTS.favicon, ...(j.favicon || {}) },
+    // A hand-edited entry the UI couldn't have written is dropped, not fatal: an icon is
+    // never worth refusing to start over.
+    folderIcons: Object.fromEntries(Object.entries(j.folderIcons && typeof j.folderIcons === 'object' ? j.folderIcons : {})
+      .filter(([id, icon]) => { try { validateFolderIcon(id, icon); return icon !== null; } catch { return false; } })
+      .slice(0, FOLDER_ICONS_MAX)),
   };
   if (!cfg.title) cfg.title = `Project Hub — ${cfg.name}`;
   return cfg;
@@ -141,6 +149,28 @@ export function validateScanDepth(value) {
     throw new Error('maxDepth must be an integer 1–32.');
   }
   return value;
+}
+
+// ── folder icons set from Settings ─────────────────────────────────────────
+// The id is only ever a key in this map -- nothing reads a path from it -- and the icon is
+// a name the page looks up in its own built-in set, so neither reaches the filesystem or
+// the DOM as markup.
+export const FOLDER_ICONS_MAX = 100;
+
+/** Check one `{ id, icon }` change. `icon: null` clears the folder's icon. */
+export function validateFolderIcon(id, icon) {
+  if (typeof id !== 'string' || !id || id.length > 300 || /[\u0000-\u001f\u007f]/.test(id)) throw new Error('Unknown folder.');
+  if (icon !== null && (typeof icon !== 'string' || !/^[a-z0-9-]{1,40}$/.test(icon))) throw new Error('Unknown icon.');
+  return { id, icon };
+}
+
+/** Rewrite only `folderIcons` in the config file, keeping every other key; atomic. */
+export function writeFolderIcons(file, icons) {
+  const config = readConfigJson(file);
+  if (Object.keys(icons).length) config.folderIcons = icons;
+  else delete config.folderIcons;
+  fs.writeFileSync(file + '.tmp', JSON.stringify(config, null, 2) + '\n');
+  fs.renameSync(file + '.tmp', file);
 }
 
 /** Null removes a workspace override; preserve every other config field. */
@@ -1448,7 +1478,48 @@ async function scanPayload(fresh, touched) {
   };
 }
 
-if (SCAN_WORKER) parentPort.on('message', async ({ fresh, touched }) => {
+/**
+ * Mount or unmount a shared root in this thread's lists: the scan (ROOTS, SHARED_ROOTS),
+ * the walker's prune set and resolveId's SERVE_DIRS gate. The server applies it on the
+ * main thread and posts the same change to the scan worker. Restarting the worker
+ * instead threw away its description and git caches, and the cold scan that followed
+ * took ~100s on a 138k-node tree against ~25s warm.
+ */
+function mountSharedRoot(r) {
+  // Nothing watched the folder while it was out of the sidebar, so git state cached from
+  // before it was removed may be stale. The worker restart used to drop it for free.
+  const key = r.dir.toLowerCase();
+  for (const k of gitCache.keys()) {
+    const p = posix(k).toLowerCase();
+    if (p === key || p.startsWith(key + '/')) gitCache.delete(k);
+  }
+  SHARED_ROOTS.push(r);
+  ROOTS.push(r);
+  MOUNTED_ROOTS.add(r.dir.toLowerCase());
+  SERVE_DIRS.push(r.dir);
+}
+function unmountSharedRoot(dir) {
+  const key = dir.toLowerCase();
+  const drop = (list, match) => { const i = list.findIndex(match); if (i > -1) list.splice(i, 1); };
+  drop(SHARED_ROOTS, (r) => r.dir.toLowerCase() === key);
+  drop(ROOTS, (r) => r.dir.toLowerCase() === key);
+  drop(SERVE_DIRS, (d) => d.toLowerCase() === key);
+  MOUNTED_ROOTS.delete(key);
+}
+
+if (SCAN_WORKER) {
+  // One message at a time: a mount that arrives mid-scan waits for that scan to finish
+  // rather than changing the root lists under it.
+  let queue = Promise.resolve();
+  // The catch keeps one failed message from leaving the queue rejected, which would skip
+  // every scan after it.
+  parentPort.on('message', (m) => {
+    queue = queue.then(() => onWorkerMessage(m)).catch((e) => console.error('scan worker message failed:', e.message));
+  });
+}
+async function onWorkerMessage({ fresh, touched, mount, unmount }) {
+  if (mount) return mountSharedRoot(mount);
+  if (unmount) return unmountSharedRoot(unmount);
   try {
     const out = await scanPayload(fresh, touched);
     // Transfer rather than copy, but only buffers that own their whole ArrayBuffer --
@@ -1456,7 +1527,7 @@ if (SCAN_WORKER) parentPort.on('message', async ({ fresh, touched }) => {
     const own = (b) => b.byteOffset === 0 && b.byteLength === b.buffer.byteLength;
     parentPort.postMessage(out, [out.json, out.gzip].filter(own).map((b) => b.buffer));
   } catch (e) { parentPort.postMessage({ error: e.message }); }
-});
+}
 
 /** On the main thread: take in what a worker scan counted and found, as if it ran here. */
 function adoptWorkerScan(out) {
@@ -1474,5 +1545,5 @@ export {
   argv, argOf, CONFIG_FILE, CONFIG, HUB_DIR, PROJECTS, SHARED_ROOTS, ROOTS, MOUNTED_ROOTS, USER_RUNTIMES, SKIP_DIRS,
   DOT_OK, NOISE_FILE, SECRET_DIRS, SERVE_DIRS, posix, rel, resolveId, readHeadAsync, descCache, readErrors,
   READ_ERROR_MAX, readErrorLog, pictureRoot, pictures, safeIsDir, repoChanges, repoDiff, contentDocs,
-  contentSig, scan, scanPayload, adoptWorkerScan,
+  contentSig, scan, scanPayload, adoptWorkerScan, mountSharedRoot, unmountSharedRoot,
 };

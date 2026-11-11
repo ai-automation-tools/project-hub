@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, validateFolderIcon, writeFolderIcons, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, keyOf, removeBookmark, duplicateBookmark,
   resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins } from './navigation.mjs';
@@ -503,6 +503,32 @@ test('/api/roots is loopback-only, not just same-origin', () => {
   assert.match(route, /!sameOrigin\(req\) \|\| !LOCAL_HOSTS\.has\(req\.headers\.host/);
   assert.match(src, /const LOCAL_HOSTS = new Set\(\['127\.0\.0\.1', 'localhost', '\[::1\]'\]\.map/);
   assert.match(route, /validateNewRoot\(input, ROOTS, safeIsDir\)/);
+});
+
+test('folder icons: validated, written atomically, and a bad hand edit is dropped at load', () => {
+  assert.deepEqual(validateFolderIcon('Documents', 'docs'), { id: 'Documents', icon: 'docs' });
+  assert.deepEqual(validateFolderIcon('@projects', null), { id: '@projects', icon: null });
+  for (const icon of ['', 'Docs', '<svg>', 'a'.repeat(41), 7]) assert.throws(() => validateFolderIcon('Documents', icon), /icon/);
+  for (const id of ['', 'a\nb', 'x'.repeat(301), 3]) assert.throws(() => validateFolderIcon(id, 'docs'), /folder/);
+
+  const file = tmpConfig({ port: 4300, base: 'D:/Work', title: 'kept', folderIcons: { Documents: 'docs', bad: '<b>', '': 'docs' } });
+  assert.deepEqual(loadConfig(file).folderIcons, { Documents: 'docs' });
+  writeFolderIcons(file, { Documents: 'images', '@projects': 'project' });
+  assert.deepEqual(JSON.parse(fs.readFileSync(file, 'utf8')).folderIcons, { Documents: 'images', '@projects': 'project' });
+  assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).title, 'kept');
+  writeFolderIcons(file, {});
+  assert.equal('folderIcons' in JSON.parse(fs.readFileSync(file, 'utf8')), false);
+  assert.deepEqual(loadConfig(tmpConfig({ port: 4300, base: 'D:/Work' })).folderIcons, {});
+});
+
+test('/api/folder-icons writes are loopback-only and validated', () => {
+  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const start = src.indexOf("url.pathname === '/api/folder-icons'");
+  const route = src.slice(start, src.indexOf('url.pathname ===', start + 1));
+  assert.match(route, /!sameOrigin\(req\) \|\| !LOCAL_HOSTS\.has\(req\.headers\.host/);
+  assert.match(route, /validateFolderIcon\(input\?\.id, input\?\.icon \?\? null\)/);
+  // The GET answers before the gate, so the write check must come before the PUT branch.
+  assert.ok(route.indexOf('LOCAL_HOSTS') < route.indexOf("req.method !== 'PUT'"));
 });
 
 test('loadConfig rejects what would otherwise fail deep in a scan', () => {

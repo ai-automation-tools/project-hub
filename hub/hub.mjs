@@ -26,16 +26,19 @@ import { launchNative } from './open-native.mjs';
 import { ignorePictureEvent } from './pictures.mjs';
 import { browserDirs, listSources, readSource, createFavicons, createFrameCheck, cleanTree, loadFavorites, saveFavorites } from './webmarks.mjs';
 import {
-  HERE, argv, argOf, CONFIG_FILE, IS_MAIN, CONFIG, HUB_DIR, PROJECTS, SHARED_ROOTS, ROOTS, MOUNTED_ROOTS,
-  USER_RUNTIMES, SKIP_DIRS, DOT_OK, NOISE_FILE, SECRET_DIRS, SERVE_DIRS, posix, rel, resolveId, readHeadAsync,
+  HERE, argv, argOf, CONFIG_FILE, IS_MAIN, CONFIG, HUB_DIR, PROJECTS, SHARED_ROOTS, ROOTS,
+  USER_RUNTIMES, SKIP_DIRS, DOT_OK, NOISE_FILE, SECRET_DIRS, posix, rel, resolveId, readHeadAsync,
   descCache, readErrors, readErrorLog, kindOfFile, pictureRoot, pictures, safeIsDir,
   folderStamps, repoChanges, repoDiff, contentDocs, contentSig, scan, scanPayload, adoptWorkerScan,
+  mountSharedRoot, unmountSharedRoot,
   validateNewRoot, writeSharedRoots, validateScanDepth, writeScanDepth,
+  FOLDER_ICONS_MAX, validateFolderIcon, writeFolderIcons,
 } from './scan.mjs';
 import { frontmatter, docTags, docMeta, checkLinks, md2html } from './markdown.mjs';
 
 export {
   loadConfig, loadProjectConfig, ROOT_TINTS, validateNewRoot, writeSharedRoots, validateScanDepth, writeScanDepth,
+  validateFolderIcon, writeFolderIcons,
   IS_MAIN, projectsDir, DOC_FILE, runtimeServePaths, createResolveId, routineStatus, kindOfFile, scanTree,
   fileStamp, folderStamps, RECENT_DAYS, RECENT_DOCS_MAX, recentDocs, scanSignature, gitSignature, gitHitValid,
   CHANGES_MAX, DIFF_MAX, parseStatusZ, roadmapProgress, scopeRepos, CONTENT_FILE,
@@ -350,6 +353,38 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Icons for the Explorer's top-level folders. Anyone who can see the hub can read them;
+  // only the machine running it can change them, like the folder list itself.
+  if (url.pathname === '/api/folder-icons') {
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify({ icons: CONFIG.folderIcons }));
+      return;
+    }
+    if (!sameOrigin(req) || !LOCAL_HOSTS.has(req.headers.host || '')) {
+      res.writeHead(403).end('Folder icons can only be changed on the computer running the hub.'); return;
+    }
+    if (req.method !== 'PUT') { res.writeHead(405, { allow: 'GET, PUT' }).end('method not allowed'); return; }
+    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) { res.writeHead(415).end('application/json required'); return; }
+    let body = '';
+    for await (const chunk of req) {
+      body += chunk;
+      if (body.length > 1024) { res.writeHead(413).end('request too large'); req.destroy(); return; }
+    }
+    let change;
+    try { const input = JSON.parse(body); change = validateFolderIcon(input?.id, input?.icon ?? null); }
+    catch (e) { res.writeHead(400).end(e instanceof SyntaxError ? 'expected a JSON object' : e.message); return; }
+    // No prototype, so an id like `__proto__` is stored as a key like any other.
+    const next = Object.assign(Object.create(null), CONFIG.folderIcons);
+    if (change.icon === null) delete next[change.id];
+    else next[change.id] = change.icon;
+    if (Object.keys(next).length > FOLDER_ICONS_MAX) { res.writeHead(400).end('Too many folder icons.'); return; }
+    try { writeFolderIcons(CONFIG_FILE, next); }
+    catch { res.writeHead(500).end(`could not save ${CONFIG_FILE}`); return; }
+    CONFIG.folderIcons = next;
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify({ icons: next }));
+    return;
+  }
+
   // Nothing was watching the hub when it died of a descriptor leak on 2026-08-31; the
   // first anyone knew was a dead browser tab hours later. This is what a watchdog reads.
   if (url.pathname === '/api/health') {
@@ -475,7 +510,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify(settings()));
     // Finish any older scan first so its cached result cannot swallow this change.
     setImmediate(async () => {
-      try { if (scanning) await scanning; await rootsChanged('scan depth changed'); }
+      try { if (scanning) await scanning; await rootsChanged('scan depth changed', true); }
       catch (e) { console.error('Could not refresh scan settings:', e.message); }
     });
     return;
@@ -517,9 +552,11 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(500).end(`could not save ${CONFIG_FILE}`);
       return;
     }
-    await rootsChanged(why);
+    // Answer once the folder is mounted and saved; the rescan that puts it in the tree
+    // takes as long as a whole scan (~25s here), and its change event updates every page.
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' })
       .end(JSON.stringify({ sharedRoots: SHARED_ROOTS.map((r) => ({ name: r.name, dir: r.dir, tint: r.tint })) }));
+    rootsChanged(why).catch((e) => console.error(`Could not rescan after ${why}:`, e.message));
     return;
   }
 
@@ -806,32 +843,32 @@ function watchDir(dir) {
 if (IS_MAIN) for (const dir of WATCH) watchDir(dir);
 
 // Mount or unmount a shared root without a restart. Every list a root was copied into at
-// startup is updated in place: the scan (ROOTS, SHARED_ROOTS), the walker's prune set,
-// resolveId's SERVE_DIRS gate, and the watcher. The Pictures root stays fixed, since its
-// lazy library is wired up once at boot.
+// startup is updated in place, in this thread and in the scan worker's copy of scan.mjs
+// (see mountSharedRoot), plus the watcher. The Pictures root stays fixed, since its lazy
+// library is wired up once at boot.
 function mountRoot(r) {
-  SHARED_ROOTS.push(r);
-  ROOTS.push(r);
-  MOUNTED_ROOTS.add(r.dir.toLowerCase());
-  SERVE_DIRS.push(r.dir);
+  mountSharedRoot(r);
+  scanWorker?.postMessage({ mount: r });
   WATCH.push(r.dir);
   watchDir(r.dir);
 }
 function unmountRoot(r) {
-  const drop = (list, item) => { const i = list.indexOf(item); if (i > -1) list.splice(i, 1); };
-  drop(SHARED_ROOTS, r);
-  drop(ROOTS, r);
-  drop(SERVE_DIRS, r.dir);
-  drop(WATCH, r.dir);
-  MOUNTED_ROOTS.delete(r.dir.toLowerCase());
+  unmountSharedRoot(r.dir);
+  scanWorker?.postMessage({ unmount: r.dir });
+  const i = WATCH.indexOf(r.dir);
+  if (i > -1) WATCH.splice(i, 1);
   watchers.get(r.dir)?.close();
   watchers.delete(r.dir);
 }
-/** Rescan now (not after the watcher's debounce) and tell every open page. */
-async function rootsChanged(why) {
+/**
+ * Rescan now (not after the watcher's debounce) and tell every open page. `restart` is for
+ * changes the worker only reads at startup, like the scan depth; a mounted root reaches it
+ * as a message instead, so it keeps its caches.
+ */
+async function rootsChanged(why, restart = false) {
   dirty = true;
   if (scanning) await scanning.catch(() => {});   // an in-flight scan predates the change
-  restartScanWorker();                            // and so does the worker's copy of the config
+  if (restart) restartScanWorker();
   await rescan(false).catch(() => {});
   for (const res of sse) res.write(`event: change\ndata: ${JSON.stringify({ why })}\n\n`);
 }

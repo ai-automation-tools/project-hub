@@ -22,6 +22,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 ## 2026-11-10
 
 - Docs: the nested-root example in the user manual and engine reference is now a generic `Documents/Research`. The maintainer's `Documents/Links` root it named no longer exists: those links moved into each domain's own `Links/` folder
+- Security: the HTML filter in the markdown renderer runs in linear time on a tag full of quotes (it backtracked exponentially, which could hang the hub on one document), and escapes a `<` that doesn't open a complete tag instead of passing it through. The favicon colours now escape every `#`, and a `vscode:` link is kept only when it is a `vscode://file/` link
 
 ## 2026-11-06
 

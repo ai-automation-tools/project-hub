@@ -59,9 +59,9 @@ export {
 const favicon = ({ glyph, ink, line }) => 'data:image/svg+xml,'
   + "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
   + "<rect width='32' height='32' rx='6' fill='%230a0c0e'/>"
-  + `<rect x='.5' y='.5' width='31' height='31' rx='5.5' fill='none' stroke='${line.replace('#', '%23')}'/>`
+  + `<rect x='.5' y='.5' width='31' height='31' rx='5.5' fill='none' stroke='${line.replaceAll('#', '%23')}'/>`
   + "<text x='16' y='24' font-family='ui-monospace,monospace' font-size='21' font-weight='700' "
-  + `text-anchor='middle' fill='${ink.replace('#', '%23')}'>${glyph}</text></svg>`;
+  + `text-anchor='middle' fill='${ink.replaceAll('#', '%23')}'>${glyph}</text></svg>`;
 
 const csp = (nonce) => [
   "default-src 'self'",

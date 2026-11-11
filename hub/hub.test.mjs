@@ -307,6 +307,17 @@ test('script and style take their contents with them', () => {
   assert.equal(sanitizeHtml('<div><script>alert(1)</script>ok</div>'), '<div>ok</div>');
 });
 
+test('a tag left unclosed becomes text, so a later > cannot finish it', () => {
+  assert.equal(sanitizeHtml('<div>x</div><img src=x onerror=y '), '<div>x</div>&lt;img src=x onerror=y ');
+  assert.equal(sanitizeHtml('<!-- open'), '&lt;!-- open');
+});
+
+test('a tag full of quotes is filtered in linear time', () => {
+  const t = Date.now();
+  sanitizeHtml('<a ' + '"'.repeat(5000));
+  assert.ok(Date.now() - t < 1000, 'the attribute pattern must not backtrack exponentially');
+});
+
 test('only http, https, mailto and relative URLs are kept', () => {
   for (const bad of ['javascript:alert(1)', 'JavaScript:alert(1)', 'data:text/html,x', 'vbscript:x']) {
     assert.doesNotMatch(sanitizeHtml(`<a href="${bad}">`), /href/, bad);
@@ -955,6 +966,7 @@ test('vscode://file links resolve to an absolute path the hub can look up', () =
   assert.equal(vscodeFilePath('vscode://file/D:/Work/Docs'), 'D:/Work/Docs');
   assert.equal(vscodeFilePath('https://x.dev'), '');
   assert.match(sanitizeHtml('<a href="vscode://file/D:/Work/x.html">'), /href="vscode:/);
+  assert.doesNotMatch(sanitizeHtml('<a href="vscode://some.extension/run?x=1">'), /href/);
 });
 
 // A module script that declares a name it also imports fails to load at all, and the page

@@ -148,13 +148,15 @@ const TAG_ATTRS = {
 };
 const URL_ATTRS = new Set(['href', 'src', 'srcset']);
 
-/** http, https, mailto, vscode, or no scheme at all (relative paths and #anchors). */
+/** http, https, mailto, vscode://file/, or no scheme at all (relative paths and #anchors). */
 function safeUrl(value) {
   // Control characters and stray whitespace inside a scheme are a classic way to smuggle
   // `java\tscript:` past a naive check; browsers ignore them, so strip before testing.
   const v = value.replace(/[\u0000-\u0020]/g, '');
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(v);
-  return !scheme || /^(https?|mailto|vscode)$/i.test(scheme[1]);
+  // vscode: only for file links. Other vscode:// authorities are extension URI handlers,
+  // which a document has no business triggering.
+  return !scheme || /^(https?|mailto)$/i.test(scheme[1]) || /^vscode:\/\/file\//i.test(v);
 }
 
 const attrEsc = (v) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -168,8 +170,13 @@ export function sanitizeHtml(chunk) {
     .replace(/<(script|style)\b[^>]*>/gi, '')
     .replace(/<!--[\s\S]*?-->/g, '');
 
-  return stripped.replace(/<(\/?)([a-zA-Z][\w-]*)((?:"[^"]*"|'[^']*'|[^>])*)>/g,
-    (_m, close, tag, attrs) => {
+  // The attribute run can't let a quote match both as a quoted string and as a plain
+  // character: that ambiguity backtracked exponentially on a tag full of quotes. Any `<`
+  // left that doesn't open a complete tag (an unclosed `<img ...` at the end of a chunk,
+  // which the next chunk's `>` would otherwise close) is escaped to text.
+  return stripped.replace(/<(\/?)([a-zA-Z][\w-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>|</g,
+    (m, close, tag, attrs) => {
+      if (m === '<') return '&lt;';
       const t = tag.toLowerCase();
       if (!HTML_TAGS.has(t)) return '';
       if (close) return `</${t}>`;

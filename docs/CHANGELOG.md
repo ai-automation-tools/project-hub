@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-11
 
+- Roadmap: rechecked against the org's 2026-11 requirements. The intro names the roadmap routine without its day and time, and the test-count badge is gone (it said 120 while the suite had grown past it; nothing kept it current). New items P9-64 to P9-68: a supported Node floor with v7 actions, `docs/UPSTREAMS.md` and its upstream job (🔒 to register), and a Cronsole catalog with a `project-hub-watchdog` template, built here and mirrored to project-hub-site (🔒 deploy key)
 - Open documents in tabs: **Open in New Tab** on file, folder, bookmark and recent rows; a right-click menu on every tab (bookmark, copy, duplicate, close, close others); browser-style tabs that open into the page; and an **Open documents in multiple tabs** setting, on by default
 - Scaffold skill: the travel copy gains `evals/evals.json`, six test cases added in agent-skills (#93), so the `scaffold copy` check matches again
 

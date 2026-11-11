@@ -428,7 +428,7 @@ is built rather than by a name check in the client:
 The net effect on this machine is roughly 1,600 folders opening on their own README, and
 every purpose-built page untouched.
 
-A shared root may nest inside another one — `Links` is `Documents/Links`, mounted separately
+A shared root may nest inside another one: a root at `Documents/Research`, say, mounted separately
 because it is a destination in its own right rather than a branch of the docs tree. `MOUNTED_ROOTS`
 (every root's dir, lowercased) is checked in `walk()` beside the `SKIP_DIRS` and dot-dir rules, so
 the `Documents` walk stops at that folder instead of indexing the same subtree a second time

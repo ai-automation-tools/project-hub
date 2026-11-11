@@ -366,10 +366,18 @@ halfway through a scan.
 
 **Adding a folder to the sidebar** needs no JSON: **Settings → Folders** (or the folder-plus icon in the
 Explorer header) takes a path — paste one from File Explorer's *Copy as path*, quotes and all —
-and an optional name, and the folder appears next to Projects at once. The ✕ beside a folder
+and an optional name. The setting is saved at once; the folder appears next to Projects when the
+rescan that follows finishes, about as long as any scan takes. The ✕ beside a folder
 removes it from the sidebar; nothing on disk is touched. Both write `sharedRoots` in
 `hub.config.json` and need no restart. They only work in a browser on the hub's own PC: a
 phone on the tailnet sees the list but not the controls.
+
+**Folder icons:** **Settings → Folder icons** gives any top-level folder in the Explorer an
+icon from the Material Icon Theme folder set VS Code uses, in place of its coloured dot. Click
+the swatch beside a folder, filter by name, pick one; **default** brings the dot back. An
+expanded folder shows the open variant, as in VS Code. Saved as `folderIcons` in
+`hub.config.json`, so every browser sees the same icons; like folders, only the hub's own PC
+can change them.
 
 The shared roots — `Documents`, `Pictures`, `Automations`, `Links` and whatever else you
 configure — and the six user-scope runtimes are the same for every project, so they stay in

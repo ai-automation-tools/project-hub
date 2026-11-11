@@ -205,6 +205,10 @@ aside{position:relative;width:min(var(--sbw,284px),50%);flex:0 0 auto;border-rig
   align-items:center;justify-content:center;margin-left:-3px;color:var(--dimmest)}
 .chev[data-toggle]:hover{color:var(--fg)}
 .dot{width:6px;height:6px;flex:0 0 6px;border-radius:2px}
+/* A folder icon takes the dot's place; the negative margins keep the name where it was. */
+.ficon{display:grid;place-items:center;width:16px;height:16px;flex:0 0 16px}
+.node .ficon{margin:0 -3px 0 -4px}
+.ficon svg{width:16px;height:16px;display:block}
 .dot.round{border-radius:50%}
 .nm{font-family:var(--mono);font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg-mid)}
 .node.sel .nm{color:var(--fg-max)}
@@ -229,7 +233,7 @@ aside{position:relative;width:min(var(--sbw,284px),50%);flex:0 0 auto;border-rig
 /* Right-click menu on a tree row. Reaches the same destinations as the header
    action buttons (copy, open, open in VS Code) without selecting the row first,
    plus "open folder", which resolves to the row's parent when the row is a file. */
-.ctxmenu{position:fixed;z-index:60;min-width:172px;background:var(--card);border:1px solid var(--line-b);border-radius:10px;
+.ctxmenu{position:fixed;z-index:60;min-width:172px;max-height:calc(100dvh / var(--zoom) - 12px);overflow-y:auto;background:var(--card);border:1px solid var(--line-b);border-radius:10px;
   box-shadow:0 20px 50px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.03) inset;padding:5px}
 .ctxmenu button{display:block;width:100%;text-align:left;background:none;border:none;border-radius:var(--r-sm);color:var(--fg);
   font-family:var(--sans);font-size:12.5px;padding:7px 10px;cursor:pointer}
@@ -633,9 +637,19 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .rootrow span{flex:1;min-width:0;font-family:var(--mono);font-size:10.5px;color:var(--dimmer);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rootrow .x{font-family:var(--mono);font-size:11.5px;color:var(--dimmer);padding:0 3px;cursor:pointer}
 .rootrow .x:hover{color:var(--red)}
+.ficonpick{display:grid;place-items:center;width:28px;height:26px;flex:0 0 28px;padding:0;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line-b);border-radius:var(--r-sm)}
+.ficonpick:hover:not(:disabled),.ficonpick[aria-expanded="true"]{border-color:var(--dimmer);background:var(--surface-2)}
+.ficonpick:disabled{cursor:default;opacity:.7}
+.ficonpick .dot{width:8px;height:8px;flex:0 0 8px}
+.ficongrid{margin:4px 0 10px;padding:8px;background:var(--sunken);border:1px solid var(--line-a);border-radius:var(--r-md)}
+.ficongrid input{width:100%;margin-bottom:8px}
+.ficongrid .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:4px;max-height:220px;overflow-y:auto}
+.ficongrid .opts .ficonpick{width:auto}
+.ficongrid .opts .ficonpick.on{border-color:var(--green);background:color-mix(in srgb,var(--green) 13%,transparent)}
 .rootform{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.rootform input{font-family:var(--sans);font-size:12.5px;color:var(--fg);background:var(--surface);border:1px solid var(--line-b);border-radius:var(--r-sm);padding:5px 8px;min-width:0}
-.rootform input:focus{outline:none;border-color:var(--dimmest)}
+.rootform input,.ficongrid input{font-family:var(--sans);font-size:12.5px;color:var(--fg);background:var(--surface);border:1px solid var(--line-b);border-radius:var(--r-sm);padding:5px 8px;min-width:0}
+.rootform input:focus,.ficongrid input:focus{outline:none;border-color:var(--dimmest)}
 .rootform .setpair input{flex:1}
 .rooterr{color:var(--red);margin:0}
 .switch{appearance:none;-webkit-appearance:none;position:relative;width:32px;height:18px;flex:0 0 32px;margin:0;border-radius:9px;
@@ -845,6 +859,12 @@ details[open]>summary .fchev{transform:rotate(90deg)}
         </form>
         <p class="sethelp" id="roots-remote" hidden>Folders can only be added or removed on the computer running the hub.</p>
       </section>
+      <section class="set" id="set-ficons">
+        <h3>Folder icons</h3>
+        <p class="sethelp">Give a top-level folder in the Explorer an icon from the Material Icon Theme folder set VS Code uses. Saved in hub.config.json.</p>
+        <div id="ficon-list"></div>
+        <p class="sethelp" id="ficon-remote" hidden>Folder icons can only be changed on the computer running the hub.</p>
+      </section>
       <section class="set">
         <h3>Sidebar</h3>
         <div class="setbtns">
@@ -917,6 +937,138 @@ const TINT = {
   image:'var(--purple)', html:'var(--orange)', pdf:'var(--red)', projects:'var(--green)',
 };
 const ROUND = new Set(['root','docroot','userroot','repo','draft','projects']);
+
+// ── folder icons ───────────────────────────────────────────────────────────
+// The folder set from Material Icon Theme 5.40.0, the icons VS Code shows in its Explorer
+// (github.com/material-extensions/vscode-material-icon-theme). Every icon in the set is the
+// same folder outline in its own colour plus a motif, and the open variant differs only in
+// the outline, so each is stored as [folder colour, motif paths] around two shared shapes.
+// Kept to icons drawn from plain <path> elements. Settings assigns them to the Explorer's
+// top-level folders; the choice is saved in hub.config.json as `folderIcons`.
+//
+// The MIT License (MIT)
+// Copyright (c) 2025 Material Extensions
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this
+// software and associated documentation files (the "Software"), to deal in the Software
+// without restriction, including without limitation the rights to use, copy, modify,
+// merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+// PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+// FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+const FOLDER_SHAPE = { closed: 'm6.922 3.768-.644-.536A1 1 0 0 0 5.638 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H7.562a1 1 0 0 1-.64-.232', open: 'M14.483 6H4.721a1 1 0 0 0-.949.684L2 12V5h12a1 1 0 0 0-1-1H7.562a1 1 0 0 1-.64-.232l-.644-.536A1 1 0 0 0 5.638 3H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11l2.403-5.606A1 1 0 0 0 14.483 6' };
+const FOLDER_ICONS = {
+  folder: ['#90a4ae', ''],
+  admin: ['#546e7a', '<path fill="#cfd8dc" d="M12.5 5 9 6.636v2.455c0 2.27 1.493 4.394 3.5 4.909 2.007-.515 3.5-2.639 3.5-4.91V6.637Zm0 1.637a1.229 1.229 0 1 1-1.166 1.227A1.2 1.2 0 0 1 12.5 6.637m1.995 4.908a3.8 3.8 0 0 1-1.995 1.604 3.8 3.8 0 0 1-1.995-1.604 4 4 0 0 1-.339-.625c0-.676 1.054-1.228 2.334-1.228s2.333.54 2.333 1.228a4 4 0 0 1-.338.625"/>'],
+  animation: ['#ec407a', '<path fill="#f8bbd0" d="M12.5 7a3.5 3.5 0 0 0-1 .145 3.5 3.5 0 0 0-2 0A3.5 3.5 0 0 0 8.5 7a3.5 3.5 0 0 0 0 7 3.5 3.5 0 0 0 1-.145 3.5 3.5 0 0 0 2 0 3.5 3.5 0 0 0 1 .145 3.5 3.5 0 0 0 0-7M6 10.5a2.5 2.5 0 0 1 2.005-2.45 3.49 3.49 0 0 0 0 4.9 2.5 2.5 0 0 1-2.006-2.45m4.006 2.45a2.5 2.5 0 0 1 0-4.9 3.49 3.49 0 0 0 0 4.9M11.5 8.205a2.506 2.506 0 0 1 0 4.59 2.506 2.506 0 0 1 0-4.59m1.495 4.745a3.49 3.49 0 0 0 0-4.9 2.5 2.5 0 0 1 0 4.9"/>'],
+  api: ['#fbc02d', '<path fill="#fffde7" d="M10 9H8v1h3V7h-1zm4 0V7h-1v3h3V9Zm-6 4h2v2h1v-3H8Zm5 0v2h1v-2h2v-1h-3z"/>'],
+  app: ['#ef5350', '<path fill="#ffcdd2" d="M8 6h2v2H8Zm3 0h2v2h-2zm3 0h2v2h-2ZM8 9h2v2H8Zm3 0h2v2h-2zm3 0h2v2h-2zm-6 3h2v2H8Zm3 0h2v2h-2zm3 0h2v2h-2z"/>'],
+  archive: ['#ffa726', '<path fill="#ffe0b2" d="M8 5c-.554 0-1 .446-1 1v1c0 .554.446 1 1 1v5c0 .554.446 1 1 1h5c.554 0 1-.446 1-1V8c.554 0 1-.446 1-1V6c0-.554-.446-1-1-1Zm0 1h7v1H8Zm2 2h3v1h-3z"/>'],
+  attachment: ['#9c27b0', '<path fill="#e1bee7" d="M15 6.503V8.5a1.5 1.5 0 0 1-1.5 1.5h-5a.5.5 0 0 1 0-1h5V8h-5a1.5 1.5 0 1 0 0 3h5A2.5 2.5 0 0 0 16 8.5c0-.817-.394-1.54-1-1.997"/>'],
+  audio: ['#ef5350', '<path fill="#ffcdd2" d="M15.75 6h-2.5a.25.25 0 0 0-.25.25v4.027a1.95 1.95 0 0 0-1.615-.179 2 2 0 0 0 .928 3.877A2.05 2.05 0 0 0 14 11.923V8h1.75a.25.25 0 0 0 .25-.25v-1.5a.25.25 0 0 0-.25-.25"/>'],
+  benchmark: ['#1e88e5', '<path fill="#bbdefb" d="M10 6a4.995 4.995 0 0 0-3.995 8H7.36A3.997 3.997 0 0 1 10 7a4 4 0 0 1 .846.09c.365-.22.754-.45 1.14-.676A4.9 4.9 0 0 0 10 6m4.242.758S9.366 8.804 8.585 9.586a2 2 0 0 0 2.829 2.828c.781-.78 2.828-5.656 2.828-5.656m.318 2.203c-.205.365-.43.759-.66 1.164A4 4 0 0 1 14 11a4 4 0 0 1-1.36 3h1.354A4.97 4.97 0 0 0 15 11a4.9 4.9 0 0 0-.44-2.04"/>'],
+  blender: ['#ff9800', '<path fill="#ffe0b2" d="M14.978 9.843a3.2 3.2 0 0 0-1.074-1.935c-.188-.16-2.748-2.125-3.375-2.592l-.179-.138a.523.523 0 1 0-.637.828l1.26.97.031.024H6.498a.497.497 0 0 0-.04.992l.003.002.015.002.022.004h2.256l-3.867 2.98a.78.78 0 0 0-.263.608.5.5 0 0 0 .22.412.74.74 0 0 0 .758.012 1.6 1.6 0 0 0 .38-.277 116 116 0 0 1 1.842-1.5 1 1 0 0 1-.006.134 1.8 1.8 0 0 0 .045.629 3.1 3.1 0 0 0 .54 1.144 3.64 3.64 0 0 0 2.29 1.38c.125.022.212.033.437.055.08.008.592-.004.69-.015a3.75 3.75 0 0 0 2.19-1.01 3.2 3.2 0 0 0 .963-1.8 4 4 0 0 0 .004-.908m-1.401.465a1.9 1.9 0 0 1-.545 1.024 2 2 0 0 1-.619.441 2.4 2.4 0 0 1-.806.218 2.14 2.14 0 0 1-2.418-1.906 1.95 1.95 0 0 1 1.041-1.784 2.38 2.38 0 0 1 2.846.4 1.9 1.9 0 0 1 .325.467 1.8 1.8 0 0 1 .17.489 2.3 2.3 0 0 1 .006.652m-.775-.667a.9.9 0 0 1 .03.28.9.9 0 0 1-.025.273 1.2 1.2 0 0 1-.362.608 1.43 1.43 0 0 1-.879.386 1 1 0 0 1-.275-.001 1.4 1.4 0 0 1-1.133-.755 2 2 0 0 1-.077-.196 1.18 1.18 0 0 1 .301-1.138 1.43 1.43 0 0 1 .753-.412 1.7 1.7 0 0 1 .766.043 1.34 1.34 0 0 1 .901.911"/>'],
+  claude: ['#ff7043', '<path fill="#ffccbc" d="m8.834 5-.201.045-.309.393.137.603 1.506 2.717-.383-.293L7.48 6.92h-.1l-.35-.05-.3.349.1.398.15.2L9.885 9.86l.043.043-1.145-.091-2.556-.15L6 9.74v.22l.227.25.2.052 3.454.177-2 1.268-.852.6v.273l.2.229h.501l2.686-1.83-2.184 2.875-.05.248.3.15.2-.05.703-.798 1.53-2.008-.58 3.106.151.299.252.199.301-.1.149-.199.253-3.017 1.702 2.521.351.047.201-.1.05-.15v-.398l-1.179-1.721-.027-.184 1.256 1.106.851.6.15.048.151-.2-.049-.25-2.306-2.144-.03-.052.08.004 2.807.697.551-.233v-.216l-.201-.3-.301-.198-1.252-.1-1.451-.133 3.055-.715.1-.35v-.15l-.35-.199-2.723.436 1.822-2.48.051-.245-.123-.383-.13-.16-.491-.102-.483.39-1.671 2.183.49-2.932-.25-.348-.252-.1-.3.2-.2.398-.34 2.99-.13-.376L9.431 5.21l-.198-.152Z"/>'],
+  client: ['#039be5', '<path fill="#b3e5fc" d="m15 6-7.5.004a.5.5 0 0 0-.5.5V12H5v2h6v-2H8V7.004h7zm-2.5 2a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-5a.5.5 0 0 0-.5-.5zm.5 1h2v3h-2z"/>'],
+  components: ['#c0ca33', '<path fill="#f0f4c3" d="M6 10h4v4H6zm5 0h4v4h-4zM6 5h4v4H6zm4.172 2L13 4.172 15.829 7 13 9.829z"/>'],
+  config: ['#00acc1', '<path fill="#80deea" d="M11.5 12.075A1.6 1.6 0 0 1 9.882 10.5a1.62 1.62 0 1 1 1.62 1.575m3.437-1.138a4 4 0 0 0 .032-.438 4 4 0 0 0-.032-.45l.976-.733a.223.223 0 0 0 .056-.288l-.926-1.556a.23.23 0 0 0-.283-.1l-1.15.45a3.4 3.4 0 0 0-.783-.44l-.171-1.193A.23.23 0 0 0 12.425 6h-1.85a.23.23 0 0 0-.231.189l-.171 1.193a3.4 3.4 0 0 0-.781.44l-1.152-.45a.23.23 0 0 0-.282.1l-.926 1.556a.22.22 0 0 0 .056.288l.975.734a4 4 0 0 0-.032.45 4 4 0 0 0 .032.437l-.975.746a.22.22 0 0 0-.056.288l.925 1.558a.235.235 0 0 0 .283.099l1.152-.455a3.2 3.2 0 0 0 .781.446l.171 1.192a.23.23 0 0 0 .232.189h1.85a.23.23 0 0 0 .232-.189l.17-1.192a3.4 3.4 0 0 0 .783-.446l1.15.455a.24.24 0 0 0 .284-.1l.924-1.557a.223.223 0 0 0-.055-.288Z"/>'],
+  content: ['#00bcd4', '<path fill="#b2ebf2" d="M5.5 7a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5zM10 8h5v5h-5zm1 1v1h3V9zm0 2v1h3v-1z"/>'],
+  cursor: ['#e0e0e0', '<path fill="#424242" fill-rule="evenodd" d="m11 14 4-7v5ZM7 7l4-2.337L15 7Zm0 0 4 2v5l-4-2Z"/>'],
+  database: ['#ffca28', '<path fill="#ffecb3" d="M12 5a4 2 0 0 0-4 2 4 2 0 0 0 4 2 4 2 0 0 0 4-2 4 2 0 0 0-4-2M8 8v2c0 1.105 1.791 2 4 2s4-.895 4-2V8c0 1.105-1.791 2-4 2s-4-.895-4-2m0 3v2c0 1.105 1.791 2 4 2s4-.895 4-2v-2c0 1.105-1.791 2-4 2s-4-.895-4-2"/>'],
+  desktop: ['#039be5', '<path fill="#b3e5fc" d="M15 6H7a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h3v1H9v1h4v-1h-1v-1h3a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1m0 6H7V7h8z"/>'],
+  docs: ['#0277bd', '<path fill="#b3e5fc" d="M12 5H8.5a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V8Zm0 8H9v-1h3zm2-2H9v-1h5zm-2.414-2.586V6L14 8.414Z"/>'],
+  download: ['#4caf50', '<path fill="#c8e6c9" d="M13 5v3h2l-3.5 4L8 8h2V5Zm2 8v1H8v-1z"/>'],
+  environment: ['#66bb6a', '<path fill="#c8e6c9" d="m11.5 8-1.874 2.5 1.425 1.899-.801.601L8 10l-3 4h11z"/>'],
+  examples: ['#009688', '<path fill="#b2dfdb" d="M8 7v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1m1 0h1a1 1 0 0 1-1 1Zm0 2a2 2 0 0 0 2-2h1a3.003 3.003 0 0 1-3 3zm0 4 2-2 .8.8L13 10l2 3z"/>'],
+  font: ['#ff5252', '<path fill="#ffcdd2" d="M12.039 6h-1.077L8 14h1.211L10 12h3l.789 2H15Zm-1.82 5L11.5 7.382 12.776 11Z"/>'],
+  'gemini-ai': ['#42a5f5', '<path fill="#bbdefb" d="M16 11.01A5.327 5.327 0 0 0 11.01 16h-.02A5.325 5.325 0 0 0 6 11.01v-.02A5.325 5.325 0 0 0 10.99 6h.02A5.327 5.327 0 0 0 16 10.99Z"/>'],
+  generator: ['#ef5350', '<path fill="#ffcdd2" d="M12 6.5V8l2-2-2-2v1.5a3.99 4.008 0 0 0-4 4 3.95 3.967 0 0 0 .62 2.13l.73-.731A2.93 2.943 0 0 1 9 9.5a2.994 3.007 0 0 1 3-3m3.38.87-.73.73A2.985 2.997 0 0 1 12 12.5V11l-2 2 2 2v-1.5a3.99 4.008 0 0 0 4-4 3.936 3.952 0 0 0-.62-2.13"/>'],
+  'gh-workflows': ['#546e7a', '<path fill="#eceff1" d="M12 11v1h-1a1 1 0 0 1-1-1V9h1V6H8v3h1v2a2 2 0 0 0 2 2h1v1h3v-3ZM9 8V7h1v1zm5 5h-1v-1h1z"/>'],
+  git: ['#ff7043', '<path fill="#ffccbc" d="m6.297 9.295 2.892-2.897.846.85a.99.99 0 0 0 .465 1.116v2.772a1 1 0 0 0-.5.865 1.001 1.001 0 0 0 2.001 0 1 1 0 0 0-.5-.865V8.704l1.035 1.046a.6.6 0 0 0-.035.25 1.001 1.001 0 1 0 1.001-1.001.6.6 0 0 0-.25.035l-1.287-1.285a.99.99 0 0 0-.575-1.171 1.05 1.05 0 0 0-.64-.045l-.851-.846.396-.39a.987.987 0 0 1 1.41 0l3.998 3.998a.987.987 0 0 1 0 1.41l-3.998 3.998a.987.987 0 0 1-1.41 0l-3.998-3.998a.987.987 0 0 1 0-1.41"/>'],
+  github: ['#546e7a', '<path fill="#eceff1" d="M11.5 5A4.516 4.516 0 0 0 7 9.532a4.54 4.54 0 0 0 3.079 4.305c.225.036.296-.105.296-.226v-.766c-1.246.272-1.512-.607-1.512-.607a1.2 1.2 0 0 0-.499-.667c-.41-.28.031-.272.031-.272a.95.95 0 0 1 .689.466.963.963 0 0 0 1.31.377.98.98 0 0 1 .283-.607c-1-.114-2.047-.504-2.047-2.23a1.76 1.76 0 0 1 .463-1.228 1.63 1.63 0 0 1 .045-1.196s.377-.123 1.237.462a4.3 4.3 0 0 1 2.25 0c.86-.585 1.239-.462 1.239-.462a1.63 1.63 0 0 1 .044 1.196 1.76 1.76 0 0 1 .464 1.228c0 1.731-1.053 2.112-2.057 2.225a1.1 1.1 0 0 1 .311.839v1.242c0 .122.072.266.301.226A4.54 4.54 0 0 0 11.501 5"/>'],
+  global: ['#5c6bc0', '<path fill="#c5cae9" d="M11 5a5 5 0 1 0 5 5 5 5 0 0 0-5-5m2 1.541A4 4 0 0 1 15 10a4 4 0 0 1-.13 1H13l-1-1V9h-2V7h2v1h1zM13 8.5V9h1v-.5zm-5.94.826L9 10h2l1 1-1 1v2a4.005 4.005 0 0 1-4-4 4 4 0 0 1 .06-.674"/>'],
+  helper: ['#afb42b', '<path fill="#f0f4c3" d="M14.089 6a.8.8 0 0 0-.57.234L11.21 8.579l2.246 2.278 2.314-2.342a.823.823 0 0 0 0-1.14l-1.13-1.141A.77.77 0 0 0 14.09 6m-3.26 2.962-2.37 2.402a.817.817 0 0 0 .004 1.145l.004.004c-.486.496-.978.992-1.467 1.487h2.25l.342-.346a.79.79 0 0 0 1.117-.008l2.366-2.402"/>'],
+  home: ['#ff5252', '<path fill="#ffcdd2" d="m10 6-6 5h2v4h3v-3h2v3h3v-4h2z"/>'],
+  images: ['#009688', '<path fill="#b2dfdb" d="M12 5H8.5a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V8Zm-2 3a1 1 0 1 1-1 1 1.005 1.005 0 0 1 1-1m4 5H9l2-2 1 1 2-2zm-2.414-4.586V6L14 8.414Z"/>'],
+  javascript: ['#ffca28', '<path fill="#ffecb3" d="M12.003 9.533a.664.663 0 0 0 .15.518 1.249 1.246 0 0 0 .305.14c.27.09.664.184 1.044.31 1.318.438 1.478 1.156 1.493 1.74q.006.118.005.228v.025c0 .529-.23 1.391-1.718 1.486a2 2 0 0 1-.185.005.5.499 0 0 1-.095.005h-1.998v-.877l.12-.12h1.878a.999.997 0 0 0 .125-.005h.085c.09-.005.165-.015.235-.02a.999.997 0 0 0 .135-.03l.094-.03a.02.02 0 0 0 .015-.005c.245-.09.295-.224.305-.329a.5.499 0 0 0 .005-.08c0-.16-.34-.613-1.498-.997-1.369-.453-1.489-1.206-1.494-1.8a.3.3 0 0 1-.005-.064v-.13a1.423 1.42 0 0 1 .225-.793c.02-.03.035-.055.055-.08.005-.005.005-.01.01-.015a.5.499 0 0 1 .09-.1 2.148 2.144 0 0 1 1.573-.508H15v.997h-1.998q-.098-.001-.195.005c-.589.03-.744.2-.789.35a.1.1 0 0 0-.005.03.5.499 0 0 0-.01.114zM8.008 13.99a1.818 1.815 0 0 1-1.998-1.994h.999c0 .718.28.997.999.997s.999-.28.999-.997V8.007h.999v3.989a1.818 1.815 0 0 1-1.998 1.994"/>'],
+  job: ['#ffa000', '<path fill="#ffecb3" d="M15 7h-2V6l-1-1h-2L9 6v1H7a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1m-5-1h2v1h-2zm3 5-3.511 2-.508-.862 2.78-1.636-2.78-1.634.508-.862L13 10Z"/>'],
+  keys: ['#26a69a', '<path fill="#b2dfdb" d="M10.827 10a3 3 0 1 0 0 2H13v2h2v-2h1v-2zm-2.825 2a1 1 0 1 1 1-1 1 1 0 0 1-1 1"/>'],
+  layout: ['#039be5', '<path fill="#b3e5fc" d="M5 8h3v7H5Zm4 4h3v3H9Zm4 0h3v3h-3ZM9 8h7v3H9Z"/>'],
+  lib: ['#c0ca33', '<path fill="#f0f4c3" d="M11.5 8a1.5 1.5 0 0 0 .002-3H11.5A1.5 1.5 0 0 0 10 6.5 1.5 1.5 0 0 0 11.5 8m0 1.987C10.387 8.947 8.523 7.996 7 8v5c1.595 0 3.425 1.002 4.5 2 1.113-1.039 2.978-2.002 4.5-2V8c-1.522-.003-3.387.947-4.5 1.986"/>'],
+  link: ['#7e57c2', '<path fill="#d1c4e9" d="M11.5 5A1.5 1.5 0 0 0 10 6.5a1.5 1.5 0 0 0 1 1.41V9h-.5a.5.5 0 0 0 0 1h.5v2.977c-1.695-.139-3-.97-3-1.977h1L7 9v2c0 1.657 2.015 3 4.5 3s4.5-1.343 4.5-3V9l-2 2h1c0 1.007-1.305 1.838-3 1.977V10h.5a.5.5 0 0 0 0-1H12V7.91a1.5 1.5 0 0 0 1-1.41A1.5 1.5 0 0 0 11.5 5m0 1a.5.5 0 1 1 0 1 .5.5 0 0 1 0-1"/>'],
+  linux: ['#f9a825', '<path fill="#ffecb3" d="M12.31 8.175c-.21.14-.875.52-.975.595a.41.41 0 0 1-.57-.005c-.1-.08-.765-.46-.975-.595-.24-.154-.225-.35.04-.46a3.08 3.08 0 0 1 2.454.016c.245.105.255.3.025.45zm3.608 3.64A9.6 9.6 0 0 0 14 8.985a2.15 2.15 0 0 1-.53-.94c-.05-.164-.085-.334-.12-.504A5.7 5.7 0 0 0 13 6.236a2.03 2.03 0 0 0-1.919-1.235 2.1 2.1 0 0 0-1.975 1.2 3 3 0 0 0-.23.67c-.085.38-.16.775-.25 1.16a1.7 1.7 0 0 1-.48.855 9.8 9.8 0 0 0-1.94 2.674 3 3 0 0 0-.184.44c-.095.33.145.56.495.48.22-.045.44-.09.65-.155.205-.075.285-.025.335.175a3.37 3.37 0 0 0 2.12 2.249c2.059.78 4.463-.33 4.983-2.29.035-.134.085-.184.235-.134.23.07.465.12.7.175a.362.362 0 0 0 .46-.32.7.7 0 0 0-.08-.365z"/>'],
+  log: ['#afb42b', '<path fill="#f0f4c3" d="M15.169 7H8.832A.83.83 0 0 0 8 7.832v5.337a.83.83 0 0 0 .832.831h6.336a.83.83 0 0 0 .832-.832V7.833A.83.83 0 0 0 15.168 7M13 13h-3v-1h3zm1-2h-4v-1h4zm0-2h-4V8h4z"/>'],
+  macos: ['#546e7a', '<path fill="#cfd8dc" d="M15.32 13.75c-.41.62-.843 1.224-1.504 1.234-.661.015-.873-.395-1.622-.395-.754 0-.986.385-1.612.41-.646.025-1.134-.66-1.548-1.265-.844-1.235-1.49-3.51-.622-5.04a2.4 2.4 0 0 1 2.032-1.255c.63-.01 1.232.435 1.622.435.385 0 1.114-.535 1.878-.455a2.28 2.28 0 0 1 1.795.99 2.29 2.29 0 0 0-1.06 1.905A2.2 2.2 0 0 0 16 12.334a5.6 5.6 0 0 1-.68 1.416m-2.816-8a2.23 2.23 0 0 1 1.45-.75 2.2 2.2 0 0 1-.513 1.595 1.79 1.79 0 0 1-1.455.71 2.15 2.15 0 0 1 .518-1.555"/>'],
+  mail: ['#ff5252', '<path fill="#ffcdd2" d="M7 8v5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1m8 1-3.5 2L8 9V8l3.5 2L15 8z"/>'],
+  markdown: ['#0277bd', '<path fill="#b3e5fc" d="M11 9v5H9v-3l-1 1-1-1v3H5V9h2l1 1 1-1zm5 3-2 2.5-2-2.5h1V9h2v3z"/>'],
+  messages: ['#ff9800', '<path fill="#fff9c4" d="M15.5 6h-8a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5H9v1.5a.5.5 0 0 0 .5.5h.348a.5.5 0 0 0 .278-.084L13 13h2.5a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5M8 9h4v1H8Zm5 3H8v-1h5zm2-4H8V7h7z"/>'],
+  mobile: ['#ff5252', '<path fill="#ffcdd2" d="M7 6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h4v-1H8V7h6v1h2V7a1 1 0 0 0-1-1Zm5.5 3a.5.5 0 0 0-.5.5v4a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 0-.5-.5Zm.5 1h2v3h-2z"/>'],
+  node: ['#8bc34a', '<path fill="#dcedc8" d="M12.5 6 9 8.036v3.927L12.5 14l3.5-2.037V8.036Z"/>'],
+  obsidian: ['#673ab7', '<path fill="#d1c4e9" d="M11.602 5c-.57.023-1.532 1.27-2.115 1.793l-.333 1.169c.617.506 1.132 1.238 1.353 1.983a3 3 0 0 1 .676-.063c-1.068-2.804 1.53-4.352.582-4.847A.3.3 0 0 0 11.602 5m.95.995c-.44 1.196-1.259 1.778-.535 3.855 1.16.219 2.108.85 2.423 1.826 0 0 .427-.672.52-.837.22-.388-.519-.696-.898-1.586-.328-.772.154-1.682-.255-2.07zM8.933 9l-.885 2.02c-.256.583.561 1.15 1.358 1.977.906-1.273.755-2.78-.473-3.997m2.64 1.57a3.8 3.8 0 0 0-.846.067c.238.98-.13 2.016-.713 2.844 1.035.01 1.852.202 2.837.492.407.12.833-.185.89-.607.043-.307.11-.646.258-.967-.073-.206-.633-1.755-2.426-1.829"/>'],
+  packages: ['#1e88e5', '<path fill="#bbdefb" d="M15.6 6.467 14.8 5.4A1 1 0 0 0 14 5h-4a1 1 0 0 0-.8.4l-.8 1.066a2 2 0 0 0-.4 1.2V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7.667a2 2 0 0 0-.4-1.2M10 6h4l.75 1h-5.5zm3 5v2h-2v-2H9l3-3 3 3z"/>'],
+  pdf: ['#ef5350', '<path fill="#ffcdd2" d="M11.217 8.969a7.4 7.4 0 0 1-.508 1.203 5 5 0 0 0-.247.518l.055-.02a9 9 0 0 1 1.67-.463q-.108-.075-.21-.162a3.1 3.1 0 0 1-.76-1.077m3.236 1.906a.57.57 0 0 1-.45.15 3.6 3.6 0 0 1-1.492-.37 10 10 0 0 0-2.023.375l-.092.035C9.774 12.126 9.314 12.6 8.908 12.6a.5.5 0 0 1-.22-.052l-.24-.157-.011-.027a.4.4 0 0 1-.026-.268 1.9 1.9 0 0 1 .941-1.06 3 3 0 0 1 .445-.244q.223-.393.476-.902a8.7 8.7 0 0 0 .544-1.462l-.003-.006a2.47 2.47 0 0 1-.11-1.633c.055-.193.21-.388.397-.388h.119a.43.43 0 0 1 .304.123c.33.33.179 1.134.011 1.798l-.018.07a2.9 2.9 0 0 0 .799 1.278 4 4 0 0 0 .43.293 6 6 0 0 1 .65-.037c.62 0 .992.112 1.138.343a.4.4 0 0 1 .062.275.48.48 0 0 1-.143.331M15 5H8a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1m-.743 5.522c-.056-.054-.261-.179-.959-.179a.13.13 0 0 0-.115.05 2.7 2.7 0 0 0 .951.256 1 1 0 0 0 .098-.007l.017-.003c.024-.007.04-.015.045-.065zm-4.592.728a2 2 0 0 0-.238.157 1.83 1.83 0 0 0-.607.846c.227-.078.521-.406.845-1.003m1.508-3.453.027-.018c.037-.162.06-.301.08-.412l.016-.081c.048-.27.042-.426-.05-.548l-.073-.025-.033.059a1.83 1.83 0 0 0 .033 1.025"/>'],
+  plugin: ['#0288d1', '<path fill="#b3e5fc" d="M15.054 10H16V8a1 1 0 0 0-1-1h-2V6a1 1 0 0 0-2 0v1H9a1 1 0 0 0-1 1v2H7a1 1 0 0 0 0 2h1v2a1 1 0 0 0 1 1h2v-.946a1.04 1.04 0 0 1 .832-1.04A1 1 0 0 1 13 14v1h2a1 1 0 0 0 1-1v-2h-1a1 1 0 0 1-.986-1.168 1.04 1.04 0 0 1 1.04-.832"/>'],
+  powershell: ['#03a9f4', '<path fill="#b3e5fc" d="M15.627 7.017A.5.5 0 0 0 15.484 7H7.247a.515.515 0 0 0-.498.366l-1.732 6a.504.503 0 0 0 .499.634h8.237a.515.515 0 0 0 .498-.366l1.732-6a.504.503 0 0 0-.356-.617M7.499 13a.5.5 0 0 1-.278-.916l2.494-1.661-1.57-1.57a.5.5 0 0 1 .708-.706l2 2a.5.5 0 0 1-.075.77l-3.002 2A.5.5 0 0 1 7.5 13zm5.502 0h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 0 1"/>'],
+  private: ['#ff5252', '<path fill="#ffcdd2" d="M12 7a4 4 0 1 0 4 4 4 4 0 0 0-4-4m3 4a3 3 0 0 1-.557 1.736l-4.178-4.179A2.995 2.995 0 0 1 15 11m-6 0a3 3 0 0 1 .557-1.735l4.178 4.177A2.995 2.995 0 0 1 9 11"/>'],
+  project: ['#1e88e5', '<path fill="#bbdefb" d="M13.677 10.436 16 12.67l-1.37 1.313-2.307-2.236v-.368l.974-.945zm.376-1.012-.4-.384-1.977 1.92v.788L9.353 14 8 12.672l2.306-2.237h.813l.322-.312-1.585-1.54H9.32L8.16 7.449 9.243 6.4l1.155 1.12v.524l1.605 1.536L13.1 8.516l-.395-.404.535-.524h-1.098l-.268-.26L13.24 6l.272.263v1.065l.541-.529 1.353 1.313a1.11 1.11 0 0 1 0 1.592l-.813-.805Z"/>'],
+  public: ['#039be5', '<path fill="#b3e5fc" d="M11 5a5 5 0 1 0 5 5 5 5 0 0 0-5-5m3.459 3H12.98a8 8 0 0 0-.671-1.77A4.02 4.02 0 0 1 14.459 8M11 6a7 7 0 0 1 .945 2h-1.89A7 7 0 0 1 11 6m-1.309.23A8 8 0 0 0 9.02 8H7.541a4.02 4.02 0 0 1 2.15-1.77M7.131 11a3.85 3.85 0 0 1 0-2h1.704a7.8 7.8 0 0 0 0 2zm.41 1H9.02a8 8 0 0 0 .671 1.77A4.02 4.02 0 0 1 7.541 12M11 14a7 7 0 0 1-.945-2h1.89A7 7 0 0 1 11 14m1.155-3h-2.31a6.7 6.7 0 0 1 0-2h2.31a6.7 6.7 0 0 1 0 2m.154 2.77A8 8 0 0 0 12.98 12h1.479a4.02 4.02 0 0 1-2.15 1.77m2.56-2.77h-1.704a7.8 7.8 0 0 0 0-2h1.704a3.85 3.85 0 0 1 0 2"/>'],
+  resource: ['#fbc02d', '<path fill="#fff9c4" d="M9.5 6a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5zm.5 1h5v1h-5zM7 8v6.5a.5.5 0 0 0 .5.5H14v-1H8V8zm3 1h5v1h-5zm0 2h3v1h-3z"/>'],
+  review: ['#2196f3', '<path fill="#bbdefb" d="M10.5 7C8.17 7 5.825 8.455 5 10.5c.825 2.045 3.17 3.5 5.5 3.5s4.675-1.455 5.5-3.5C15.175 8.455 12.83 7 10.5 7m.115 1.002A2.5 2.5 0 0 1 13 10.5a2.5 2.5 0 0 1-2.5 2.5 2.5 2.5 0 1 1 .115-4.998M10.5 9A1.5 1.5 0 0 0 9 10.5a1.5 1.5 0 0 0 1.5 1.5 1.5 1.5 0 0 0 1.5-1.5A1.5 1.5 0 0 0 10.5 9"/>'],
+  robot: ['#ff5252', '<path fill="#ffcdd2" d="M5.25 13H6v-3h-.75a.25.25 0 0 0-.25.25v2.5a.25.25 0 0 0 .25.25M15 10v3h.75a.25.25 0 0 0 .25-.25v-2.5a.25.25 0 0 0-.25-.25Zm-4.25-4h-.5a.25.25 0 0 0-.25.25V8H7.25a.25.25 0 0 0-.25.25v5.5a.25.25 0 0 0 .25.25h6.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25H11V6.25a.25.25 0 0 0-.25-.25M9 9a1 1 0 1 1-1 1 1 1 0 0 1 1-1m4 4H8v-1h5zm-1-4a1 1 0 1 1-1 1 1 1 0 0 1 1-1"/>'],
+  rules: ['#ef5350', '<path fill="#ffcdd2" d="M15 7h-1a1.5 1.5 0 0 0-3 0h-1a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1m-2.5-.5a.5.5 0 1 1-.5.5.5.5 0 0 1 .5-.5m-.773 5.799-1.547-1.547.545-.545 1.002.998 2.547-2.548.546.549Z"/>'],
+  sandbox: ['#1e88e5', '<path fill="#bbdefb" d="M10.5 10h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5M14 6a2 2 0 1 0 2 2 2 2 0 0 0-2-2m.354 8.854 1.5-1.5a.5.5 0 0 0 0-.707l-1.5-1.5a.5.5 0 0 0-.707 0l-1.5 1.5a.5.5 0 0 0 0 .706l1.5 1.5a.5.5 0 0 0 .706 0m-5.79-3.596-1.5 3a.5.5 0 0 0 .438.743H10.5a.5.5 0 0 0 .437-.743l-1.5-3a.5.5 0 0 0-.873 0"/>'],
+  scripts: ['#546e7a', '<path fill="#cfd8dc" d="M14 6h-3a2 2 0 0 0-2 2v4h1V8h4v4.947a1.04 1.04 0 0 1-.832 1.04A1 1 0 0 1 12 13H8a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V8h1a2 2 0 0 0-2-2"/>'],
+  secure: ['#f9a825', '<path fill="#fff9c4" d="M14 8V6.086a2.06 2.06 0 0 0-1.804-2.076A2 2 0 0 0 10 6v2H9a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1zm-2 4a1 1 0 1 1 1-1 1 1 0 0 1-1 1m1-4h-2V6a1 1 0 0 1 2 0z"/>'],
+  server: ['#fbc02d', '<path fill="#fffde7" d="M7 7.5v2a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5M10 9H8V8h2zm2 0h-1V8h1zm-5 2.5v2a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5m3 1.5H8v-1h2zm2 0h-1v-1h1z"/>'],
+  shared: ['#ab47bc', '<path fill="#e1bee7" d="M14 13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1H7v1h9v-1Zm-2.5-3V9l2 1.399-2 1.601v-1a2.06 2.06 0 0 0-2 1c.224-1.001.444-1.797 2-2"/>'],
+  simulations: ['#ab47bc', '<path fill="#e1bee7" d="m12.048 14-.73-1.707a9.6 9.6 0 0 0 1.966-1.013zM8.707 9.68 7 8.954l2.723-1.235A9.208 9.212 0 0 0 8.707 9.68m7.12-4.507S13.62 4.23 11.1 6.752c-.977.975-1.56 2.05-1.937 2.991a.886.887 0 0 0 .202.949l.949.945a.88.88 0 0 0 .943.205 8.515 8.519 0 0 0 2.993-1.938c2.522-2.524 1.578-4.73 1.578-4.73m-3.155 3.151a.9.9 0 0 1 0-1.261.896.896 0 0 1 1.263 0 .896.896 0 0 1 0 1.261.896.896 0 0 1-1.263 0m-2.522 3.152-.623-.629Zm-1.173 2.438 1.622-1.622a1.386 1.387 0 0 1-.432-.201l-1.819 1.823Zm-1.887 0h.623l2.129-2.121-.635-.63-2.117 2.123zm0-1.262 1.82-1.818a1.287 1.288 0 0 1-.203-.433L7.09 12.025z"/>'],
+  skills: ['#ff8f00', '<path fill="#ffecb3" d="M12 13v1h2v-1zm0-8-2 2v2l1 1v1l1 1h2l1-1v-1l1-1V7l-2-2-1 1v1l-1 1h-1V7l1-1h1l1-1z"/>'],
+  src: ['#4caf50', '<path fill="#c8e6c9" d="M9.225 15a.5.5 0 0 1-.12-.014.57.568 0 0 1-.414-.661l1.549-7.872a.566.565 0 0 1 .254-.372.53.53 0 0 1 .4-.067.57.57 0 0 1 .415.662l-1.552 7.872a.56.56 0 0 1-.253.371.53.53 0 0 1-.28.081m3.105-1h-.038a.54.54 0 0 1-.382-.206.583.582 0 0 1 .057-.774l2.664-2.483-2.653-2.312a.583.582 0 0 1-.08-.772.54.54 0 0 1 .377-.218.53.53 0 0 1 .406.129l3.126 2.727a.579.578 0 0 1 .002.862l-3.114 2.904a.536.535 0 0 1-.365.144zm-4.661 0a.536.535 0 0 1-.365-.146L4.186 10.95a.58.58 0 0 1-.005-.846l.01-.01 3.128-2.726a.516.515 0 0 1 .4-.13.54.54 0 0 1 .38.218.583.582 0 0 1-.08.773l-2.65 2.31 2.663 2.482a.579.578 0 0 1 .056.774.536.535 0 0 1-.381.206z"/>'],
+  svg: ['#ffb300', '<path fill="#fff9c4" d="M14.5 8.5a1 1 0 0 0-.861.5h-1.932l1.537-1.537a1.018 1.018 0 1 0-.707-.707L11 8.293V6.362a1 1 0 1 0-1 0v1.931L8.463 6.756a1.017 1.017 0 1 0-.707.707L9.293 9H7.362a1 1 0 1 0 0 1h1.931l-1.537 1.537a1.018 1.018 0 1 0 .707.707L10 10.708v1.932a1 1 0 1 0 1 0v-1.932l1.537 1.537a1.018 1.018 0 1 0 .707-.707L11.708 10h1.932a.999.999 0 1 0 .861-1.5"/>'],
+  target: ['#546e7a', '<path fill="#cfd8dc" d="M14.576 5 12.44 7.137l-.355 1.066-.81.812a1 1 0 0 0-.499-.005l-.037.011a1 1 0 0 0-.183.073l-.055.029a1.007 1.007 0 1 0 1.377 1.377q.015-.027.027-.055a1 1 0 0 0 .075-.184l.011-.037a1 1 0 0 0-.006-.498l.81-.81 1.07-.356L16 6.424h-1.424zm-3.806.006a5 5 0 1 0 4.884 3.168l-.79.79a4 4 0 1 1-2.83-2.827l.792-.791a5 5 0 0 0-2.056-.34m.138 1.996a3 3 0 1 0 3.074 2.668l-.994.109a2 2 0 1 1-1.767-1.767l.11-.995a3 3 0 0 0-.423-.015"/>'],
+  tasks: ['#5c6bc0', '<path fill="#c5cae9" d="M9 5v1a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1V5h-1v1h-4V5zm0 3h6v5H9zm4.318 1-1.77 1.627-.859-.805-.689.733L11.54 12 14 9.74z"/>'],
+  template: ['#8d6e63', '<path fill="#d7ccc8" d="M6 13h4v1H6Zm0-2h4v1H6Zm0-2h4v1H6Zm0-2h4v1H6Zm5 0h4v7h-4z"/>'],
+  test: ['#00bfa5', '<path fill="#a7ffeb" d="M8 6v1h1v6a2 2 0 0 0 4 0V7h1V6Zm2.5 7a.5.5 0 1 1 .5-.5.5.5 0 0 1-.5.5m1-2a.5.5 0 1 1 .5-.5.5.5 0 0 1-.5.5m.5-2h-2V7h2z"/>'],
+  theme: ['#1e88e5', '<path fill="#bbdefb" d="M10.999 5C8 5 6 7 6 10a5 5 0 0 0 5 5c.46 0 1 0 1-1 0-.218-.284-.392-.482-.59A1.19 1.19 0 0 1 11 12.5c0-.5.5-.5 1-.5h2c2 0 2-2 2-3 0-2-2-4-5.001-4M8 10a1 1 0 1 1 1-1 1 1 0 0 1-1 1m3-2a1 1 0 1 1 1-1 1 1 0 0 1-1 1m3 2a1 1 0 1 1 1-1 1 1 0 0 1-1 1"/>'],
+  toc: ['#2196f3', '<path fill="#bbdefb" d="M15.012 14a.95.95 0 0 1-.703-.288 1.035 1.035 0 0 1 0-1.425 1.005 1.005 0 0 1 1.407 0 1.035 1.035 0 0 1 0 1.425.95.95 0 0 1-.704.288m0-3a.95.95 0 0 1-.703-.288 1.035 1.035 0 0 1 0-1.425 1.005 1.005 0 0 1 1.407 0 1.035 1.035 0 0 1 0 1.425.95.95 0 0 1-.704.288m0-3a.95.95 0 0 1-.703-.288 1.035 1.035 0 0 1 0-1.425 1.005 1.005 0 0 1 1.407 0 1.035 1.035 0 0 1 0 1.425.95.95 0 0 1-.704.288m-8.01 5.5v-1a.47.47 0 0 1 .428-.5h5.142a.47.47 0 0 1 .428.5v1a.47.47 0 0 1-.428.5H7.43a.47.47 0 0 1-.43-.5m0-3v-1a.47.47 0 0 1 .43-.5h5.142a.47.47 0 0 1 .428.5v1a.47.47 0 0 1-.428.5H7.43a.47.47 0 0 1-.43-.5m0-3v-1a.47.47 0 0 1 .43-.5h5.142a.47.47 0 0 1 .428.5v1a.47.47 0 0 1-.428.5H7.43A.47.47 0 0 1 7 7.5"/>'],
+  tools: ['#1e88e5', '<path fill="#bbdefb" d="M12.182 9.506 6.682 15 6 14.319l5.494-5.5Zm2.182-1.408.287-.288-.385-.384.312-.312-.692-.691-.311.311-.385-.385-.287.288A10.3 10.3 0 0 0 10.078 5l-.405.872a12.3 12.3 0 0 1 2.368 1.627l-.244.244 1.461 1.461.244-.244a12.3 12.3 0 0 1 1.626 2.368l.872-.404a10.3 10.3 0 0 0-1.636-2.825"/>'],
+  trash: ['#f44336', '<path fill="#ffcdd2" d="M10 5v1H7v1h1v6c0 .55.45 1 1 1h5c.55 0 1-.45 1-1V7h1V6h-3V5Zm0 3h1v4h-1zm2 0h1v4h-1z"/>'],
+  typescript: ['#0288d1', '<path fill="#90caf9" d="M12 9.535a.665.664 0 0 0 .15.52 1.25 1.248 0 0 0 .305.14c.27.09.665.184 1.045.309 1.32.44 1.48 1.159 1.495 1.743q.006.119.005.23v.024c0 .53-.23 1.394-1.72 1.489q-.096.006-.185.005A.5.5 0 0 1 13 14h-2v-.88l.12-.12H13a1 .999 0 0 0 .125-.004h.085c.09-.005.165-.015.235-.02a1 .999 0 0 0 .135-.03q.051-.015.095-.03a.02.02 0 0 0 .015-.005c.245-.09.295-.225.305-.33l.005-.08c0-.16-.34-.614-1.5-.998-1.37-.455-1.49-1.209-1.495-1.803A.3.3 0 0 1 11 9.635v-.13a1.425 1.423 0 0 1 .225-.794c.02-.03.035-.055.055-.08.005-.005.005-.01.01-.015a.5.5 0 0 1 .09-.1 2.15 2.147 0 0 1 1.575-.509H15v.999h-2q-.098-.001-.195.005c-.59.03-.745.2-.79.35a.1.1 0 0 0-.005.03.5.5 0 0 0-.01.114zM9 14H8V9.006H6v-.999h5v.999H9Z"/>'],
+  ui: ['#ab47bc', '<path fill="#e1bee7" d="M8 7h8v3H8Zm0 4h3v3H8Zm4 0h4v3h-4z"/>'],
+  unity: ['#2196f3', '<path fill="#bbdefb" d="M11.5 7.625 9.25 6.5l1.5-.75v-1.5L7 6.5v3.875l1.5-.75v-2.25L10.75 8.5v3.375L8.5 11l-1.5.75L11.5 14l4.5-2.25-1.5-.75-2.25 1.125V8.75l2.25-1.125v2l1.5.75V6.5l-3.75-2.25v1.5l1.5.75z"/>'],
+  update: ['#43a047', '<path fill="#c8e6c9" d="M10.76 5.006a5 5 0 1 0 5.14 5.988h-1.027a4.023 4.023 0 1 1-1.043-3.816L12.482 8.49H16V5.064L14.549 6.48a5 5 0 0 0-3.79-1.473M10 7v3.24l2.69 2.15.62-.78L11 9.76V7z"/>'],
+  upload: ['#ff7043', '<path fill="#ffccbc" d="M10 12V9H8l3.5-4L15 9h-2v3zm-2 2v-1h7v1z"/>'],
+  utils: ['#7cb342', '<path fill="#dcedc8" d="M9.5 6a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5zM12 7h1v2h2v1h-2v2h-1v-2h-2V9h2zM7 8v6.5a.5.5 0 0 0 .5.5H14v-1H8V8z"/>'],
+  video: ['#ff9800', '<path fill="#ffe0b2" d="m14 7 1 2h-1l-1-2h-1l1 2h-1l-1-2h-1l1 2h-1L9 7H8a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V7.25a.25.25 0 0 0-.25-.25Z"/>'],
+  vscode: ['#42a5f5', '<path fill="#bbdefb" d="M14.073 5 10.12 8.633 7.912 6.97 7 7.5l2.177 2L7 11.5l.912.533 2.209-1.665L14.072 14 16 13.063V5.937ZM14 7.39v4.22L11.199 9.5z"/>'],
+  windows: ['#2196f3', '<path fill="#bbdefb" d="M7 6v4h4V6Zm5 0v4h4V6Zm-5 5v4h4v-4zm5 0v4h4v-4z"/>'],
+};
+let folderIcons = {};   // { top-level node id: icon name }, from /api/folder-icons
+
+/** The icon set for a top-level folder, or null for the default dot. */
+function folderIconOf(id) {
+  const name = Object.hasOwn(folderIcons, id) ? folderIcons[id] : null;
+  return name && Object.hasOwn(FOLDER_ICONS, name) ? name : null;
+}
+
+/** A folder icon as inline SVG. `open` draws the open outline VS Code uses for an expanded folder. */
+function folderIcon(name, open = false) {
+  const [fill, motif] = FOLDER_ICONS[name];
+  const span = el('span', 'ficon');
+  // Constant markup from the table above, looked up by a name the server validated; no
+  // data from a document or the server is ever written into it.
+  span.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="${fill}" d="${open ? FOLDER_SHAPE.open : FOLDER_SHAPE.closed}"/>${motif}</svg>`;
+  return span;
+}
+
 // Kinds that are directories on disk, so a listing can mark them with a trailing slash.
 // An empty directory arrives with no `children`, so kind is the reliable test. `projects`
 // has real children (the mounted project roots) but no filesystem path of its own -- it
@@ -1532,6 +1684,7 @@ function renderSettings() {
   $('#set-favtools').hidden = prefs.favSync;
   if (!prefs.favSync) loadImportSources();
   renderRoots();
+  renderFolderIcons();
   loadScanSettings();
 }
 
@@ -1649,16 +1802,99 @@ function renderRoots() {
   $('#roots-remote').hidden = LOCAL_PAGE;
 }
 
+// Settings > Folder icons: one row per top-level Explorer folder, and an inline picker
+// under whichever row is open.
+let ficonOpen = null;   // the folder id whose picker is showing
+
+function renderFolderIcons() {
+  const host = $('#ficon-list');
+  host.textContent = '';
+  for (const n of S.data?.tree || []) {
+    const cur = folderIconOf(n.id);
+    const row = el('div', 'rootrow');
+    const pick = el('button', 'ficonpick');
+    pick.type = 'button';
+    pick.disabled = !LOCAL_PAGE;
+    pick.title = LOCAL_PAGE ? `Change the icon for ${n.name}` : cur || 'default';
+    pick.setAttribute('aria-label', pick.title);
+    pick.setAttribute('aria-expanded', String(ficonOpen === n.id));
+    pick.append(cur ? folderIcon(cur) : tintDot(n));
+    pick.onclick = () => { ficonOpen = ficonOpen === n.id ? null : n.id; renderFolderIcons(); };
+    row.append(pick, el('b', '', n.name), el('span', '', cur || 'default'));
+    host.append(row);
+    if (ficonOpen === n.id && LOCAL_PAGE) host.append(iconGrid(n, cur));
+  }
+  $('#ficon-remote').hidden = LOCAL_PAGE;
+}
+
+function tintDot(n) {
+  const dot = el('span', 'dot' + (ROUND.has(n.kind) ? ' round' : ''));
+  dot.style.background = tintOf(n);
+  return dot;
+}
+
+function iconGrid(n, cur) {
+  const grid = el('div', 'ficongrid');
+  const filter = el('input');
+  filter.placeholder = 'Filter icons';
+  filter.spellcheck = false;
+  filter.setAttribute('aria-label', 'Filter icons');
+  const opts = el('div', 'opts');
+  opts.setAttribute('role', 'listbox');
+  opts.setAttribute('aria-label', `Icons for ${n.name}`);
+  const option = (name, label, glyph) => {
+    const b = el('button', 'ficonpick' + ((name || null) === cur ? ' on' : ''));
+    b.type = 'button';
+    b.title = label;
+    b.dataset.name = label;
+    b.setAttribute('role', 'option');
+    b.setAttribute('aria-selected', String((name || null) === cur));
+    b.append(glyph);
+    b.onclick = () => setFolderIcon(n.id, name);
+    return b;
+  };
+  opts.append(option(null, 'default', tintDot(n)));
+  for (const name of Object.keys(FOLDER_ICONS)) opts.append(option(name, name, folderIcon(name)));
+  filter.oninput = () => {
+    const q = filter.value.trim().toLowerCase();
+    for (const b of opts.children) b.hidden = !!q && !b.dataset.name.includes(q);
+  };
+  grid.append(filter, opts);
+  return grid;
+}
+
+async function setFolderIcon(id, icon) {
+  try {
+    const r = await fetch('/api/folder-icons', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, icon }) });
+    if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+    folderIcons = (await r.json()).icons;
+    ficonOpen = null;
+    renderTree();
+    renderFolderIcons();
+  } catch (e) { toast('could not save the icon — ' + e.message); }
+}
+
+/** The saved icons. A hub that can't answer (the static demo) keeps the dots. */
+async function loadFolderIcons() {
+  try {
+    const r = await fetch('/api/folder-icons');
+    if (r.ok) folderIcons = (await r.json()).icons || {};
+  } catch {}
+  if (S.data) { renderTree(); renderFolderIcons(); }
+}
+
 async function changeRoots(method, body, done) {
   const err = $('#root-err');
   err.hidden = true;
   try {
     const r = await fetch('/api/roots', { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
-    // The server rescans before it answers; the change event reloads the tree as well.
+    // The server answers once the folder is saved and rescans after; its change event
+    // reloads the tree when that scan lands.
     S.data.sharedRoots = (await r.json()).sharedRoots;
     renderRoots();
-    toast(done);
+    $('#live').textContent = '● scanning…';
+    toast(done + ' — the tree updates when the rescan finishes', 4000);
     return true;
   } catch (e) {
     err.textContent = e.message;
@@ -2314,8 +2550,11 @@ function renderTree() {
 
       const chev = el('span', 'chev', hasKids ? (open ? '▾' : '▸') : '');
       if (hasKids) chev.dataset.toggle = n.id;
-      const dot = el('span', 'dot' + (ROUND.has(n.kind) ? ' round' : ''));
-      dot.style.background = tintOf(n);
+      // A top-level folder can carry an icon from Settings in place of its dot.
+      const icon = depth === 0 ? folderIconOf(n.id) : null;
+      let dot;
+      if (icon) dot = folderIcon(icon, open && hasKids);
+      else { dot = el('span', 'dot' + (ROUND.has(n.kind) ? ' round' : '')); dot.style.background = tintOf(n); }
       row.append(chev, dot, el('span', 'nm', n.name), el('span', 'bdg', n.badge || ''));
       frag.append(row);
 
@@ -2447,6 +2686,19 @@ function onCtxMenuKey(e) {
   items[next].focus();
 }
 
+/**
+ * Put a position:fixed popup at screen point (x, y), kept inside the window. Pointer
+ * coordinates and getBoundingClientRect() are screen pixels, but `left`/`top` are CSS
+ * pixels that `html{zoom}` scales on the way to the screen -- at the default 1.15 a menu
+ * set to top:900px drew at 1035px, and one opened near the bottom ran off the window.
+ */
+function placeFixed(box, x, y) {
+  const z = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+  const r = box.getBoundingClientRect();
+  box.style.left = Math.max(4, Math.min(x, window.innerWidth - r.width - 6)) / z + 'px';
+  box.style.top = Math.max(4, Math.min(y, window.innerHeight - r.height - 6)) / z + 'px';
+}
+
 function showCtxMenu(x, y, n, opts = {}) {
   closeCtxMenu();
   const isDir = DIRISH.has(n.kind);
@@ -2483,9 +2735,10 @@ function showCtxMenu(x, y, n, opts = {}) {
   );
 
   document.body.append(menu);
+  // Opened in the lower half, the menu grows upward from the pointer (or from the top of
+  // the row, when the keyboard opened it under one), the way a native menu does.
   const r = menu.getBoundingClientRect();
-  menu.style.left = Math.max(4, Math.min(x, window.innerWidth - r.width - 6)) + 'px';
-  menu.style.top = Math.max(4, Math.min(y, window.innerHeight - r.height - 6)) + 'px';
+  placeFixed(menu, x, y > window.innerHeight / 2 ? (opts.above ?? y) - r.height : y);
   ctxMenuEl = menu;
   ctxOpener = opts.opener || null;
   // Opened from the keyboard, focus goes in; a right-click leaves it where the mouse put it.
@@ -2566,8 +2819,7 @@ async function showStatusPanel(anchor) {
   ctxMenuEl = panel;
   const place = () => {
     const r = panel.getBoundingClientRect(), a = anchor.getBoundingClientRect();
-    panel.style.left = Math.max(4, Math.min(a.left, window.innerWidth - r.width - 6)) + 'px';
-    panel.style.top = Math.max(4, a.top - r.height - 6) + 'px';
+    placeFixed(panel, a.left, a.top - r.height - 6);
   };
   place();
   setTimeout(() => {
@@ -2695,7 +2947,7 @@ for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pi
     if (!row) return;
     e.preventDefault();
     const r = (row.querySelector('.nm') || row).getBoundingClientRect();
-    open(row, r.left, r.bottom + 2, { opener: row, keyboard: true });
+    open(row, r.left, r.bottom + 2, { opener: row, keyboard: true, above: r.top - 2 });
   });
 }
 
@@ -4708,6 +4960,7 @@ function watch() {
 }
 
 renderPins();
+loadFolderIcons();   // not awaited: the tree draws with dots and picks the icons up when they land
 await load();
 // Subscribe even if startup failed, so an eventual server restart can recover the page.
 if (location.protocol !== 'file:' && location.port === HUB_PORT) watch();

@@ -761,7 +761,12 @@ async function fireScan() {
   const why = lastWhy;
   // Build the new payload before announcing it, or every client races in and gets
   // handed the same stale copy it already has.
+  const before = contentSig;
   await rescan(false).catch(() => {});
+  // Most watcher bursts (logs, git internals, editor temp files) leave the payload as it
+  // was. Announcing those anyway made every open page fetch and parse the whole scan --
+  // 27.7MB on a 138k-node tree, about once a minute, freezing the page for 0.5-2s each time.
+  if (contentSig === before) return;
   for (const res of sse) res.write(`event: change\ndata: ${JSON.stringify({ why })}\n\n`);
 }
 

@@ -630,10 +630,10 @@ test('the search combobox keeps its ARIA wiring', () => {
   assert.ok(/function syncCombobox/.test(html), 'syncCombobox was removed');
   assert.ok(html.includes('aria-activedescendant'), 'the active option is never announced');
   // Every path that repaints results has to re-sync: the render pass, the arrow keys,
-  // and the Pictures and inside-documents sections, which append after the main list is
-  // already on the page.
-  assert.equal((html.match(/syncCombobox\(/g) || []).length, 5,
-    'syncCombobox must be defined and called from renderView, the arrow keys, searchPictures and searchContents');
+  // the Pictures and inside-documents sections, which append after the main list is
+  // already on the page, and a document tab's kept page, which skips renderView.
+  assert.equal((html.match(/syncCombobox\(/g) || []).length, 6,
+    'syncCombobox must be defined and called from renderView, the arrow keys, searchPictures, searchContents and showTabPage');
 });
 
 // ── bookmarks and recents (P7-10) ──────────────────────────────────────────

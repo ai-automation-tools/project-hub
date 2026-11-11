@@ -175,6 +175,6 @@ The panel reuses the context menu's floating layer wholesale — same element bo
 | **Uncommitted changes** with per-file diffs (P9-10) | Repo page, when the repo is dirty or has a conflict |
 | **Roadmap progress** from `docs/ROADMAP.md` checkboxes (P9-17) | Repo table column and repo page |
 | **Routine pass/fail** from the latest log's tail (P9-12) | Routines list and schedule |
-| **Changed this week** (P9-18) | Portfolio overview |
+| **Changed this week** (P9-18) | Portfolio overview; starts folded, the count stays in its heading and opening it is remembered |
 | **Link check**: broken relative links, images and heading anchors (P9-11) | `check links` on folder and repo pages |
 | **Frontmatter strip and `tag:` search** (P9-19) | Above a Markdown document; content search |

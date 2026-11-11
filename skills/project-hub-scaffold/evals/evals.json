@@ -1,0 +1,47 @@
+{
+  "skill_name": "project-hub-scaffold",
+  "evals": [
+    {
+      "id": 1,
+      "name": "add-workspace-existing-hub",
+      "prompt": "I already run Project Hub from C:/Tools/ProjectHub. Add my new client folder D:/Work/Clients/Acme to it as a workspace called Acme, and only show the repos under its Repos/ folder.",
+      "expected_output": "Chooses mode A (add a workspace), not a new installation. Inspects the existing project-hub/hub.config.json and projects/*/hub.config.json first, confirms D:/Work/Clients/Acme exists and that neither the name Acme nor that dir is already mounted. Runs scripts/scaffold-hub.ps1 -HubDesignRoot C:/Tools/ProjectHub -Name Acme -Dir D:/Work/Clients/Acme -RepoScopePathPrefix Repos/ (no -Standalone, -Port, -Base or -TargetDir). The only file written is projects/Acme/hub.config.json shaped {\"name\":\"Acme\",\"dir\":\"D:/Work/Clients/Acme\",\"repoScope\":{\"pathPrefix\":\"Repos/\"}} with the prefix ending in '/'. Runs npm test in hub/, then explains that projects are discovered at startup so the server needs a restart via project-hub/Start-Hub.ps1 -Restart -NoBrowser (done only if authorized, otherwise stated as the next step), then checks /api/health and /api/scan on the configured port and the Acme workspace in a browser. Must NOT: create a Project-Hub-Acme folder or a second server/port/launcher, put port/favicon/sharedRoots/base in the workspace config, edit hub source constants, or claim browser/restart checks passed without running them.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "portable-standalone-install",
+      "prompt": "The Halcyon project at D:/Work/Projects/Halcyon needs its own docs browser that ships with it, so whoever clones it can run it without my shared hub. The engine checkout is C:/Tools/ProjectHub. Put the new install at D:/Work/Projects/Halcyon-Hub.",
+      "expected_output": "Chooses mode B (portable installation) because the project must carry its own engine. Verifies D:/Work/Projects/Halcyon-Hub does not already exist (the script refuses existing destinations) and picks a base and a port that is actually free (checked, not assumed; never kills a foreign process to claim it). Runs scripts/scaffold-hub.ps1 with -Standalone -TargetDir D:/Work/Projects/Halcyon-Hub -Base <existing dir> -Port <free port> -Name Halcyon -Dir D:/Work/Projects/Halcyon. Result: the full engine allowlist copied into hub/ (not just hub.mjs and index.html), LICENSE, project-hub/ launcher + hub.config.example.json, projects/_example/, a server project-hub/hub.config.json with port, base, sharedRoots [] and favicon, projects/Halcyon/hub.config.json with name and dir only, and a .gitignore covering hub.config.json, scan.json, logs, .env and keys. Runs npm test in hub/ and separately checks every configured directory exists. Discloses that the runtime also scans user-scope agent folders under the home directory, and that this copy now needs its own engine updates. Links setup from the project README. Must NOT copy scan output, personal configs, credentials or design archives, commit hub.config.json/scan.json, install a scheduled task or auto-start by default, or claim the server/browser works without running it.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "static-visual-match",
+      "prompt": "I want a single static HTML page for our docs on GitHub Pages that looks exactly like Project Hub: same dark theme, same sidebar file tree and header. No Node server. Our hub checkout is at C:/Tools/ProjectHub.",
+      "expected_output": "Chooses mode C (visual match). Reads references/design-system.md and reuses the actual theme and layout from hub/index.html rather than inventing a palette: Inter + JetBrains Mono, the obsidian default tokens (--bg #060606, accent #38bdf8, --line #27272a etc.), radius tokens --r-sm/--r-md/--r-lg, data-theme on <html> applied before first paint from localStorage 'hub.theme' (no theme flash), the sidebar tree and header with Back/Forward. If it borrows the --zoom pattern it also carries the #app height correction. Explicitly tells the user that filesystem scanning, native open actions, sandboxed previews and server-backed search need mode A or B and will not exist on the static page. Must NOT run scaffold-hub.ps1, create a projects/ config, start a server, or hardcode colors outside the theme token blocks.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "edge-separate-server-per-workspace",
+      "prompt": "Can you set up a new Project-Hub-Research folder with its own server on port 4300 for D:/Work/Research? I want it next to my main hub at C:/Tools/ProjectHub, with a hub-switcher link between the two.",
+      "expected_output": "Pushes back: a Project-Hub-<Name> folder with a separate server per workspace, and the hub-switcher, are the retired layout. Recommends mode A instead: add projects/Research/hub.config.json to the existing installation via scripts/scaffold-hub.ps1 (-Name Research -Dir D:/Work/Research), so one server on the existing port serves both, and the Projects landing page replaces the switcher. Offers mode B only if the user confirms Research must carry its own engine, in which case it uses -Standalone with a verified-free port. Must NOT create Project-Hub-Research, a second launcher or a hub-switcher entry, or start a second scanner over real private roots without the user choosing B.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "edge-scope-groups-and-prefix",
+      "prompt": "Add D:/Work/Lab to my Project Hub (C:/Tools/ProjectHub) as Lab. Scope it to the AI-Automation-Tools and Personal repo groups, and also anything under Repos/Experiments.",
+      "expected_output": "Recognizes that repoScope takes groups OR pathPrefix, never both (the config schema forbids it and scaffold-hub.ps1 throws 'Choose groups or pathPrefix, not both.'). Asks the user which to use, or proposes one that covers the request (e.g. groups [\"AI-Automation-Tools\",\"Personal\"] if Experiments is itself a group, or omitting scope) and explains the trade-off, before writing anything. When it does write, the config is {\"name\":\"Lab\",\"dir\":\"D:/Work/Lab\",\"repoScope\":{\"groups\":[...]}} or {...\"pathPrefix\":\"Repos/Experiments/\"} with a trailing '/'. Must NOT hand-write a config containing both keys to get around the script, or silently drop part of the requested scope without saying so.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "edge-already-mounted",
+      "prompt": "Add D:/Work/Projects/Demo to my hub at C:/Tools/ProjectHub under the name Demo2. (I think it's already in there as Demo but I want a second entry.)",
+      "expected_output": "Inspects projects/*/hub.config.json, finds that D:/Work/Projects/Demo is already mounted as Demo, and explains that project dirs must be unique (scaffold-hub.ps1 throws 'Workspace name or directory is already mounted.'). Asks what the user actually wants instead: keep the existing entry, rename it, or mount a different subfolder / scope as a distinct workspace. Must NOT write projects/Demo2/hub.config.json by hand to bypass the check, overwrite or delete the existing Demo config, or restart the server for an unchanged config.",
+      "files": []
+    }
+  ]
+}

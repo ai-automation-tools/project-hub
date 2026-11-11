@@ -71,7 +71,7 @@ Pinning something bumps the count on the Bookmarks icon. It doesn't switch you a
 Renaming changes only what you see. The path underneath is untouched, so a bookmark renamed
 to `Hub roadmap` still points at `ROADMAP.md` and still survives that file being moved.
 
-**Right-click a pinned row for the same menu the tree gives you** — Copy Hub Link, Copy Path,
+**Right-click a pinned row for the same menu the tree gives you** — Open in New Tab, Copy Hub Link, Copy Path,
 Copy Relative Path, Copy as Markdown Link, Open, Reveal in Explorer, Open in VS Code — plus
 **Remove Bookmark** and, on a bookmark, **Rename Bookmark**. Right-clicking a row in **Recent**
 offers **Add Bookmark**, which is the quickest way to promote something you have been going

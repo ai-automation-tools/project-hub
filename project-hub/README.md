@@ -556,7 +556,7 @@ otherwise its project or shared root — so three folders all called `Agents` re
 the same name inside the *same* repo additionally pick up their parent folder
 (`setup/README.md`, `design/README.md`).
 
-**Right-click a pinned row** for the same menu the tree offers — the copy actions, Open,
+**Right-click a pinned row** for the same menu the tree offers — Open in New Tab, the copy actions, Open,
 Reveal in Explorer, Open in VS Code — plus **Remove Bookmark**, and **Rename Bookmark** on a
 bookmark. Right-clicking a **Recent** row offers **Add Bookmark**, which is the quickest way
 to promote something you keep going back to.
@@ -578,6 +578,7 @@ The gear at the right end of the activity bar opens Settings:
 | :--- | :--- |
 | **Color scheme** | One of nine themes. The sun / moon switch at the right end of the header is the shortcut: Light is `paper`, Dark is `obsidian`, and while any other scheme is on neither half is pressed. |
 | **Interface size** | Scales the whole interface: 90, 100, 115 (the default) or 130%. |
+| **Open documents in multiple tabs** | On (the default): right-click a file, bookmark or tab and choose **Open in New Tab**. Off: one document at a time, and any open document tabs close. See [Hub tabs](#hub-tabs). |
 | **Open websites in hub tabs** | Off (the default): links to websites open in a new browser tab. On: they open in tabs inside the hub. See [Hub tabs](#hub-tabs). |
 | **Sync with browser favorites** | Off (the default): Favorites is the hub's own list. On: it shows your Edge, Chrome or Brave favorites, read-only. |
 
@@ -601,7 +602,9 @@ Clicking a favorite opens it in a new browser tab, or in a hub tab if that setti
 
 ## Hub tabs
 
-Turn on **Open websites in hub tabs** in Settings and websites open inside the hub. That covers favorites, Live Sites cards and web links in documents. A tab strip appears under the header. **⌂ Hub** goes back to your documents. Each site tab has × to close it, and a middle click closes it too. The active site has ↻ to reload, ☆ to add it to your favorites, and ↗ to open it in a real browser tab. Switching tabs doesn't reload a page, and opening a document from the sidebar takes you back to the Hub tab.
+Right-click a file, folder, bookmark or recent document and choose **Open in New Tab** to read it beside what you already have open. A tab strip appears under the header. The first tab, marked **⌂**, is always there. Each tab remembers its own document and scroll position, and clicking around the sidebar changes the document in the tab you're on, the way a browser tab does. Right-click a tab to bookmark its document, copy its link or path, duplicate it, or close it and the others. To keep to one document at a time, turn off **Open documents in multiple tabs** in Settings. Tabs don't survive a page reload.
+
+Turn on **Open websites in hub tabs** in Settings and websites open inside the hub. That covers favorites, Live Sites cards and web links in documents. They share the same tab strip, and the **⌂** tab goes back to your documents. Each site tab has × to close it, and a middle click closes it too. The active site has ↻ to reload, ☆ to add it to your favorites, and ↗ to open it in a real browser tab. Switching tabs doesn't reload a page, and opening a document from the sidebar takes you back to the document tab you were last on. Right-click a site tab to reload it, add it to your favorites, copy its URL or close it.
 
 Many sites refuse to be shown inside another page, and roughly half of a typical favorites list does: GitHub, Google, Reddit, Notion, Claude, Microsoft 365 and more. No web page can embed those, so the hub checks first and opens them in a browser tab, with a note naming the site. While hub tabs are on, the hub checks your favorites and Live Sites cards as they come into view. Any site that can't be shown inside the hub gets a small **↗ browser** label, so you know before you click. Sites you sign in to may show you as signed out inside a hub tab, because browsers block their cookies there. Use ↗ for those.
 

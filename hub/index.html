@@ -661,16 +661,23 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 .webrow.dropin{background:var(--sel)}
 .webrow.dragging{opacity:.4}
 /* hub tabs */
-#tabs{display:flex;align-items:stretch;gap:4px;height:38px;flex:0 0 38px;padding:0 8px;border-bottom:1px solid var(--line-a);background:var(--panel);overflow-x:auto}
+/* Browser-style: the active tab takes the page's own background and has no bottom edge,
+   so it opens into the document below. The strip's baseline is an inset shadow rather
+   than a border, because overflow-x clips children at the padding box -- a border could
+   never be painted over, a shadow under the children can. */
+#tabs{display:flex;align-items:flex-end;gap:2px;height:40px;flex:0 0 40px;padding:6px 8px 0;background:var(--panel);
+  box-shadow:inset 0 -1px 0 var(--line-b);overflow-x:auto;overflow-y:hidden}
 #tabs[hidden]{display:none}
-.tab{display:flex;align-items:center;gap:6px;max-width:220px;margin:5px 0;padding:0 8px 0 10px;font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--dim);
-  cursor:pointer;border:1px solid transparent;border-radius:var(--r-sm);white-space:nowrap;transition:all .2s}
+.tab{position:relative;display:flex;align-items:center;gap:7px;flex:0 1 auto;min-width:72px;max-width:220px;height:34px;padding:0 8px 0 12px;
+  font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--dim);cursor:pointer;white-space:nowrap;
+  background:color-mix(in srgb,var(--surface-2) 60%,transparent);border:1px solid var(--line-a);border-bottom:0;
+  border-radius:var(--r-md) var(--r-md) 0 0;transition:color .15s,background .15s}
 .tab:hover{color:var(--fg-mid);background:var(--surface-2)}
-.tab.on{color:var(--fg);border-color:var(--line-b);background:var(--surface-2)}
+.tab.on{color:var(--fg-hi);background:var(--bg);border-color:var(--line-b);box-shadow:inset 0 2px 0 var(--green);z-index:1}
 .tab .nm{overflow:hidden;text-overflow:ellipsis}
-.tab .x{color:var(--dimmer);padding:0 2px}
-.tab .x:hover{color:var(--red)}
-.tabacts{margin-left:auto;display:flex;align-items:center;gap:4px;padding:0 8px}
+.tab .x{display:grid;place-items:center;width:18px;height:18px;margin-left:auto;border-radius:4px;color:var(--dimmer);line-height:1}
+.tab .x:hover{color:var(--fg-hi);background:color-mix(in srgb,var(--red) 30%,transparent)}
+.tabacts{align-self:center;margin-left:auto;display:flex;align-items:center;gap:4px;padding:0 8px}
 .tabacts .btn{height:24px;padding:0 8px;font-size:11.5px}
 #frames{flex:1;position:relative;background:#fff}
 #frames[hidden]{display:none}
@@ -804,7 +811,9 @@ details[open]>summary .fchev{transform:rotate(90deg)}
           </select></label>
       </section>
       <section class="set">
-        <h3>Websites</h3>
+        <h3>Tabs</h3>
+        <label class="setrow"><span>Open documents in multiple tabs</span><input type="checkbox" class="switch" id="set-doctabs" role="switch"></label>
+        <p class="sethelp">On: right-click a file, bookmark or tab to open it in a new tab. Off: the hub shows one document at a time.</p>
         <label class="setrow"><span>Open websites in hub tabs</span><input type="checkbox" class="switch" id="set-links" role="switch"></label>
         <p class="sethelp">Off: links open in a new browser tab. On: they open in tabs inside the hub. Sites that refuse to be embedded still open in a browser tab, and Ctrl+click or a middle click always does.</p>
       </section>
@@ -1503,13 +1512,16 @@ function setSideView(view) {
 // Per-viewer preferences, kept in localStorage like the theme. Websites open in a browser
 // tab by default, and favorites start as the hub's own list; syncing with a browser
 // profile is something a person turns on.
-const prefs = { hubTabs: false, favSync: false };
+// Document tabs are the exception: on unless turned off.
+const prefs = { hubTabs: false, favSync: false, docTabs: true };
 try {
+  prefs.docTabs = localStorage.getItem('hub.doctabs') !== 'off';
   prefs.hubTabs = localStorage.getItem('hub.links') === 'hub';
   prefs.favSync = localStorage.getItem('hub.favsource') === 'sync';
 } catch {}
 
 function renderSettings() {
+  $('#set-doctabs').checked = prefs.docTabs;
   $('#set-links').checked = prefs.hubTabs;
   $('#set-favsync').checked = prefs.favSync;
   const zoom = getComputedStyle(document.documentElement).getPropertyValue('--zoom').trim() || '1.15';
@@ -1578,6 +1590,17 @@ function renderScanSettings(settings) {
   }
 }
 
+$('#set-doctabs').onchange = (e) => {
+  prefs.docTabs = e.target.checked;
+  try { localStorage.setItem('hub.doctabs', prefs.docTabs ? 'on' : 'off'); } catch {}
+  if (prefs.docTabs) return;
+  // Turning tabs off closes the document tabs. The page on screen stays, as the one view;
+  // website tabs are the other setting's business and stay open.
+  if (tabs.active !== null && docCtx(tabs.active)) tabs.active = null;
+  tabs.list = tabs.list.filter((t) => !('doc' in t));
+  tabs.lastDoc = null;
+  renderTabs();
+};
 $('#set-links').onchange = (e) => {
   prefs.hubTabs = e.target.checked;
   try { localStorage.setItem('hub.links', prefs.hubTabs ? 'hub' : 'browser'); } catch {}
@@ -2066,7 +2089,13 @@ for (const b of document.querySelectorAll('#activity .act')) {
 // sandboxed without allow-top-navigation, so a framed site cannot navigate the hub away.
 // The server asks the site whether it may be framed first; one that refuses opens in a
 // browser tab, because a refused frame is a blank page the hub cannot detect.
-const tabs = { list: [], active: null, seq: 0, frameable: new Map() };
+//
+// Document tabs share the one #view: a tab is just a remembered {doc, heading, scroll},
+// restored through go() when it comes forward. `active: null` is the base "Hub" tab,
+// whose state lives in `base`; `lastDoc` is where go() lands when a site tab is up.
+const tabs = { list: [], active: null, seq: 0, frameable: new Map(), base: { doc: null, heading: '', scroll: 0 }, lastDoc: null };
+/** The saved document state behind a tab id, or undefined for a site tab. */
+const docCtx = (id) => (id === null ? tabs.base : tabs.list.find((t) => t.id === id && 'doc' in t));
 const openInBrowser = (url) => window.open(url, '_blank', 'noopener,noreferrer');
 
 async function openSite(url, title) {
@@ -2095,22 +2124,78 @@ async function openSite(url, title) {
   activateTab(tab.id);
 }
 
-/** null is the document view. */
-function activateTab(id) {
-  tabs.active = tabs.list.some((t) => t.id === id) ? id : null;
-  $('#view').hidden = tabs.active !== null;
-  $('#frames').hidden = tabs.active === null;
-  for (const t of tabs.list) t.frame.classList.toggle('on', t.id === tabs.active);
+/** Open a hub document in a new tab beside the current one. */
+function openDocTab(doc) {
+  const tab = { id: ++tabs.seq, doc, heading: '', scroll: 0 };
+  tabs.list.push(tab);
+  activateTab(tab.id);
+}
+
+/** null is the base document tab. `restore: false` when the caller is about to navigate anyway. */
+async function activateTab(id, restore = true) {
+  if (!tabs.list.some((t) => t.id === id)) id = null;
+  const out = docCtx(tabs.active);
+  if (out && tabs.active !== id) Object.assign(out, { doc: S.sel || defaultRootId(), heading: S.heading || '', scroll: $('#view').scrollTop });
+  tabs.active = id;
+  const into = docCtx(id);
+  if (into) tabs.lastDoc = id;
+  $('#view').hidden = !into;
+  $('#frames').hidden = !!into;
+  for (const t of tabs.list) t.frame?.classList.toggle('on', t.id === id);
   renderTabs();
+  if (!into || !restore || !into.doc || out === into) return;
+  // A document deleted since the tab was opened falls back to the landing page.
+  const doc = S.byId.has(into.doc) || pictureNodes.owns(into.doc) ? into.doc : defaultRootId();
+  await go(doc, into.heading);
+  if (S.sel !== into.doc || tabs.active !== id) return;
+  restoreReading = { id: doc, scroll: into.scroll };
+  $('#view').scrollTop = into.scroll;
 }
 
 function closeTab(id) {
   const i = tabs.list.findIndex((t) => t.id === id);
   if (i < 0) return;
   const [tab] = tabs.list.splice(i, 1);
-  tab.frame.remove();
-  if (tabs.active === id) activateTab(tabs.list[Math.min(i, tabs.list.length - 1)]?.id ?? null);
-  else renderTabs();
+  tab.frame?.remove();
+  if (tabs.lastDoc === id) tabs.lastDoc = null;
+  if (tabs.active === id) {
+    // Closing a tab is not leaving it: don't save its state into whatever comes forward.
+    tabs.active = undefined;
+    activateTab(tabs.list[Math.min(i, tabs.list.length - 1)]?.id ?? null);
+  } else renderTabs();
+}
+
+/** Keep one tab (null = the base tab, which never closes) and drop the rest. */
+function closeOtherTabs(id) {
+  activateTab(id);
+  for (const t of tabs.list) if (t.id !== id) t.frame?.remove();
+  tabs.list = tabs.list.filter((t) => t.id === id);
+  if (tabs.lastDoc !== id) tabs.lastDoc = null;
+  renderTabs();
+}
+
+/** Right-click on a tab. A document tab gets the sidebar's menu for its document. */
+function tabMenu(row, x, y, opts) {
+  const id = row.dataset.tab === 'base' ? null : Number(row.dataset.tab);
+  const site = tabs.list.find((t) => t.id === id && t.url);
+  const tabItems = [
+    ...(id !== null ? [ctxItem('Close Tab', () => closeTab(id))] : []),
+    ctxItem('Close Other Tabs', () => closeOtherTabs(id), !tabs.list.some((t) => t.id !== id)),
+  ];
+  if (site) {
+    return showCtxMenu(x, y, { name: site.title }, { ...opts, items: [
+      ctxItem('Reload', () => { site.frame.src = site.url; }),
+      ctxItem('Add to Favorites', () => addFavorite(site.url, site.title)),
+      ctxItem('Copy URL', () => copy(site.url)),
+      ctxItem('Open in Browser Tab', () => openInBrowser(site.url)),
+      el('hr'), ...tabItems,
+    ] });
+  }
+  const doc = (tabs.active === id ? S.sel : docCtx(id).doc) || defaultRootId();
+  const n = S.byId.get(doc);
+  showCtxMenu(x, y, n || { id: doc, name: doc, kind: 'file' }, {
+    ...opts, missing: !n, lead: [...(prefs.docTabs ? [ctxItem('Duplicate Tab', () => openDocTab(doc))] : []), ...tabItems],
+  });
 }
 
 function renderTabs() {
@@ -2118,23 +2203,31 @@ function renderTabs() {
   host.hidden = !tabs.list.length;
   host.textContent = '';
   if (!tabs.list.length) return;
+  // A document tab's live doc is S.sel while it's the one showing, its saved doc otherwise.
+  const docOf = (id) => (tabs.active === id ? S.sel : docCtx(id).doc) || defaultRootId();
+  const docName = (id) => { const d = docOf(id); return S.byId.get(d)?.name || d; };
   const hub = el('div', 'tab' + (tabs.active === null ? ' on' : ''));
-  hub.append(el('span', 'nm', '⌂ Hub'));
+  hub.append(el('span', 'nm', '⌂ ' + (tabs.list.some((t) => 'doc' in t) ? docName(null) : 'Hub')));
   activate(hub, () => activateTab(null), 'tab');
   hub.setAttribute('aria-selected', String(tabs.active === null));
+  hub.dataset.tab = 'base';
   host.append(hub);
   for (const t of tabs.list) {
+    const isDoc = 'doc' in t;
+    const title = isDoc ? docName(t.id) : t.title;
     const tab = el('div', 'tab' + (t.id === tabs.active ? ' on' : ''));
-    tab.title = t.title + '\n' + t.url;
-    const x = el('span', 'x', '×'); x.setAttribute('aria-label', 'Close ' + t.title);
+    tab.title = isDoc ? docOf(t.id) : t.title + '\n' + t.url;
+    const x = el('span', 'x', '×'); x.setAttribute('aria-label', 'Close ' + title);
     activate(x, (e) => { e?.stopPropagation?.(); closeTab(t.id); });
-    tab.append(favIcon({ url: t.url, name: t.title }), el('span', 'nm', t.title), x);
+    if (!isDoc) tab.append(favIcon({ url: t.url, name: t.title }));
+    tab.append(el('span', 'nm', title), x);
     activate(tab, () => activateTab(t.id), 'tab');
     tab.setAttribute('aria-selected', String(t.id === tabs.active));
+    tab.dataset.tab = t.id;
     tab.addEventListener('auxclick', (e) => { if (e.button === 1) { e.preventDefault(); closeTab(t.id); } });
     host.append(tab);
   }
-  const active = tabs.list.find((t) => t.id === tabs.active);
+  const active = tabs.list.find((t) => t.id === tabs.active && t.url);
   if (active) {
     const acts = el('div', 'tabacts');
     const reload = el('button', 'btn', '↻'); reload.title = 'Reload'; reload.onclick = () => { active.frame.src = active.url; };
@@ -2145,7 +2238,7 @@ function renderTabs() {
   }
 }
 // Anything that shows a document or search results brings the document view back.
-$('#q').addEventListener('input', () => { if (tabs.active !== null) activateTab(null); });
+$('#q').addEventListener('input', () => { if (!docCtx(tabs.active)) activateTab(tabs.lastDoc, false); });
 
 function bookmarkBtn(id) {
   const on = isBookmarked(pins.bookmarks, id);
@@ -2294,6 +2387,8 @@ function onCtxEscape(e) {
   closeCtxMenu(true);
 }
 
+const copy = (value) => navigator.clipboard.writeText(value).then(() => toast('copied')).catch(() => toast('copy failed'));
+
 function ctxItem(label, handler, disabled = false) {
   const b = el('button', '', label);
   b.setAttribute('role', 'menuitem');
@@ -2323,12 +2418,16 @@ function showCtxMenu(x, y, n, opts = {}) {
   // only the launch actions go dead there.
   const virtual = n.kind === 'projects';
   const unlaunchable = virtual || !!opts.missing;
-  const copy = (value) => navigator.clipboard.writeText(value).then(() => toast('copied')).catch(() => toast('copy failed'));
   const menu = el('div', 'ctxmenu');
   menu.setAttribute('role', 'menu');
   menu.setAttribute('aria-label', n.name);
   menu.addEventListener('keydown', onCtxMenuKey);
-  menu.append(
+  // `items` replaces the whole menu (a website tab has no node behind it); `lead` only the
+  // first group, which is where a document tab puts its tab actions.
+  const lead = opts.lead || (prefs.docTabs ? [ctxItem('Open in New Tab', () => openDocTab(n.id), !!opts.missing)] : []);
+  if (opts.items) menu.append(...opts.items);
+  else menu.append(
+    ...(lead.length ? [...lead, el('hr')] : []),
     // A bookmark row removes just itself; elsewhere this toggles every bookmark of the path.
     opts.remove ? ctxItem('Remove Bookmark', opts.remove)
       : ctxItem(isBookmarked(pins.bookmarks, n.id) ? 'Remove Bookmark' : 'Add Bookmark', () => togglePin(n.id, n.name)),
@@ -2543,7 +2642,7 @@ function pinRowMenu(row, x, y, opts) {
   });
 }
 
-for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pin', pinRowMenu]]) {
+for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pin', pinRowMenu], ['#tabs', '.tab', tabMenu]]) {
   $(host).addEventListener('contextmenu', (e) => {
     const row = e.target.closest(sel);
     if (!row) return;
@@ -2612,7 +2711,7 @@ async function go(id, heading = '') {
     if (request !== navigationRequest) return;
   }
   if (!S.byId.has(id)) return;
-  if (tabs.active !== null) activateTab(null);
+  if (!docCtx(tabs.active)) activateTab(tabs.lastDoc, false);
   S.sel = id;
   S.heading = heading;
   restoreReading = null;
@@ -2626,7 +2725,7 @@ async function go(id, heading = '') {
   const n = S.byId.get(id);
   if (n.children && n.children.length) S.open.add(id);
   recordRecent(id);
-  renderTree(); renderPins(); renderView();
+  renderTree(); renderPins(); renderView(); renderTabs();
   $('#view').scrollTop = 0;
   const sel = $('.node.sel');
   if (sel) sel.scrollIntoView({ block: 'nearest' });

@@ -788,7 +788,7 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'"].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.doctabs'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'"].includes(key),
       `unexpected localStorage key ${key}`);
   }
 });
@@ -973,9 +973,10 @@ test('index.html declares nothing it also imports', () => {
 // Both are opt-in: a new viewer's links open in a browser tab, and Favorites is the hub's own
 // list. Each turns on only when its exact stored value says so, so a missing, corrupt or
 // older value lands on the default.
-test('hub tabs and favorites sync are off unless a viewer turns them on', () => {
+test('hub tabs and favorites sync are off unless a viewer turns them on; document tabs are on', () => {
   const html = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
-  assert.ok(html.includes('const prefs = { hubTabs: false, favSync: false };'), 'both settings must default to off');
+  assert.ok(html.includes('const prefs = { hubTabs: false, favSync: false, docTabs: true };'), 'website tabs and sync default off, document tabs on');
+  assert.ok(html.includes("prefs.docTabs = localStorage.getItem('hub.doctabs') !== 'off';"), 'document tabs must need an explicit opt-out');
   assert.ok(html.includes("prefs.hubTabs = localStorage.getItem('hub.links') === 'hub';"), 'hub tabs must need an explicit opt-in');
   assert.ok(html.includes("prefs.favSync = localStorage.getItem('hub.favsource') === 'sync';"), 'favorites sync must need an explicit opt-in');
   assert.ok(!/id="set-links"[^>]*\bchecked\b/.test(html) && !/id="set-favsync"[^>]*\bchecked\b/.test(html), 'neither switch starts checked in the markup');

@@ -111,6 +111,7 @@ Right-click any row in the tree — folder or file — for copy and launch actio
 
 | Action | What it does |
 |:---|:---|
+| Open in New Tab | Opens the row in a new document tab (`openDocTab`). Hidden while the **Open documents in multiple tabs** setting is off. |
 | Add / Remove Bookmark | Pins the row, or unpins it. The label reflects the current state; same action as the header's `☆ bookmark` button and `Ctrl+D`. See [Bookmarks and recents](#bookmarks-and-recents). |
 | Rename Bookmark | Bookmark rows only. Opens the same in-place editor as double-clicking the label, which is otherwise undiscoverable. |
 | Move to ‹group› / Move to New Group… / Remove from Group | Bookmark rows only. Files the bookmark under a group header in the Bookmarks view; see [Bookmarks and recents](#bookmarks-and-recents). |
@@ -123,6 +124,8 @@ Right-click any row in the tree — folder or file — for copy and launch actio
 | Open in VS Code | `/api/open?in=code&path=...`. |
 
 The menu distinguishes two kinds of absence. The synthetic Projects node has no path at all, so its path copies and launch actions are both disabled; it can still be bookmarked like any other row. A **pinned row whose file has gone missing** keeps its copy actions — the last known path is the useful thing when hunting for where a file went — and loses only the launch actions (`opts.missing` → `unlaunchable`, distinct from `virtual`). A pin the scan cannot describe gets a node synthesized from what the pin itself stores, so the menu never depends on the file still existing. Launch requests report invalid paths, missing files, and process failures; a successful response acknowledges the request, not a visually verified open application.
+
+**Document tabs** share the hub-tabs strip with website tabs. A document tab is only a remembered `{doc, heading, scroll}`: there is still one `#view`, and `activateTab()` saves the outgoing tab's state and restores the incoming one through `go()`. The base **⌂** tab keeps its state in `tabs.base` and cannot be closed. Navigating changes the active tab's document, like a browser tab, and `go()` from a website tab lands on the last document tab (`tabs.lastDoc`). Right-clicking a tab opens the row menu for its document, led by Duplicate Tab, Close Tab and Close Other Tabs; a website tab gets Reload, Add to Favorites, Copy URL, Open in Browser Tab and the close actions instead. Tabs are not kept across a reload.
 
 Originally implemented client-side as one `showCtxMenu()` in `index.html` (a `contextmenu` listener
 on `#tree`, positioned/clamped to the viewport, closed on outside click/scroll/Escape) —
@@ -201,6 +204,7 @@ The gear at the right end of the activity bar opens a Settings view (`#settings`
 |:---|:---|:---|
 | Color scheme (all nine; the header keeps a Light / Dark switch for `paper` / `obsidian`) | `hub.theme` | `obsidian` |
 | Interface size: 90, 100, 115 or 130%, which sets `--zoom` | `hub.zoom` | 115% |
+| Open documents in multiple tabs | `hub.doctabs` (`on` / `off`) | on. Turning it off closes the document tabs and keeps the page on screen |
 | Open websites in hub tabs | `hub.links` (`hub` / `browser`) | off: a browser tab |
 | Sync with browser favorites | `hub.favsource` (`sync` / `manual`) | off: manual |
 
@@ -224,7 +228,9 @@ In both modes only `http(s)` links are kept. That drops bookmarklets, which woul
 
 ## Hub tabs
 
-With **Open websites in hub tabs** on, a plain click on a favorite, a Live Sites card or a web link in a document opens the site in a tab inside the hub (`openSite()`). A tab strip (`#tabs`) appears under the header. **⌂ Hub** is the document view, and each site gets a tab with its favicon, a close button, and middle-click to close. The active site tab has ↻ reload, ☆ add to favorites and ↗ open in a browser tab. Frames live in `#frames` and stay alive while hidden, so switching tabs never reloads a page. Opening a document from the tree, or typing a search, brings the document view back.
+With **Open websites in hub tabs** on, a plain click on a favorite, a Live Sites card or a web link in a document opens the site in a tab inside the hub (`openSite()`). A tab strip (`#tabs`) appears under the header, shared with the document tabs described under the context menu above. The **⌂** tab is the base document view, and each site gets a tab with its favicon, a close button, and middle-click to close. The active site tab has ↻ reload, ☆ add to favorites and ↗ open in a browser tab. Frames live in `#frames` and stay alive while hidden, so switching tabs never reloads a page. Opening a document from the tree, or typing a search, brings back the last document tab (`tabs.lastDoc`).
+
+The strip is styled like a browser's: the active tab takes `--bg`, has no bottom edge and a green top line, so it opens into the page. The strip's baseline is an inset `box-shadow`, not a border, because `overflow-x: auto` clips children at the padding box and a border could never be painted over.
 
 A site that forbids framing shows a blank "refused to connect" page inside an iframe, and the page has no way to detect that. So the server asks the site first. `/api/frameable` fetches the URL and reads `X-Frame-Options` and CSP `frame-ancestors` (`allowsFraming()`). The answer is cached per URL. An unreachable site counts as not frameable, and so does an error or bot-challenge response (403, 429, 5xx), because that page's headers say nothing about the real site's. A header sent twice (`SAMEORIGIN, SAMEORIGIN`) is split and checked value by value. A site that refuses opens in a browser tab. A toast names the site and says why. While hub tabs are on, favorites and Live Sites cards are also checked ahead of time: `watchEmbed()` observes each one with an `IntersectionObserver` and, as it scrolls into view, asks `/api/frameable` through `checkFrameable()`. That runs at most four checks at once, asks each URL once per page load, and moves a clicked link to the front of the queue. A site that refuses gets a **↗ browser** label before anyone clicks it. Flipping the switch redraws the view, so the labels appear or disappear with it. Refusal is common: of 52 real favorites and Live Sites checked on 2026-09-29, 31 refused, among them GitHub, Google, Reddit, Notion, Claude, Microsoft 365 and Hugging Face. No web page can embed those, so the setting cannot change that. Sites that need a sign-in may also show as signed out inside a frame, because browsers block third-party cookies there.
 

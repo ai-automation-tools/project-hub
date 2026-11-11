@@ -2090,8 +2090,9 @@ for (const b of document.querySelectorAll('#activity .act')) {
 // The server asks the site whether it may be framed first; one that refuses opens in a
 // browser tab, because a refused frame is a blank page the hub cannot detect.
 //
-// Document tabs share the one #view: a tab is just a remembered {doc, heading, scroll},
-// restored through go() when it comes forward. `active: null` is the base "Hub" tab,
+// Document tabs share the one #view: a tab is a remembered {doc, heading, scroll} plus the
+// page it last drew, swapped back in when it comes forward (or redrawn through go() when
+// that page went stale). `active: null` is the base "Hub" tab,
 // whose state lives in `base`; `lastDoc` is where go() lands when a site tab is up.
 const tabs = { list: [], active: null, seq: 0, frameable: new Map(), base: { doc: null, heading: '', scroll: 0 }, lastDoc: null };
 /** The saved document state behind a tab id, or undefined for a site tab. */
@@ -2135,21 +2136,58 @@ function openDocTab(doc) {
 async function activateTab(id, restore = true) {
   if (!tabs.list.some((t) => t.id === id)) id = null;
   const out = docCtx(tabs.active);
-  if (out && tabs.active !== id) Object.assign(out, { doc: S.sel || defaultRootId(), heading: S.heading || '', scroll: $('#view').scrollTop });
+  if (out && tabs.active !== id) {
+    Object.assign(out, { doc: S.sel || defaultRootId(), heading: S.heading || '', scroll: $('#view').scrollTop });
+    // Keep the rendered page, so coming back is a node swap rather than a rebuild: a big
+    // document, the portfolio or a repo page costs hundreds of ms to redraw on a large scan.
+    const node = S.query ? null : $('#view').firstElementChild;
+    out.page = node && { node, key: pageKey(out.doc) };
+  }
   tabs.active = id;
   const into = docCtx(id);
-  if (into) tabs.lastDoc = id;
+  // Taken on entry either way: a tab's page lives in #view while it is the one showing.
+  const cached = into?.page;
+  if (into) { tabs.lastDoc = id; into.page = null; }
   $('#view').hidden = !into;
   $('#frames').hidden = !!into;
   for (const t of tabs.list) t.frame?.classList.toggle('on', t.id === id);
   renderTabs();
   if (!into || !restore || !into.doc || out === into) return;
+  if (cached && cached.key === pageKey(into.doc) && S.byId.has(into.doc)) return showTabPage(into, cached.node);
   // A document deleted since the tab was opened falls back to the landing page.
   const doc = S.byId.has(into.doc) || pictureNodes.owns(into.doc) ? into.doc : defaultRootId();
   await go(doc, into.heading);
   if (S.sel !== into.doc || tabs.active !== id) return;
   restoreReading = { id: doc, scroll: into.scroll };
   $('#view').scrollTop = into.scroll;
+}
+
+/**
+ * Everything a kept page was drawn from that can change while its tab is in the
+ * background. A rescan with changes, a reader setting, or a bookmark toggled from
+ * another tab makes it stale, and the tab redraws through go() instead.
+ */
+const pageKey = (doc) => JSON.stringify([S.sig, S.mdMode, S.htmlMode, reader.outline, reader.width, reader.scale,
+  S.docOff.has(doc), isBookmarked(pins.bookmarks, doc)]);
+
+/** go() for a tab whose page is kept: the same selection, tree and address-bar state, minus the redraw. */
+function showTabPage(ctx, node) {
+  requestedNavigation = { id: ctx.doc, heading: ctx.heading };
+  ++navigationRequest;   // a go() still waiting on a picture folder must not land over this
+  S.sel = ctx.doc;
+  S.heading = ctx.heading;
+  S.focus = ctx.doc;
+  S.query = ''; $('#q').value = ''; S.hit = -1;
+  const hash = routeHash(ctx.doc, ctx.heading);
+  if (location.hash !== hash) location.hash = hash;
+  for (let p = S.parent.get(ctx.doc); p; p = S.parent.get(p)) S.open.add(p);
+  renderTree(); renderPins(); renderCrumbs(); renderTabs();
+  $('#view').replaceChildren(node);
+  syncCombobox();
+  // A document still loading when its tab was left scrolls itself here once it arrives.
+  restoreReading = { id: ctx.doc, scroll: ctx.scroll };
+  $('#view').scrollTop = ctx.scroll;
+  $('.node.sel')?.scrollIntoView({ block: 'nearest' });
 }
 
 function closeTab(id) {

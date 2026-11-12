@@ -63,6 +63,7 @@ the match count is not exactly `expected`**:
 | `'/api/raw?path=' + encodeURIComponent(` | 4 | Prefix only, so the call's own closing paren still closes it |
 | `'/api/preview?path=' + encodeURIComponent(` | 1 | Same |
 | `<script type="module">` | 1 | `demo.js` is injected ahead of it |
+| `</body>` | 1 | The shared consent gate (`ai-automation-tools.dev/consent.js`) is injected before it — demo-only, never in `hub/index.html` |
 
 > [!IMPORTANT]
 > **`expected 4x "…" found 3` is not a demo bug.** It means someone changed an asset URL in

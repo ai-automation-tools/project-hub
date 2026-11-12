@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, scanGap, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, validateFolderIcon, writeFolderIcons, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
-import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
+import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, keyOf, removeBookmark, duplicateBookmark,
   resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins } from './navigation.mjs';
 
@@ -709,6 +709,12 @@ test('bookmarks round-trip through storage and survive junk written by anything 
     assert.deepEqual(moveBookmark(three, ...bad).map((e) => e.path), ['a', 'b', 'c']);
   }
 
+  // The Explorer's saved folder order: in place, unknown ids last in scan order, stale ids ignored.
+  const roots = ['a', 'b', 'c', 'd'].map((id) => ({ id }));
+  assert.equal(orderByIds(roots, ['c', 'gone', 'a']), roots);
+  assert.deepEqual(roots.map((r) => r.id), ['c', 'a', 'b', 'd']);
+  assert.deepEqual(orderByIds([{ id: 'x' }, { id: 'y' }], []).map((r) => r.id), ['x', 'y']);
+
   // Anything that is not a usable list of paths reads back as empty, never as a throw.
   for (const junk of [undefined, null, '', 'not json', '{}', '[1,2]', '[{"label":"no path"}]']) {
     assert.deepEqual(parseList(junk), [], `parseList(${JSON.stringify(junk)}) should be empty`);
@@ -837,7 +843,7 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.doctabs'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'"].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.doctabs'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'", "'hub.rootorder'"].includes(key),
       `unexpected localStorage key ${key}`);
   }
 });

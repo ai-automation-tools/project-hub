@@ -14,6 +14,11 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-12
+
+- **Copy Hub Link** (the right-click item and the header button) now copies a named hyperlink as well as the URL. Paste into mail, Word, chat or Obsidian and you get the document's name as a link; paste into a plain-text field and you get the URL as before.
+- Top-level Explorer folders can be dragged into any order. The order is saved in the browser, like bookmarks, and Settings and the search chips follow it.
+
 ## 2026-11-11
 
 - Watcher: the wait between rescans now grows with the library. It is four times the length of the last scan, never under 30s or over 10 minutes, so scanning stays under a fifth of the time. A 138k-node library whose scans took 40–70s had been rescanning about two thirds of the time (53 scans in 92 minutes); small libraries keep the 30s refresh

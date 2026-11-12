@@ -274,7 +274,7 @@ test('refresh failures keep readable content and recover; startup retries restor
   const state = { data: old, sig: 'one', sel: 'Docs/README.md', byId: new Map([['Docs/README.md', {}]]) };
   const context = vm.createContext({
     S: state, $: select, AbortController, setTimeout, clearTimeout, Date,
-    pictureNodes: { attach() {}, owns() { return false; } },
+    pictureNodes: { attach() {}, owns() { return false; } }, orderByIds() {}, rootOrder: [],
     fetch: async () => { if (fail) throw new Error('offline'); return { ok: true, json: async () => old }; },
     showFatal: () => { fatal++; }, reindex: (data) => { state.data = data; },
     renderTree() {}, renderPins() {}, folderTimes: new Map(), folderTimesGen: 0, renderView() {}, go: (...args) => { navigated = args; },

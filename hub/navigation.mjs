@@ -350,6 +350,16 @@ export function moveBookmark(list, from, to) {
   return next;
 }
 
+/**
+ * Sort `list` in place into a saved order of ids. Items the order doesn't name (a folder
+ * added since) keep their relative order at the end. In place, because the tree array is
+ * shared by reference.
+ */
+export function orderByIds(list, ids) {
+  const at = (n) => { const i = ids.indexOf(n.id); return i < 0 ? ids.length : i; };
+  return list.sort((a, b) => at(a) - at(b));
+}
+
 /** Newest first, deduplicated by path so reopening a file moves it rather than adding a row. */
 export function pushRecent(list, path, label, now = Date.now()) {
   if (!path) return list;

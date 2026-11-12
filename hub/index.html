@@ -622,10 +622,13 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 /* The sidebar caps at half the viewport, so on a phone the six icons must fit ~180px. */
 @media (max-width:600px){#activity{gap:0;padding:6px 4px 0}.act{width:28px}}
 /* settings */
-#settings{flex:1;overflow-y:auto;padding:4px 0 16px}
-.set{padding:12px 14px 14px;border-bottom:1px solid var(--line-a)}
-.set h3{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer);font-weight:500}
-.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px;font-size:12.5px;color:var(--fg-mid);cursor:pointer}
+#settings{flex:1;overflow-y:auto;padding:10px 0 16px}
+/* Each group is its own card with a title band, so one setting's controls can't be read as the next one's. */
+.set{margin:0 10px 12px;padding:0 12px 12px;border:1px solid var(--line-b);border-radius:var(--r-md)}
+.set h3{margin:0 -12px 10px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--fg-max);background:var(--surface-2);border-bottom:1px solid var(--line-b);border-radius:var(--r-md) var(--r-md) 0 0}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px;font-size:12.5px;color:var(--fg);font-weight:500;cursor:pointer}
+/* A second setting inside one card starts under a rule. */
+.set :is(.sethelp,.setrow)+.setrow{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-a)}
 .setrow select,.setpair select{font-family:var(--sans);font-size:12.5px;color:var(--fg);background:var(--surface);border:1px solid var(--line-b);border-radius:var(--r-sm);padding:5px 8px;min-width:0}
 .sethelp{margin:4px 0 8px;font-size:11.5px;line-height:1.45;color:var(--dimmer)}
 .setbtns{display:flex;flex-direction:column;align-items:stretch;gap:6px}

@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-12
 
+- Settings is easier to scan: each group is its own bordered card with a bold title band, setting labels are brighter than their help text, and two settings in one card are split by a rule.
 - **Settings → Backup** exports everything you have set up to one `project-hub-settings.json`: bookmarks, recent documents, theme and layout from the browser, plus the hub's folders, folder icons, scan depth and favorites. Importing it into another hub or browser brings it all across. Bookmarks, recents and favorites are added to what is there; other settings are replaced; a folder the new computer doesn't have is reported, not created.
 - `CLAUDE.md` is gone: `AGENTS.md` is the only agent instructions file, now that Claude Code reads it directly. It gained the Claude Code notes and a checklist for adding a setting so the settings file keeps covering everything; a test fails when the page writes a `localStorage` key the export doesn't know.
 - **Copy Hub Link** (the right-click item and the header button) now copies a named hyperlink as well as the URL. Paste into mail, Word, chat or Obsidian and you get the document's name as a link; paste into a plain-text field and you get the URL as before.

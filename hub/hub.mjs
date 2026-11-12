@@ -777,7 +777,18 @@ export function ignoreWatchEvent(dir, name) {
 // after any event, so on a busy machine the hub was never not scanning -- 15 scans in
 // its first 15 minutes on 2026-10-26. A change now waits until SCAN_GAP after the last
 // scan finished, and the one queued scan covers every change that lands before it runs.
-const SCAN_DEBOUNCE = 2500, SCAN_GAP = 30_000;
+//
+// A fixed 30s gap still wasn't enough for a large library: on 2026-11-11 a 138k-node tree
+// took 40-70s a scan and files changed constantly, so the hub ran 53 scans in 92 minutes
+// and was scanning about two thirds of the time. The gap now grows with the last scan:
+// four times its length, so scanning stays under a fifth of the time, between the old
+// 30s (small libraries keep their quick refresh) and 10 minutes.
+const SCAN_DEBOUNCE = 2500, SCAN_GAP_MIN = 30_000, SCAN_GAP_MAX = 600_000, SCAN_GAP_FACTOR = 4;
+export function scanGap(lastScanMs) {
+  const ms = Number.isFinite(lastScanMs) && lastScanMs > 0 ? lastScanMs : 0;
+  return Math.min(SCAN_GAP_MAX, Math.max(SCAN_GAP_MIN, ms * SCAN_GAP_FACTOR));
+}
+const currentGap = () => scanGap(scanLog[scanLog.length - 1]?.ms);
 let timer = null, lastWhy = '';
 const recentChanges = [];
 function bump(why) {
@@ -787,12 +798,12 @@ function bump(why) {
   recentChanges.push({ path: why, at: Date.now() });
   if (recentChanges.length > 20) recentChanges.shift();
   if (timer) return;
-  timer = setTimeout(fireScan, Math.max(SCAN_DEBOUNCE, lastScanEnd + SCAN_GAP - Date.now()));
+  timer = setTimeout(fireScan, Math.max(SCAN_DEBOUNCE, lastScanEnd + currentGap() - Date.now()));
 }
 async function fireScan() {
   // A scan already running predates this change; wait it out, then keep the gap.
   if (scanning) await scanning.catch(() => {});
-  const wait = lastScanEnd + SCAN_GAP - Date.now();
+  const wait = lastScanEnd + currentGap() - Date.now();
   if (wait > 0) { timer = setTimeout(fireScan, wait); return; }
   timer = null;          // changes from here on queue the next scan
   const why = lastWhy;

@@ -10,7 +10,6 @@ import { execFile } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import zlib from 'node:zlib';
 import { isMainThread, parentPort, workerData } from 'node:worker_threads';
-import { PictureLibrary } from './pictures.mjs';
 import { frontmatter, blurb, parseLiveSites } from './markdown.mjs';
 
 export const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +28,7 @@ const CONFIG_DEFAULTS = {
   // The workspace drive root. Every id in the tree is a path relative to this, so it is
   // the one value that has to match the machine — it lives in config, not in this file.
   base: '',
-  // Roots every project shares (Documents, Pictures, …). Machine-specific: config too.
+  // Roots every project shares (Documents, Notes, …). Machine-specific: config too.
   sharedRoots: [],
   favicon: { glyph: '/', ink: '#5fe3a1', line: '#2f6b52' },
   // Extra Host names the hub answers to, besides loopback — e.g. the MagicDNS name a
@@ -136,6 +135,30 @@ export function validateNewRoot(input, roots, isDir) {
   return { name, dir, tint: ROOT_TINTS.includes(input?.tint) ? input.tint : 'var(--blue)' };
 }
 
+// Every file under a mounted folder is walked on each scan and listed in the page's tree,
+// so a photo library makes both slow. Past this many images, adding a folder asks first.
+export const IMAGE_WARN = 2000;
+
+/**
+ * Images under `dir`, counted only until `limit` is passed or `budget` entries have been
+ * looked at: a quick "is this a photo library?" check before mounting, not a census.
+ */
+export function countImages(dir, limit = IMAGE_WARN, budget = 50000) {
+  let images = 0;
+  const stack = [dir];
+  while (stack.length && images <= limit && budget > 0) {
+    const at = stack.pop();
+    let entries;
+    try { entries = fs.readdirSync(at, { withFileTypes: true }); } catch { continue; }
+    for (const e of entries) {
+      if (--budget < 0 || images > limit) break;
+      if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name) && !e.name.startsWith('.')) stack.push(path.join(at, e.name)); }
+      else if (kindOfFile(e.name) === 'image') images++;
+    }
+  }
+  return images;
+}
+
 /** Rewrite only `sharedRoots` in the config file, keeping every other key; atomic. */
 export function writeSharedRoots(file, roots) {
   const j = readConfigJson(file);
@@ -234,7 +257,7 @@ function discoverProjects() {
 }
 const PROJECTS = IS_MAIN || SCAN_WORKER ? discoverProjects() : [];
 
-// Every project workspace gets its own root; Documents, Pictures and the rest are shared
+// Every project workspace gets its own root; Documents and the rest are shared
 // by all of them. They are machine paths, so they come from `sharedRoots` in the hub's
 // config rather than being listed here — see project-hub/hub.config.example.json.
 //
@@ -679,17 +702,6 @@ export function kindOfFile(name) {
   return 'file';
 }
 
-// Pictures is an optional shared root. Without one the library still constructs but is
-// never reached: no root means no 'Pictures' node in the tree and no watcher match.
-const pictureRoot = SHARED_ROOTS.find((r) => r.name === 'Pictures') || { dir: '' };
-const pictures = new PictureLibrary({
-  maxDepth: CONFIG.maxDepth,
-  dir: pictureRoot.dir, id: pictureRoot.dir ? rel(pictureRoot.dir) : 'Pictures', classify: kindOfFile,
-  allow: (name, directory) => directory
-    ? !SKIP_DIRS.has(name) && !SECRET_DIRS.has(name.toLowerCase()) && (!name.startsWith('.') || DOT_OK.has(name))
-    : !CREDENTIAL_FILE.test(name) && !/^\.env(?:$|\.)/i.test(name),
-});
-
 // ── scan ───────────────────────────────────────────────────────────────────
 export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, userRuntimes = USER_RUNTIMES } = {}) {
   const repos = [];
@@ -882,7 +894,6 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
   }
 
   function buildRootNode(r, shared) {
-    if (r.name === 'Pictures') { const node = pictures.root(); flat.push(node); return node; }
     const node = leaf(rel(r.dir), r.name, r.name === 'Documents' ? 'docroot' : 'root', r.dir, '');
     node.children = walk(r.dir, 0, {
       rootDir: r.dir, maxDepth: shared ? CONFIG.maxDepth : (r.maxDepth ?? CONFIG.maxDepth),
@@ -908,7 +919,7 @@ export function scanTree({ projects = PROJECTS, sharedRoots = SHARED_ROOTS, user
   const sharedNodes = sharedRoots.map((r) => buildRootNode(r, true));
 
   // Every project workspace nests under one "Projects" folder rather than sitting at
-  // the top level next to Documents/Skills/Pictures/Automations -- a real tree node
+  // the top level next to Documents/Skills/Automations -- a real tree node
   // (not just a UI grouping), so it collapses/expands like any other folder. No real
   // directory backs it, so it carries no `root`/`doc` and stays out of `flat` (nothing
   // to search for or resolve a filesystem path from).
@@ -1024,7 +1035,7 @@ export function fileStamp(file) {
  * Modification times for one folder's immediate children, on demand.
  *
  * `mtime` is deliberately non-enumerable on scanned nodes (see stampNode) because a
- * timestamp on all ~40,000 of them is exactly the payload weight the Pictures pass spent
+ * timestamp on all ~40,000 of them is exactly the payload weight an earlier pass spent
  * itself removing. The folder list view needs it for a few dozen rows of one open folder,
  * so it is fetched for that folder instead of shipped for every node.
  *
@@ -1544,6 +1555,6 @@ function adoptWorkerScan(out) {
 export {
   argv, argOf, CONFIG_FILE, CONFIG, HUB_DIR, PROJECTS, SHARED_ROOTS, ROOTS, MOUNTED_ROOTS, USER_RUNTIMES, SKIP_DIRS,
   DOT_OK, NOISE_FILE, SECRET_DIRS, SERVE_DIRS, posix, rel, resolveId, readHeadAsync, descCache, readErrors,
-  READ_ERROR_MAX, readErrorLog, pictureRoot, pictures, safeIsDir, repoChanges, repoDiff, contentDocs,
+  READ_ERROR_MAX, readErrorLog, safeIsDir, repoChanges, repoDiff, contentDocs,
   contentSig, scan, scanPayload, adoptWorkerScan, mountSharedRoot, unmountSharedRoot,
 };

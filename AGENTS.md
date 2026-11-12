@@ -16,7 +16,7 @@ it. Don't add a `CLAUDE.md` or another per-tool copy beside it.
 | `hub/scan.mjs` | Config loader, roots, `resolveId()` deny gate, tree walk, git state, scan payload. Also what the scan worker thread loads (~1,480 lines) |
 | `hub/markdown.mjs` | Frontmatter, markdown renderer + `sanitizeHtml()`, heading slugs, link check (~440 lines) |
 | `hub/index.html` | The entire UI — no framework, no build. Server fills `%TITLE%` `%FAVICON%` `%PORT%` `%NONCE%` per request |
-| `hub/{navigation,pictures,pictures-client,reports,open-native,webmarks,favorites}.mjs` | Route/bookmark logic (pure), lazy Pictures cache, signed report routes, native launch, favorites storage + favicons + embed check (server), favorites tree + bookmarks-file format (client, pure) |
+| `hub/{navigation,reports,open-native,webmarks,favorites}.mjs` | Route/bookmark logic (pure), signed report routes, native launch, favorites storage + favicons + embed check (server), favorites tree + bookmarks-file format (client, pure) |
 | `hub/*.test.mjs` | `node --test`, no framework |
 | `hub/Start-Hub.ps1`, `Watch-Hubs.ps1`, `run-watchdog-hidden.vbs` | Launcher, health watchdog, hidden-window wrapper for its scheduled task |
 | `project-hub/` | Server config folder + launcher shim. Real `hub.config.json` is gitignored |

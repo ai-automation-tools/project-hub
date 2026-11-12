@@ -16,6 +16,8 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-12
 
+- **Removed the Pictures library.** The hub is a document console, and the separate on-demand photo browser (`pictures.mjs`, `/api/pictures`, its own search section and watcher) was a second code path that was still slow on a large library. A folder named `Pictures` is now an ordinary folder, scanned in full like any other; if yours is a photo library, remove it in **Settings → Folders**, where it now has a ✕ like every other folder.
+- Adding a folder that holds more than 2,000 images shows a warning instead of adding it, with **Add anyway** for when you mean it. The count stops as soon as it passes the limit, so the check is quick on any size of library.
 - Settings is easier to scan: each group is its own bordered card with a bold title band, setting labels are brighter than their help text, and two settings in one card are split by a rule.
 - **Settings → Backup** exports everything you have set up to one `project-hub-settings.json`: bookmarks, recent documents, theme and layout from the browser, plus the hub's folders, folder icons, scan depth and favorites. Importing it into another hub or browser brings it all across. Bookmarks, recents and favorites are added to what is there; other settings are replaced; a folder the new computer doesn't have is reported, not created.
 - `CLAUDE.md` is gone: `AGENTS.md` is the only agent instructions file, now that Claude Code reads it directly. It gained the Claude Code notes and a checklist for adding a setting so the settings file keeps covering everything; a test fails when the page writes a `localStorage` key the export doesn't know.

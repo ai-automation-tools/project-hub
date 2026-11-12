@@ -19,7 +19,7 @@ description: >-
 and most "why can I read that" bugs are the second gate missing.
 
 All commands run from **`hub/`**, not the repo root. `npm test` runs the Node tests over
-`hub.mjs` (with `scan.mjs` and `markdown.mjs`), `reports.mjs`, `pictures.mjs`, `webmarks.mjs` and `favorites.mjs`.
+`hub.mjs` (with `scan.mjs` and `markdown.mjs`), `reports.mjs`, `webmarks.mjs` and `favorites.mjs`.
 
 ---
 
@@ -99,8 +99,8 @@ per-request scan serialises every request into a queue that never drains.
 - Gzip happens **once per scan**, not per request — 5.1MB → ~0.6MB.
 - `scanSignature(flat, repos)` is what tells the client the payload actually changed. It
   mixes `id|desc|size|mtime` per node plus each repo's git state. **`mtime` and `abs` are
-  non-enumerable on purpose** — a timestamp on 40,000 nodes is the payload weight the
-  Pictures pass spent itself removing. The folder list view fetches `/api/stat` for one
+  non-enumerable on purpose** — a timestamp on 40,000 nodes is payload weight nobody
+  reads. The folder list view fetches `/api/stat` for one
   open folder instead.
 - `ignoreWatchEvent(dir, name)` is exported and tested; a file the hub writes itself must be
   ignored there or the hub rescans forever.

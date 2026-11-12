@@ -29,7 +29,6 @@ fails loudly.
 | Uncommitted changes | Real. The build captures each dirty fixture repo's change list and the diff of every changed file |
 | Content search | Absent, except the fixture's `tag:` searches, which the build captures ahead of time. Any other query needs the server's index |
 | Link check | Absent. It reads every document under a folder on request, so there is no fixed answer to capture |
-| Pictures | Not configured in the fixture |
 | Settings | Real, and remembered per browser like the local hub's |
 | Favorites | Absent. Both sources are served by the local server, so the view says the server is needed |
 | Hub tabs | The switch works, but with no server to ask whether a site can be embedded, every site opens in a browser tab |

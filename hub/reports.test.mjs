@@ -274,7 +274,7 @@ test('refresh failures keep readable content and recover; startup retries restor
   const state = { data: old, sig: 'one', sel: 'Docs/README.md', byId: new Map([['Docs/README.md', {}]]) };
   const context = vm.createContext({
     S: state, $: select, AbortController, setTimeout, clearTimeout, Date,
-    pictureNodes: { attach() {}, owns() { return false; } }, orderByIds() {}, rootOrder: [],
+    orderByIds() {}, rootOrder: [],
     fetch: async () => { if (fail) throw new Error('offline'); return { ok: true, json: async () => old }; },
     showFatal: () => { fatal++; }, reindex: (data) => { state.data = data; },
     renderTree() {}, renderPins() {}, folderTimes: new Map(), folderTimesGen: 0, renderView() {}, go: (...args) => { navigated = args; },
@@ -308,7 +308,7 @@ test('a reloaded search URL restores the query instead of navigating to a docume
   let navigated = null, rendered = 0;
   const context = vm.createContext({
     S: state, $: select, AbortController, setTimeout, clearTimeout, Date,
-    pictureNodes: { attach() {}, owns() { return false; } },
+    orderByIds() {}, rootOrder: [],
     fetch: async () => ({ ok: true, json: async () => data }),
     showFatal: () => {}, reindex: (d) => { state.data = d; },
     renderTree() {}, renderPins() {}, folderTimes: new Map(), folderTimesGen: 0, renderView() { rendered++; }, go: (...args) => { navigated = args; },

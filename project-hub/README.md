@@ -1,6 +1,6 @@
 # 🚀 Project Hub
 
-A local navigation UI for your project workspaces, shared documents, pictures, and user-scope agent configuration. Configure the roots on your machine using the [setup guide](../README.md#-setup).
+A local navigation UI for your project workspaces, shared documents, and user-scope agent configuration. Configure the roots on your machine using the [setup guide](../README.md#-setup).
 
 To see what the pages described here look like before configuring anything, there is a
 read-only copy over a fictional workspace at
@@ -15,7 +15,7 @@ and doc on the page comes from a live filesystem scan, and the page re-renders o
 own when anything changes.
 
 **One process, any number of project roots.** Until 2026-09-07 each workspace ran its own hub on
-its own port, independently re-scanning the same Documents/Skills/Pictures/Automations
+its own port, independently re-scanning the same Documents/Skills/Automations
 content. Now one process scans the shared roots once and nests each project workspace
 under one **Projects** folder in the tree — click a project to see it scoped on its own,
 or click **Projects** itself (the default landing page) for the combined picture across
@@ -79,8 +79,6 @@ The whole UI is sized in px off one knob — `--zoom` on `:root`, currently `1.1
 Change that single value to scale everything together. (`#app` divides it back out
 of its `100vh`; Chrome doesn't shrink the containing block to match a root `zoom`,
 so without that the page would run 15% past the bottom of the screen.)
-
-**Pictures performance update:** Pictures now loads one folder at a time, with deep links resolved on demand and a separate, paginated metadata-search section. Ordinary project scans never walk the photo tree. The initial scan payload is about 45% smaller over the wire; see [P7 measurements](../docs/ROADMAP.md#p7-review). Picture search retains the previous depth limit, while deeper folders remain browsable. Reload this tab to use the updated interface.
 
 **September 8 update:** PDF and HTML reports now appear in filename search (`pdf:` / `html:`), with accurate total counts and Load 200 More. HTML companion assets resolve within the report directory, and previews have response-level isolation. Document links preserve heading destinations; **Copy Hub Link** captures a reopenable URL. Failed refreshes keep the current page visible with Retry. A browser pass later that day confirmed all of this in Chrome and fixed the one defect it found: Back from a search result now returns to the results. Reload an existing tab to load these changes. See [P7 status and verification](../docs/ROADMAP.md#p7-review) for delivered work and what is still unverified.
 
@@ -368,7 +366,10 @@ halfway through a scan.
 Explorer header) takes a path — paste one from File Explorer's *Copy as path*, quotes and all —
 and an optional name. The setting is saved at once; the folder appears next to Projects when the
 rescan that follows finishes, about as long as any scan takes. The ✕ beside a folder
-removes it from the sidebar; nothing on disk is touched. Both write `sharedRoots` in
+removes it from the sidebar; nothing on disk is touched. The hub is built for documents, not photo
+libraries: a folder holding more than 2,000 images gets a warning instead of being added, because
+every file is listed on each scan and a photo library makes scans and the sidebar slow. **Add anyway**
+under the warning adds it regardless. Both write `sharedRoots` in
 `hub.config.json` and need no restart. They only work in a browser on the hub's own PC: a
 phone on the tailnet sees the list but not the controls.
 
@@ -379,13 +380,13 @@ expanded folder shows the open variant, as in VS Code. Saved as `folderIcons` in
 `hub.config.json`, so every browser sees the same icons; like folders, only the hub's own PC
 can change them.
 
-The shared roots — `Documents`, `Pictures`, `Automations`, `Links` and whatever else you
+The shared roots — `Documents`, `Automations`, `Links` and whatever else you
 configure — and the six user-scope runtimes are the same for every project, so they stay in
 [`../hub/scan.mjs`](../hub/scan.mjs) (`SHARED_ROOTS` and `USER_RUNTIMES`) and are scanned once
 for all mounted workspaces rather than once per hub. Two rules decide whether a folder deserves
 its own root. A folder the walker cannot otherwise reach needs one: a dot-prefixed directory,
 hidden from an editor's indexer, is pruned by the dot-directory rule and would never appear.
-A folder outside every other root needs one too — `Pictures` at `C:/Users/<you>/OneDrive/Pictures`
+A folder outside every other root needs one too — a notes folder on another drive, say,
 sits outside `Documents` entirely. A folder nested inside another root, say
 `Documents/Research`, is the interesting case: it can still be mounted separately when it is a
 destination in its own right. The walker prunes it from the `Documents` walk (`MOUNTED_ROOTS`) rather than indexing the
@@ -470,7 +471,7 @@ In the **tree**, once a row has focus:
 In **search results**, `↑` `↓` move the highlight and `Enter` opens it, without leaving the
 search box. As of 2026-09-09 the box is a proper combobox, so a screen reader is told which
 result is highlighted rather than the highlight being purely visual; the arrows walk the
-document results and the Pictures section as one sequence. Prefix a query with a kind to narrow it — `skill:kalshi`, `repo:edge`,
+document results and the inside-documents section as one sequence. Prefix a query with a kind to narrow it — `skill:kalshi`, `repo:edge`,
 `cmd:deploy`, `agent:`, `routine:`, `doc:`, `mcp:`, and `pdf:`, `html:`, `image:` for
 deliverables. Matches are highlighted in the results.
 
@@ -488,8 +489,7 @@ eighty files.
 
 Folders come first when you sort by name or type. They deliberately **don't** when you
 sort by modified or size, because that is when you are asking a question the grouping would
-get in the way of. A folder's size column shows how many items are in it, or `unopened` for
-a Pictures folder whose contents have not been loaded yet.
+get in the way of. A folder's size column shows how many items are in it.
 
 Which view you get is remembered per browser. Modification times are fetched for the folder
 you are looking at rather than shipped with every scan, so they appear a beat after the rows
@@ -629,7 +629,7 @@ Enter) for the detail behind it:
   getting slower is visible before it becomes a problem.
 - **Where the time went** — walking folders, reading git, assembling, serializing, compressing.
   Git is usually the slow one.
-- **Roots** — the mounted projects, and whether Pictures has been loaded or searched yet.
+- **Roots** — the mounted projects.
 - **Read errors** — not just the count. The actual paths that failed and why, newest first,
   clickable if they are still in the tree. A green status used to sit on top of these silently.
 - **What gets indexed** — which file types make it into the tree and which are skipped.

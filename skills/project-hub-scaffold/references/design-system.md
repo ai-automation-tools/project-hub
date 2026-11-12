@@ -265,5 +265,5 @@ repos, Readmes, Project CLIs, then User CLIs. Header hub switching is retired.
 Heading routes use `#<encoded-id>?heading=<heading>`; search uses `#?q=<query>` with
 optional `scoped=1` and `limit=`. Back restores search results. Reader tools include
 outline, source view, copy-code buttons, width/font controls and print. Folder views
-switch between cards and sortable lists. HTML/PDF use dedicated previews; Pictures
-loads lazily. See [current features](current-features.md) before changing these flows.
+switch between cards and sortable lists. HTML/PDF use dedicated previews.
+See [current features](current-features.md) before changing these flows.

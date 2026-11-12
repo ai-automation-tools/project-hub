@@ -16,7 +16,7 @@ can. One command on the Tailscale side, one config line on the hub side.
 
 > [!IMPORTANT]
 > **The network is the login.** Whoever reaches the page can read every document under
-> every mounted root, including the **Documents** and **Pictures** shared roots. The
+> every mounted root, including the **Documents** shared root and any folder added in Settings. The
 > launch actions in the context menu (open in VS Code, reveal in Explorer) still run on
 > the **PC**, not on the phone. On a personal tailnet that is you and your devices. Never
 > put the port on a public interface, a LAN you don't control, or a `tailscale funnel`.

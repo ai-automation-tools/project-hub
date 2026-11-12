@@ -592,6 +592,8 @@ The gear at the right end of the activity bar opens Settings:
 
 Settings also has **Import bookmarks file…**, **Import** from a browser profile, **Export bookmarks file**, **Clear recent documents** and **Reset sidebar width**. All of these are remembered per browser.
 
+**Backup** at the bottom of Settings moves everything at once. **Export settings** saves one `project-hub-settings.json` holding your bookmarks, recent documents, theme and layout from this browser, plus the hub's folders, folder icons, scan depth and favorites. **Import settings…** on another hub or browser brings it all across. Bookmarks, recent documents and favorites are added to what is already there; other settings are replaced. A folder whose path doesn't exist on the new computer is skipped and listed under the buttons, so you can add it by hand. The hub's own part (folders, icons, scan depth, favorites) can only be imported on the computer running the hub. The file contains folder paths from your computer.
+
 ## Favorites
 
 The star icon opens Favorites. Out of the box it is the hub's own list, and it works like the favorites in Edge or Chrome:

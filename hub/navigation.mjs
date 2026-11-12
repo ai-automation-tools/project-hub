@@ -249,6 +249,58 @@ export function importPins(current, groups, raw) {
   return { bookmarks: [...current, ...incoming], groups: [...new Set([...groups, ...names])], added: incoming.length };
 }
 
+// ── settings file (export / import) ──
+// Everything a person set up, in one file: this browser's preferences (`local`, the raw
+// localStorage strings) and what the hub server keeps (`server`: folders, folder icons,
+// scan depth, favorites). JSON like the bookmarks file, so no parser has to be written.
+export const SETTINGS_FORMAT = 'project-hub-settings';
+// The only keys an import may write. Raw values are safe to restore because every reader
+// of localStorage already distrusts what it finds there.
+export const SETTINGS_KEYS = [BOOKMARKS_KEY, RECENT_KEY, 'hub.bmgroups', 'hub.rootorder', 'hub.theme', 'hub.zoom',
+  'hub.rail', 'hub.sbw', 'hub.side', 'hub.collapsed', 'hub.folderview', 'hub.reader', 'hub.links', 'hub.doctabs',
+  'hub.favsource', 'hub.websrc'];
+
+export function exportSettings(local, server = {}) {
+  const kept = {};
+  for (const k of SETTINGS_KEYS) if (typeof local[k] === 'string') kept[k] = local[k];
+  return JSON.stringify({ format: SETTINGS_FORMAT, version: 1, local: kept, server }, null, 2) + '\n';
+}
+
+/**
+ * What an import should write. Bookmarks and recents merge into `current` (existing rows
+ * win, as importPins does); every other preference is replaced. `server` is only shaped
+ * here -- the hub validates each piece when it is sent. null = not our file.
+ */
+export function importSettings(current, raw) {
+  let file;
+  try { file = JSON.parse(raw); } catch { return null; }
+  if (!file || file.format !== SETTINGS_FORMAT || !file.local || typeof file.local !== 'object') return null;
+  const merge = (mine, theirs) => {
+    const cur = parseList(mine);
+    const have = new Set(cur.map(keyOf));
+    return [...cur, ...parseList(theirs).filter((e) => !have.has(keyOf(e)))];
+  };
+  const local = {};
+  for (const k of SETTINGS_KEYS) {
+    const v = file.local[k];
+    if (typeof v !== 'string' || v.length > 1e6) continue;
+    if (k === BOOKMARKS_KEY) local[k] = JSON.stringify(merge(current[k], v));
+    else if (k === RECENT_KEY) local[k] = JSON.stringify(merge(current[k], v).slice(0, RECENT_MAX));
+    else local[k] = v;
+  }
+  const s = file.server && typeof file.server === 'object' ? file.server : {};
+  const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : null);
+  return {
+    local,
+    server: {
+      folders: (Array.isArray(s.folders) ? s.folders : []).filter((f) => obj(f) && typeof f.name === 'string' && typeof f.dir === 'string'),
+      folderIcons: obj(s.folderIcons) || {},
+      scan: obj(s.scan) ? { defaultDepth: s.scan.defaultDepth, workspaces: (Array.isArray(s.scan.workspaces) ? s.scan.workspaces : []).filter(obj) } : null,
+      favorites: Array.isArray(s.favorites) ? s.favorites : null,
+    },
+  };
+}
+
 // ── bookmark groups ──
 // A group is just a name on its bookmarks, so it exists while something is in it and an
 // emptied group simply disappears. The one exception is a group made with "+ new group",

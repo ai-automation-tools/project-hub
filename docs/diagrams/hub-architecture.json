@@ -243,7 +243,7 @@
       "id": "watcher",
       "type": "backend",
       "label": "Watcher",
-      "sublabel": "2.5 s debounce, 30 s gap",
+      "sublabel": "2.5 s debounce, adaptive gap",
       "pos": [
         1000,
         400
@@ -496,7 +496,7 @@
       "items": [
         "A worker thread walks the tree and runs git per repo, then hands back the payload, gzipped once and served to every tab",
         "A repo's git status is reused until its git files or its working tree change, so a watcher rescan skips most of git",
-        "After a burst it waits out a 30 s gap from the last scan, rescans first, then sends one change event, so no tab fetches a stale copy"
+        "After a burst it waits out a gap from the last scan (four times its length, 30 s to 10 min), rescans first, then sends one change event, so no tab fetches a stale copy"
       ]
     },
     {

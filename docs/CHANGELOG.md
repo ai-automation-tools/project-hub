@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-11
 
+- Watcher: the wait between rescans now grows with the library. It is four times the length of the last scan, never under 30s or over 10 minutes, so scanning stays under a fifth of the time. A 138k-node library whose scans took 40–70s had been rescanning about two thirds of the time (53 scans in 92 minutes); small libraries keep the 30s refresh
 - Folder icons: **Settings → Folder icons** gives a top-level Explorer folder an icon from the Material Icon Theme folder set VS Code uses (84 icons, MIT, inlined), with the open variant when expanded. Saved as `folderIcons` in `hub.config.json` through a new `/api/folder-icons`
 - Right-click menus land where you click: the root `zoom` (1.15 by default) scaled their position, so a menu opened low on the page ran off the bottom. A menu opened in the lower half now grows upward, and the scan-status panel uses the same placement
 - Adding a folder in Settings answers at once instead of after a full rescan (~1–1.5 min), and the scan worker is told about the new folder rather than restarted, so the rescan stays warm (~30s against ~100s cold)

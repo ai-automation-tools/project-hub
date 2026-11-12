@@ -12,7 +12,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
+import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, scanGap, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, validateFolderIcon, writeFolderIcons, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, keyOf, removeBookmark, duplicateBookmark,
@@ -157,6 +157,18 @@ test('the gzip negotiation regex is intact', () => {
 // Every one of these was measured driving real rescans: the hub's own logs, and the
 // bare-directory events Windows fires alongside every file event. Together they had the
 // hub doing a full 2-3s rescan roughly every 8 seconds on an idle machine.
+test('the gap between watcher scans grows with the last scan, within bounds', () => {
+  // Small libraries keep the 30s refresh, including before any scan has been timed.
+  assert.equal(scanGap(undefined), 30_000);
+  assert.equal(scanGap(0), 30_000);
+  assert.equal(scanGap(NaN), 30_000);
+  assert.equal(scanGap(2_000), 30_000);
+  // A slow scan waits four times its own length, so scanning stays under a fifth of the time.
+  assert.equal(scanGap(50_000), 200_000);
+  // And never longer than ten minutes.
+  assert.equal(scanGap(900_000), 600_000);
+});
+
 test('the watcher ignores noise and reacts to real changes', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hubwatch-'));
   const mk = (rel, isDir) => {

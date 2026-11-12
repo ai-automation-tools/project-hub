@@ -5406,15 +5406,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="825" y="450" class="t-muted" font-size="9" text-anchor="middle">hub + projects/*/ configs</text>
         </g>
 
-        <g id="node-watcher" data-node-id="watcher" data-node-label="Watcher" tabindex="0" role="button" aria-label="Focus Watcher, 2.5 s debounce, 30 s gap, hub.mjs + scan.mjs, one Node process" aria-pressed="false" data-node-kind="backend" data-node-sublabel="2.5 s debounce, 30 s gap" data-node-context="hub.mjs + scan.mjs, one Node process">
-          <title>Watcher · 2.5 s debounce, 30 s gap · hub.mjs + scan.mjs, one Node process</title>
+        <g id="node-watcher" data-node-id="watcher" data-node-label="Watcher" tabindex="0" role="button" aria-label="Focus Watcher, 2.5 s debounce, adaptive gap, hub.mjs + scan.mjs, one Node process" aria-pressed="false" data-node-kind="backend" data-node-sublabel="2.5 s debounce, adaptive gap" data-node-context="hub.mjs + scan.mjs, one Node process">
+          <title>Watcher · 2.5 s debounce, adaptive gap · hub.mjs + scan.mjs, one Node process</title>
           <rect x="1000" y="400" width="170" height="72" rx="8" class="c-mask"/>
           <rect x="1000" y="400" width="170" height="72" rx="8" class="c-backend" data-animate="node" style="--step:9" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1006 406) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="1085" y="434" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Watcher</text>
-        <text data-detail="context" x="1085" y="450" class="t-muted" font-size="9" text-anchor="middle">2.5 s debounce, 30 s gap</text>
+        <text data-detail="context" x="1085" y="450" class="t-muted" font-size="9" text-anchor="middle">2.5 s debounce, adaptive gap</text>
         </g>
 
         <g id="node-launch" data-node-id="launch" data-node-label="Native launch" tabindex="0" role="button" aria-label="Focus Native launch, PowerShell, path as env, hub.mjs + scan.mjs, one Node process" aria-pressed="false" data-node-kind="backend" data-node-sublabel="PowerShell, path as env" data-node-context="hub.mjs + scan.mjs, one Node process">
@@ -5754,7 +5754,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <ul>
           <li>A worker thread walks the tree and runs git per repo, then hands back the payload, gzipped once and served to every tab</li>
           <li>A repo&#39;s git status is reused until its git files or its working tree change, so a watcher rescan skips most of git</li>
-          <li>After a burst it waits out a 30 s gap from the last scan, rescans first, then sends one change event, so no tab fetches a stale copy</li>
+          <li>After a burst it waits out a gap from the last scan (four times its length, 30 s to 10 min), rescans first, then sends one change event, so no tab fetches a stale copy</li>
         </ul>
       </div>
 

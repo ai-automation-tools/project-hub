@@ -25,15 +25,9 @@ Originally implemented client-side as one `showCtxMenu()` in `index.html` (a `co
 on `#tree`, positioned/clamped to the viewport, closed on outside click/scroll/Escape) —
 launch actions now use `open-native.mjs`, with paths passed through an environment variable to a fixed PowerShell command. `/api/open` returns 403/404/400 for invalid requests and 502 for launch failures.
 
-## Pictures on demand
+## Large image folders
 
-Pictures is a lightweight root in `/api/scan`. Expanding or opening a folder loads only its immediate children; following a picture deep link fetches that file and the ancestor path. Previously loaded folders are retained across ordinary project refreshes. Raw image delivery still uses `/api/raw`.
-
-A search that includes Pictures gets a separate results section. Its metadata index is built asynchronously on the first relevant query and reused, with up to 200 results per page. Project-only searches and repo/skill/CLI queries do not build it. Search follows the same configurable scan depth as the rest of the hub (default 10); deeper folders are still browsable, and the UI explains the search boundary. Unreadable folders are disclosed rather than silently counted as complete coverage.
-
-The Pictures watcher invalidates only Pictures and emits a `pictures` SSE event. Directory metadata `change` notifications are ignored; file changes and directory `rename` events invalidate the cache, so new empty folders appear too. `/api/health` reports `pictures.state`, version, cache counts, read errors, and search build duration. The main scan's node count now excludes the lazy subtree; Pictures counts live in the separate status data once indexed.
-
-Measured on September 8: the ordinary payload fell from 118,220 to 40,191 nodes and from 1,675,465 to 921,701 gzip bytes. Fresh-scan directory walks fell from about 6.1 to 2.0 seconds; total scan time still varied with Git. The first image search on the final build took 1.384 seconds, with no image content read. See P7 measurements and limits (see the source checkout docs/). Refresh an existing browser tab to load this client change.
+Every mounted folder is walked in full on each scan and listed in the page's tree, so a photo library slows both. There is no separate picture library: a folder named `Pictures` is an ordinary shared root. Adding a folder asks first when it looks like one: `POST /api/roots` runs `countImages()` (`scan.mjs`), a bounded walk that stops once it passes `IMAGE_WARN` (2,000) images or has looked at 50,000 entries, and answers 409 with a plain-text explanation. Settings shows that message with an **Add anyway** button, which resends the request with `force: true`.
 
 ## Report browsing and recovery
 
@@ -69,15 +63,15 @@ Bookmark groups are an optional `group` name on each bookmark, so a group exists
 
 Storage is `localStorage`: two lists of `{path, label, addedAt, group?}` plus the `hub.bmgroups` display state, and nothing else — no server component, no per-user server state, and no document contents. `parseList()` distrusts what it reads: a corrupted or older-format value returns an empty list rather than throwing, and duplicate paths collapse to one row.
 
-Every scan re-resolves bookmarks against `S.byId`. A missing path is dimmed and kept, never dropped, because a temporarily unreadable folder must not silently eat pins; where exactly one node in the same root shares the basename, a single relink offer appears, and nothing is repointed automatically. `pinExists()` also asks `pictureNodes.owns()`, so a bookmarked photo that is legitimately unloaded is not called a dead link, and nothing is marked missing before the first scan lands.
+Every scan re-resolves bookmarks against `S.byId`. A missing path is dimmed and kept, never dropped, because a temporarily unreadable folder must not silently eat pins; where exactly one node in the same root shares the basename, a single relink offer appears, and nothing is repointed automatically. Nothing is marked missing before the first scan lands.
 
 Recent excludes `DIRISH` kinds, so folders you pass through do not fill it.
 
-Rows are disambiguated in two tiers. `pinContext()` climbs the parent chain and stops at the first `repo` **or** scope-root ancestor, so one walk yields both cases: a file deep in a repo reports its repo, anything else reports its project or shared root. It renders right-aligned and dim, and is suppressed when it merely repeats the label. A path the scan does not hold — unresolved, or a Pictures node not yet loaded — has only its own parent folder to offer, so it falls back to that. Only when label *and* context still collide does the name itself pick up its parent folder, which is the two-READMEs-in-one-repo case; three `Agents` rows in three projects need no such help. That replaced an earlier collision-only rule that qualified names the context already distinguished, and it avoids keeping a hardcoded list of generic filenames.
+Rows are disambiguated in two tiers. `pinContext()` climbs the parent chain and stops at the first `repo` **or** scope-root ancestor, so one walk yields both cases: a file deep in a repo reports its repo, anything else reports its project or shared root. It renders right-aligned and dim, and is suppressed when it merely repeats the label. A path the scan does not hold has only its own parent folder to offer, so it falls back to that. Only when label *and* context still collide does the name itself pick up its parent folder, which is the two-READMEs-in-one-repo case; three `Agents` rows in three projects need no such help. That replaced an earlier collision-only rule that qualified names the context already distinguished, and it avoids keeping a hardcoded list of generic filenames.
 
 Renaming swaps the label for an input in place rather than calling `prompt()`, which would block the whole page.
 
-The search box is also a proper combobox as of the same day: `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant`, and one `syncCombobox()` that assigns row ids at sync time so the arrow keys walk the document and Pictures listboxes as one contiguous sequence.
+The search box is also a proper combobox as of the same day: `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant`, and one `syncCombobox()` that assigns row ids at sync time so the arrow keys walk the document and inside-documents listboxes as one contiguous sequence.
 
 Together the September 8–9 work passes **64 tests** plus the live HTTP and browser checks recorded in the P7 shipping record (see the source checkout docs/).
 
@@ -122,11 +116,11 @@ Every frame is `sandbox`ed with scripts, same-origin (its own origin, not the hu
 
 `viewFolder()` renders either cards or a four-column list — name, type, modified, size — chosen by a toggle in the folder header and remembered per browser in `hub.folderview`. Cards stay the default and are unchanged; the list is flat by design, since splitting it into titled groups is what the card view is for.
 
-Columns sort by click, and **folders come first only for the name and type sorts**. Sorting by modified or size means the key *is* the question, and burying the file you edited a minute ago under seven month-old folders is the opposite of the answer. A folder's size column shows its child count, or `unopened` for a lazy Pictures node whose children have not been fetched.
+Columns sort by click, and **folders come first only for the name and type sorts**. Sorting by modified or size means the key *is* the question, and burying the file you edited a minute ago under seven month-old folders is the opposite of the answer. A folder's size column shows its child count.
 
-**Modified times are fetched per folder, not scanned into the payload.** `mtime` is deliberately non-enumerable on scanned nodes (`stampNode`), because a timestamp on all ~40,000 of them is exactly the weight the Pictures pass spent itself removing. `folderStamps()` reads one directory's immediate children — no recursion, no file contents — and `/api/stat` returns it keyed by **name**, since the client already holds the ids and repeating the folder prefix per row is the same waste at a smaller scale. The endpoint goes through the same `resolveId()` gate as every other path-addressed route: 403 outside the roots or inside a secret directory, 404 for anything that is not a readable directory.
+**Modified times are fetched per folder, not scanned into the payload.** `mtime` is deliberately non-enumerable on scanned nodes (`stampNode`), because a timestamp on all ~40,000 of them is payload weight nobody reads. `folderStamps()` reads one directory's immediate children — no recursion, no file contents — and `/api/stat` returns it keyed by **name**, since the client already holds the ids and repeating the folder prefix per row is the same waste at a smaller scale. The endpoint goes through the same `resolveId()` gate as every other path-addressed route: 403 outside the roots or inside a secret directory, 404 for anything that is not a readable directory.
 
-The client caches one response per folder and invalidates the whole cache when a new scan lands, so a timestamp can never outlive the scan it was read under; a reply arriving after that invalidation is dropped rather than repopulating it, the same rule the Pictures cache follows. Measured on a 1,250-entry folder: **39 ms and 47 KB** for the stat call, **zero long tasks and 0 ms total blocking** for the render.
+The client caches one response per folder and invalidates the whole cache when a new scan lands, so a timestamp can never outlive the scan it was read under; a reply arriving after that invalidation is dropped rather than repopulating it. Measured on a 1,250-entry folder: **39 ms and 47 KB** for the stat call, **zero long tasks and 0 ms total blocking** for the render.
 
 ## Reader tools
 
@@ -160,7 +154,7 @@ The fix negotiates on `Sec-Fetch-Dest`, which the browser sets and page script c
 
 ## Scan status detail
 
-`● scanned 09:32` was the whole story, and a green `ready` sat on top of nineteen read errors without a word. Clicking the status line (or pressing Enter on it — it is a real button) opens a panel with the numbers behind it: last successful scan and its age, duration, node count and gzipped payload, the walk/git/assemble/serialize/gzip split from `lastScan.timings`, the mounted projects, the Pictures state, and the read errors.
+`● scanned 09:32` was the whole story, and a green `ready` sat on top of nineteen read errors without a word. Clicking the status line (or pressing Enter on it — it is a real button) opens a panel with the numbers behind it: last successful scan and its age, duration, node count and gzipped payload, the walk/git/assemble/serialize/gzip split from `lastScan.timings`, the mounted projects, and the read errors.
 
 **The read errors are the point.** A count is not actionable, so `noteReadError()` keeps the last twelve failing paths with their errno — bounded, deduplicated by path, and paths only, never content. `/api/health` exposes them as `readErrorPaths` with relative ids, and any that is still in the tree is clickable straight to the document. `readErrors++` now exists in exactly one place, which a regression pins so a future call site cannot go back to a bare increment. On this workspace the panel immediately named what the count had been hiding: `EISDIR` and `ENOENT` under `~/.gemini/skills/`.
 

@@ -85,7 +85,7 @@ stay live, because the last known path is exactly what you want when you go look
 Every row carries, in small dim text on the right, **what it belongs to**:
 
 - inside a repo → **the repo's name**
-- anywhere else → **the project or shared root** it lives under (`Finance_Workspace`, `Documents`, `Pictures`, …)
+- anywhere else → **the project or shared root** it lives under (`Finance_Workspace`, `Documents`, …)
 
 That is usually all it takes. Three folders all called `Agents` are three different projects,
 and the list says so without you opening anything:
@@ -127,10 +127,6 @@ offer appears under the row naming where it went:
 
 Click it and the bookmark repoints. Nothing is ever repointed automatically, and if there is
 no single obvious candidate you get no offer — just the dim row and the `×` to remove it.
-
-**Photos are the one exception.** The Pictures library loads on demand, so a bookmarked image
-is legitimately absent from the scan until its folder has been opened. Those are not called
-dead links.
 
 ## Where the lists live
 

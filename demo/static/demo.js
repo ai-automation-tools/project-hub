@@ -30,12 +30,6 @@
     return url.pathname + '|' + entries.map(function (e) { return e[0] + '=' + e[1]; }).join('&');
   }
 
-  function json(body, status) {
-    return new Response(JSON.stringify(body), {
-      status: status || 200, headers: { 'content-type': 'application/json' },
-    });
-  }
-
   window.fetch = function (input, init) {
     var href = typeof input === 'string' ? input : (input && input.url) || '';
     var url;
@@ -63,10 +57,6 @@
       return Promise.resolve(new Response(
         'this is a hosted demo — checking links needs Project Hub running on your own machine',
         { status: 501 }));
-    }
-    // No Pictures root is configured in the demo fixture, so the browser never opens one.
-    if (url.pathname === '/api/pictures') {
-      return Promise.resolve(json({ error: 'Pictures is not part of the demo' }, 404));
     }
 
     var key = keyOf(url);

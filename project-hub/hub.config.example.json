@@ -16,6 +16,6 @@
   "//sharedRoots": "Folders mounted alongside every project. tint is any --colour var from the theme: red, orange, green, blue, purple, magenta, dimmer.",
   "sharedRoots": [
     { "name": "Documents", "dir": "D:/Work/Documents", "tint": "var(--red)" },
-    { "name": "Pictures", "dir": "C:/Users/you/Pictures", "tint": "var(--orange)" }
+    { "name": "Notes", "dir": "D:/Work/Notes", "tint": "var(--orange)" }
   ]
 }

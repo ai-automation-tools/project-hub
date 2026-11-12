@@ -13,7 +13,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, scanGap, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
-  buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, validateFolderIcon, writeFolderIcons, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
+  buildContentIndex, searchContent, CONTENT_FILE, countImages, IMAGE_WARN, validateNewRoot, writeSharedRoots, ROOT_TINTS, validateFolderIcon, writeFolderIcons, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, keyOf, removeBookmark, duplicateBookmark,
   resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins, SETTINGS_KEYS, exportSettings, importSettings } from './navigation.mjs';
@@ -472,6 +472,28 @@ test('loadConfig accepts exact allowedHosts and refuses patterns', () => {
   assert.throws(() => loadConfig(tmpConfig({ ...base, allowedHosts: 'my-pc' })), /allowedHosts/);
 });
 
+// Adding a folder asks first when it looks like a photo library. The count stops as soon
+// as the answer is known, so a huge library costs no more than a small one.
+test('countImages spots a photo library without walking all of it', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hub-images-'));
+  fs.mkdirSync(path.join(root, 'trip', 'day1'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'node_modules'));
+  for (let i = 0; i < 6; i++) fs.writeFileSync(path.join(root, 'trip', 'day1', `p${i}.jpg`), '');
+  fs.writeFileSync(path.join(root, 'notes.md'), '');
+  fs.writeFileSync(path.join(root, 'node_modules', 'skipped.png'), '');
+  assert.equal(countImages(root), 6);                 // documents and skipped folders don't count
+  assert.equal(countImages(root, 3), 4);              // stops one past the limit
+  assert.equal(countImages(root, 3, 2), 0);           // or when the budget runs out
+  assert.equal(countImages(path.join(root, 'missing')), 0);
+  assert.ok(IMAGE_WARN >= 1000);
+  // The route asks before mounting, and `force` is the only way past.
+  const src = fs.readFileSync(path.join(HERE, 'hub.mjs'), 'utf8');
+  const route = src.slice(src.indexOf("url.pathname === '/api/roots'"), src.indexOf("url.pathname === '/api/favorites'"));
+  assert.match(route, /input\.force !== true && countImages\(root\.dir\) > IMAGE_WARN/);
+  assert.ok(route.indexOf('countImages(') < route.indexOf('mountRoot(root)'), 'the check must come before the folder is mounted');
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
 // Folders added from Settings widen what /api/* will serve, so the checks are the point.
 test('validateNewRoot accepts a real folder and refuses what it should', () => {
   // Built from the platform's own root: `D:/Work` is not absolute on the Linux CI runner.
@@ -668,10 +690,10 @@ test('the search combobox keeps its ARIA wiring', () => {
   assert.ok(/function syncCombobox/.test(html), 'syncCombobox was removed');
   assert.ok(html.includes('aria-activedescendant'), 'the active option is never announced');
   // Every path that repaints results has to re-sync: the render pass, the arrow keys,
-  // the Pictures and inside-documents sections, which append after the main list is
+  // the inside-documents section, which appends after the main list is
   // already on the page, and a document tab's kept page, which skips renderView.
-  assert.equal((html.match(/syncCombobox\(/g) || []).length, 6,
-    'syncCombobox must be defined and called from renderView, the arrow keys, searchPictures, searchContents and showTabPage');
+  assert.equal((html.match(/syncCombobox\(/g) || []).length, 5,
+    'syncCombobox must be defined and called from renderView, the arrow keys, searchContents and showTabPage');
 });
 
 // ── bookmarks and recents (P7-10) ──────────────────────────────────────────
@@ -1138,7 +1160,7 @@ test('content search is opt-in, never runs in a scan, and only indexes what reso
   // viewSearch lowercases its `q`; the server matches non-ASCII bytes exactly, so the query
   // has to reach it as typed or "Émile" can never be found.
   assert.ok(ui.includes('searchContents(contents, asTyped,') && !ui.includes('searchContents(contents, q,'), 'content search must send the query as typed');
-  assert.ok(ui.includes('aria-controls="search-results content-results pictures-results"'), 'the combobox must own the content results');
+  assert.ok(ui.includes('aria-controls="search-results content-results"'), 'the combobox must own the content results');
 });
 
 test('resolveId serves roots and walked runtime paths, never runtime session state (P9-50)', () => {

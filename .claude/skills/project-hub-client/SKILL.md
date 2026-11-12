@@ -10,7 +10,7 @@ description: >-
   blank / stuck on scanning", "deep links or the back button are broken", "bookmarks and
   recents", "the activity bar, Settings, Favorites or hub tabs", "the reader, outline or
   view-source toggle", "a button does nothing after a rescan", "CSP blocked my script", and
-  any edit to index.html, navigation.mjs, pictures-client.mjs or favorites.mjs.
+  any edit to index.html, navigation.mjs or favorites.mjs.
 ---
 
 # Working in index.html
@@ -21,7 +21,7 @@ that needs a toolchain is the wrong edit.
 
 Only genuinely reusable, genuinely testable logic leaves the file, and only into a plain
 ES module the Node test suite can import: `navigation.mjs` (routes, bookmarks, recents,
-path resolution), `pictures-client.mjs`, `favorites.mjs` (favorites tree edits and the
+path resolution), `favorites.mjs` (favorites tree edits and the
 bookmarks-file format), `reports.mjs`. That is the bar — **"it would be
 tidier in its own file" is not.**
 

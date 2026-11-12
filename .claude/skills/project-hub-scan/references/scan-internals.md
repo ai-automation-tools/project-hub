@@ -11,11 +11,10 @@ The tables below are in `hub/scan.mjs`, the endpoints in `hub/hub.mjs`, and the 
 | `/api/file` | `path`, `raw=1` | `resolveId` | JSON `{html}`. `md` → `md2html`, anything else → escaped `<pre>`. 415 on pdf/image |
 | `/api/stat` | `path` | `resolveId` | `folderStamps()` — mtimes of one folder's children, keyed by name |
 | `/api/raw`, `/api/preview`, `/api/artifact/<token>/…` | `path` | `resolveId` | `reports.mjs`. Sandboxed CSP, HMAC-signed directory capability, key rotates at restart |
-| `/api/pictures` | — | — | `pictures.mjs`. Inert when no `Pictures` shared root is configured |
 | `/api/content` | `q` (2+ chars) | index holds only what `scan()` found and `resolveId` admits | Opt-in search inside documents; GET only, caps in `CONTENT_CAPS` |
 | `/api/links` | `path` | `sameOrigin` + `resolveId.real` | On-demand link check over the markdown under one folder (`checkLinks()` in `markdown.mjs`) |
 | `/api/repo/changes`, `/api/repo/diff` | `path` (+ `file` for diff) | `sameOrigin` + `resolveId.real`, 404 if no `.git`; the diff re-checks the file's own path, deleted ones too | A dirty repo's changed files, and one file's diff on demand |
-| `/api/roots` | POST/DELETE JSON `{…}` | `sameOrigin` + local host only; 4 KB cap | Add or remove a mounted folder from the machine running the hub |
+| `/api/roots` | POST/DELETE JSON `{…}` | `sameOrigin` + local host only; 4 KB cap | Add or remove a mounted folder from the machine running the hub. `POST` answers 409 when `countImages()` finds more than `IMAGE_WARN` (2,000) images; `force: true` adds it anyway |
 | `/api/open` | `path`, `in=code`, `reveal=1` | `resolveId` **+ `sameOrigin`** | The only endpoint with an effect outside the browser. Windows-specific |
 | `/api/events` | — | — | SSE, 25s heartbeat |
 | `/api/webmarks` | `source` | `sameOrigin`; id matched against discovered profiles, never a path | `webmarks.mjs`. Edge/Chrome/Brave `Bookmarks` JSON read live, `http(s)` links only |

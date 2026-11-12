@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Project Hub — scans every mounted project workspace + the shared roots (Documents,
-// skills, Pictures, Automations) and serves the navigation UI. Zero dependencies. Node 18+.
+// skills, Automations) and serves the navigation UI. Zero dependencies. Node 18+.
 //
 // One process, one config folder, any number of projects: this file's own
 // hub.config.json holds only the server's own settings (port, title, favicon); each
@@ -23,14 +23,13 @@ import crypto from 'node:crypto';
 import { Worker } from 'node:worker_threads';
 import { createReportHandler } from './reports.mjs';
 import { launchNative } from './open-native.mjs';
-import { ignorePictureEvent } from './pictures.mjs';
 import { browserDirs, listSources, readSource, createFavicons, createFrameCheck, cleanTree, loadFavorites, saveFavorites } from './webmarks.mjs';
 import {
   HERE, argv, argOf, CONFIG_FILE, IS_MAIN, CONFIG, HUB_DIR, PROJECTS, SHARED_ROOTS, ROOTS,
   USER_RUNTIMES, SKIP_DIRS, DOT_OK, NOISE_FILE, SECRET_DIRS, posix, rel, resolveId, readHeadAsync,
-  descCache, readErrors, readErrorLog, kindOfFile, pictureRoot, pictures, safeIsDir,
+  descCache, readErrors, readErrorLog, kindOfFile, safeIsDir,
   folderStamps, repoChanges, repoDiff, contentDocs, contentSig, scan, scanPayload, adoptWorkerScan,
-  mountSharedRoot, unmountSharedRoot,
+  mountSharedRoot, unmountSharedRoot, countImages, IMAGE_WARN,
   validateNewRoot, writeSharedRoots, validateScanDepth, writeScanDepth,
   FOLDER_ICONS_MAX, validateFolderIcon, writeFolderIcons,
 } from './scan.mjs';
@@ -38,7 +37,7 @@ import { frontmatter, docTags, docMeta, checkLinks, md2html } from './markdown.m
 
 export {
   loadConfig, loadProjectConfig, ROOT_TINTS, validateNewRoot, writeSharedRoots, validateScanDepth, writeScanDepth,
-  validateFolderIcon, writeFolderIcons,
+  validateFolderIcon, writeFolderIcons, countImages, IMAGE_WARN,
   IS_MAIN, projectsDir, DOC_FILE, runtimeServePaths, createResolveId, routineStatus, kindOfFile, scanTree,
   fileStamp, folderStamps, RECENT_DAYS, RECENT_DOCS_MAX, recentDocs, scanSignature, gitSignature, gitHitValid,
   CHANGES_MAX, DIFF_MAX, parseStatusZ, roadmapProgress, scopeRepos, CONTENT_FILE,
@@ -407,7 +406,6 @@ const server = http.createServer(async (req, res) => {
       sseClients: sse.size,
       // A climbing readErrors count is the fingerprint of the descriptor leak that
       // killed this process once already. Steady near zero is healthy.
-      pictures: pictures.health(),
       readErrors,                     // since start; informational only
       readErrorsRecent: recentErrs,   // across the last 3 scans -- this is what `ok` uses
       // The paths behind those counts, newest last. Relative ids, so the UI can link them.
@@ -434,19 +432,6 @@ const server = http.createServer(async (req, res) => {
     };
     res.writeHead(body.ok ? 200 : 503, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify(body, null, 1));
-    return;
-  }
-
-  if (url.pathname === '/api/pictures') {
-    if (req.method !== 'GET') { res.writeHead(405, { allow: 'GET' }).end('method not allowed'); return; }
-    try {
-      const action = url.searchParams.get('action') || 'browse';
-      if (!['browse', 'search', 'status'].includes(action)) { res.writeHead(400).end('unknown Pictures action'); return; }
-      const data = action === 'status' ? pictures.health() : action === 'search'
-        ? await pictures.search({ q: url.searchParams.get('q') || '', kind: url.searchParams.get('kind') || '', offset: url.searchParams.get('offset'), limit: url.searchParams.get('limit') })
-        : await pictures.resolve(url.searchParams.get('path') || pictures.id);
-      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify(data));
-    } catch (err) { res.writeHead(err.status || 404, { 'content-type': 'application/json' }).end(JSON.stringify({ error: err.status ? err.message : 'Pictures folder unavailable' })); }
     return;
   }
 
@@ -502,11 +487,7 @@ const server = http.createServer(async (req, res) => {
     try { writeScanDepth(project ? project.configFile : CONFIG_FILE, input.maxDepth); }
     catch { res.writeHead(500).end('Could not save scan settings.'); return; }
     if (project) project.maxDepth = input.maxDepth;
-    else {
-      CONFIG.maxDepth = input.maxDepth;
-      pictures.maxDepth = input.maxDepth;
-      pictures.invalidate();
-    }
+    else CONFIG.maxDepth = input.maxDepth;
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify(settings()));
     // Finish any older scan first so its cached result cannot swallow this change.
     setImmediate(async () => {
@@ -535,12 +516,18 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST') {
       try { root = validateNewRoot(input, ROOTS, safeIsDir); }
       catch (e) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }).end(e.message); return; }
+      // A photo library is the one kind of folder that makes every scan slow. Ask first;
+      // `force` is the person saying "add it anyway".
+      if (input.force !== true && countImages(root.dir) > IMAGE_WARN) {
+        res.writeHead(409, { 'content-type': 'text/plain; charset=utf-8' })
+          .end(`${root.name} holds more than ${IMAGE_WARN.toLocaleString('en-US')} images. The hub lists every file on each scan, so a photo library makes scans and the sidebar slow.`);
+        return;
+      }
       mountRoot(root);
       why = `added ${root.name}`;
     } else {
       root = SHARED_ROOTS.find((r) => r.name === input.name);
       if (!root) { res.writeHead(404).end('no such folder'); return; }
-      if (root === pictureRoot) { res.writeHead(400).end('Pictures is wired up at startup; remove it in hub.config.json.'); return; }
       unmountRoot(root);
       why = `removed ${root.name}`;
     }
@@ -824,25 +811,10 @@ const WATCH = [
   ...USER_RUNTIMES.flatMap((rt) => rt.dirs.map((d) => `${rt.dir}/${d}`)),
 ].filter((d) => { try { return fs.statSync(d).isDirectory(); } catch { return false; } });
 
-let pictureTimer;
 const watchers = new Map();   // dir -> FSWatcher, so a folder removed in Settings stops being watched
 function watchDir(dir) {
   try {
     watchers.set(dir, fs.watch(dir, { recursive: true, persistent: false }, (_evt, name) => {
-      if (dir === pictureRoot.dir) {
-        // OneDrive emits directory metadata 'change' events while folders are read.
-        // Keep rename events (including new empty folders), but don't invalidate
-        // the search index because its own enumeration touched directory metadata.
-        if (ignorePictureEvent(_evt, name && safeIsDir(path.join(dir, String(name))))) return;
-        const parts = posix(String(name || '')).split('/');
-        if (parts.some((p) => SKIP_DIRS.has(p) || SECRET_DIRS.has(p.toLowerCase()) || (p.startsWith('.') && !DOT_OK.has(p)))) return;
-        pictures.invalidate();
-        clearTimeout(pictureTimer);
-        pictureTimer = setTimeout(() => {
-          for (const response of sse) response.write(`event: pictures\ndata: ${JSON.stringify({ version: pictures.version })}\n\n`);
-        }, 500);
-        return;
-      }
       if (ignoreWatchEvent(dir, name)) return;
       noteTouched(path.join(dir, String(name)));
       bump(posix(name));
@@ -855,8 +827,7 @@ if (IS_MAIN) for (const dir of WATCH) watchDir(dir);
 
 // Mount or unmount a shared root without a restart. Every list a root was copied into at
 // startup is updated in place, in this thread and in the scan worker's copy of scan.mjs
-// (see mountSharedRoot), plus the watcher. The Pictures root stays fixed, since its lazy
-// library is wired up once at boot.
+// (see mountSharedRoot), plus the watcher.
 function mountRoot(r) {
   mountSharedRoot(r);
   scanWorker?.postMessage({ mount: r });

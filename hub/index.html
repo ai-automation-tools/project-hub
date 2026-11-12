@@ -909,7 +909,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
         <span class="mono" style="font-size:11.5px;color:var(--dimmer)">⌕</span>
         <input id="q" placeholder="Search repos, skills, commands, agents, docs" autocomplete="off"
           role="combobox" aria-autocomplete="list" aria-expanded="false"
-          aria-controls="search-results content-results pictures-results"
+          aria-controls="search-results content-results"
           aria-label="Search the workspace. Prefix with a kind to narrow, for example skill: or repo:">
         <span class="kbd">Ctrl+K</span>
       </div>
@@ -934,15 +934,8 @@ import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSea
   pushRecent, resolveBookmarks, keyOf, removeBookmark, duplicateBookmark, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
-import { PictureNodes } from '/pictures-client.mjs';
-const pictureNodes = new PictureNodes();
-const pictureRequests = new Map();
-const pictureSearches = new Map();
 // P9-04: content-search answers by query, dropped whenever a new scan arrives (reindex).
 const contentSearches = new Map();
-let navigationRequest = 0;
-let requestedNavigation = null;
-let pictureGeneration = 0;
 const TINT = {
   root:'var(--green)', docroot:'var(--red)', section:'var(--magenta)', cli:'var(--green)',
   group:'var(--blue)', repo:'var(--purple)', folder:'var(--blue)',
@@ -1163,7 +1156,6 @@ try { rootOrder = JSON.parse(localStorage.getItem('hub.rootorder')) || []; } cat
 
 function reindex(data) {
   orderByIds(data.tree, rootOrder);
-  pictureNodes.attach(data.tree);
   contentSearches.clear();
   S.data = data;
   S.byId.clear(); S.parent.clear();
@@ -1177,14 +1169,14 @@ function reindex(data) {
       S.byId.set(n.id, n);
       if (parent) S.parent.set(n.id, parent.id);
       // Plain source files are noise in results, the same rule the server applied.
-      if (includeInSearch(n) && (!pictureNodes.owns(n.id) || n.id === pictureNodes.rootId)) S.index.push(n);
+      if (includeInSearch(n)) S.index.push(n);
       if (n.children) rec(n.children, n);
     }
   })(data.tree, null);
 }
 
 /**
- * Walk any node id up to its top-level root (a project, Documents, Skills, Pictures,
+ * Walk any node id up to its top-level root (a project, Documents, Skills,
  * Automations, or the user-CLI root) — the thing a repo/runtime/search hit belongs to,
  * for scoping a view to "whichever root is currently selected" without the server having
  * to tag every repo and runtime with which project it's under.
@@ -1253,7 +1245,7 @@ async function doLoad({ quiet, fresh, force } = {}) {
   S.sig = data.sig;
   // Timestamps are only as fresh as the scan they were fetched under.
   if (!same) { folderTimesGen++; folderTimes.clear(); }
-  if (!same) reindex(data); else { orderByIds(data.tree, rootOrder); pictureNodes.attach(data.tree); S.data = data; }
+  if (!same) reindex(data); else { orderByIds(data.tree, rootOrder); S.data = data; }
   $('#live').textContent = stamp;
   $('#live').classList.remove('stale');
 
@@ -1277,7 +1269,7 @@ async function doLoad({ quiet, fresh, force } = {}) {
       renderView();
     } else {
       const linked = parseRoute(location.hash);
-      if (linked.id && (S.byId.has(linked.id) || pictureNodes.owns(linked.id))) go(linked.id, linked.heading);
+      if (linked.id && S.byId.has(linked.id)) go(linked.id, linked.heading);
     }
   }
 }
@@ -1402,7 +1394,7 @@ const pinKey = (id) => JSON.stringify([id.split('/')[0], id.split('/').pop()]);
  *
  * Climbing stops at the first repo OR scope root, which is what makes the two cases fall
  * out of one walk: a file deep in a repo hits the repo first, anything else hits its
- * project. A path the scan does not have (unresolved, or Pictures not yet loaded) has only
+ * project. A path the scan does not have (unresolved) has only
  * its own parent folder to offer.
  */
 function pinContext(path) {
@@ -1432,13 +1424,7 @@ function relinkSuggester() {
   };
 }
 
-/**
- * Pictures nodes are fetched on demand, so a bookmarked photo is legitimately absent
- * from S.byId until its folder is opened. Calling that a dead link would be wrong.
- */
-function pinExists(path) {
-  return S.byId.has(path) || pictureNodes.owns(path);
-}
+function pinExists(path) { return S.byId.has(path); }
 
 function pinSection(key, entries, drag) {
   const list = el('div', 'pinlist');
@@ -1809,8 +1795,7 @@ function renderRoots() {
     const dot = el('i'); dot.style.background = r.tint || 'var(--dimmer)';
     row.append(dot, el('b', '', r.name), el('span', '', r.dir));
     row.title = r.dir;
-    // Pictures' lazy library is set up when the server starts, so it stays in the config.
-    if (LOCAL_PAGE && r.name !== 'Pictures') {
+    if (LOCAL_PAGE) {
       const x = el('span', 'x', '✕');
       x.title = `Remove ${r.name} from the sidebar (the folder stays on disk)`;
       activate(x, () => changeRoots('DELETE', { name: r.name }, `removed ${r.name} from the sidebar`));
@@ -1908,6 +1893,18 @@ async function changeRoots(method, body, done) {
   err.hidden = true;
   try {
     const r = await fetch('/api/roots', { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (r.status === 409) {
+      // A photo library: the server asks before mounting it. "Add anyway" sends the same request with `force`.
+      const anyway = el('button', 'btn', 'Add anyway');
+      anyway.type = 'button';
+      anyway.onclick = async () => {
+        if (await changeRoots(method, { ...body, force: true }, done)) { $('#root-dir').value = ''; $('#root-name').value = ''; }
+      };
+      err.textContent = await r.text() + ' ';
+      err.append(anyway);
+      err.hidden = false;
+      return false;
+    }
     if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
     // The server answers once the folder is saved and rescans after; its change event
     // reloads the tree when that scan lands.
@@ -2495,7 +2492,7 @@ async function activateTab(id, restore = true) {
   if (!into || !restore || !into.doc || out === into) return;
   if (cached && cached.key === pageKey(into.doc) && S.byId.has(into.doc)) return showTabPage(into, cached.node);
   // A document deleted since the tab was opened falls back to the landing page.
-  const doc = S.byId.has(into.doc) || pictureNodes.owns(into.doc) ? into.doc : defaultRootId();
+  const doc = S.byId.has(into.doc) ? into.doc : defaultRootId();
   await go(doc, into.heading);
   if (S.sel !== into.doc || tabs.active !== id) return;
   restoreReading = { id: doc, scroll: into.scroll };
@@ -2512,8 +2509,6 @@ const pageKey = (doc) => JSON.stringify([S.sig, S.mdMode, S.htmlMode, reader.out
 
 /** go() for a tab whose page is kept: the same selection, tree and address-bar state, minus the redraw. */
 function showTabPage(ctx, node) {
-  requestedNavigation = { id: ctx.doc, heading: ctx.heading };
-  ++navigationRequest;   // a go() still waiting on a picture folder must not land over this
   S.sel = ctx.doc;
   S.heading = ctx.heading;
   S.focus = ctx.doc;
@@ -2640,7 +2635,7 @@ function renderTree() {
   const frag = document.createDocumentFragment();
   (function rec(list, depth) {
     for (const n of list) {
-      const hasKids = !!(n.lazy && !n.loaded || n.children?.length);
+      const hasKids = !!n.children?.length;
       const open = S.open.has(n.id);
       const row = el('div', 'node' + (S.sel === n.id ? ' sel' : ''));
       row.style.paddingLeft = (8 + depth * (phone.matches ? 8 : 12)) + 'px';
@@ -2692,7 +2687,7 @@ function dragRoot(row, id) {
     if (!from) return;
     e.preventDefault();
     const tree = S.data.tree, at = (x) => tree.findIndex((r) => r.id === x);
-    // Spliced in place: pictureNodes holds this same array.
+    // Spliced in place: S.data.tree is the array everything else reads.
     tree.splice(0, tree.length, ...moveBookmark(tree, at(from), at(id)));
     rootOrder = tree.map((r) => r.id);
     try { localStorage.setItem('hub.rootorder', JSON.stringify(rootOrder)); } catch {}
@@ -2719,7 +2714,7 @@ $('#tree').addEventListener('keydown', (e) => {
   if (i < 0) return;
   const id = rows[i].dataset.id;
   const n = S.byId.get(id);
-  const hasKids = !!(n && (n.lazy && !n.loaded || n.children?.length));
+  const hasKids = !!n?.children?.length;
   const step = (j) => { const t = rows[Math.max(0, Math.min(rows.length - 1, j))]; if (t) focusNode(t.dataset.id); };
 
   switch (e.key) {
@@ -2998,11 +2993,6 @@ async function showStatusPanel(anchor) {
 
   panel.append(el('h3', '', 'Roots'));
   statusRow(panel, 'projects', h.workspace || '—');
-  const pics = h.pictures || {};
-  statusRow(panel, 'pictures', pics.state === 'unloaded' ? 'loaded on demand'
-    : `${(pics.indexedEntries || 0).toLocaleString()} indexed, ${pics.cachedFolders || 0} folders cached`);
-  if (pics.readErrors) statusRow(panel, 'pictures unreadable', pics.readErrors + ' folders', true);
-  if (pics.depthLimited) statusRow(panel, 'below depth ' + pics.maxSearchDepth, pics.depthLimited + ' folders — browsable, not searched', true);
 
   // The actionable half. A count behind a green `ready` is the thing this panel exists to fix.
   panel.append(el('h3', '', 'Read errors'));
@@ -3026,8 +3016,7 @@ async function showStatusPanel(anchor) {
     + 'Makefile / CNAME. Source files, build output and dependencies are skipped, so a folder can '
     + 'hold more than the tree shows — "open folder" always shows everything.'));
   panel.append(el('p', '', 'Credential directories and credential-looking filenames are pruned by '
-    + 'name and are never readable through the hub. Pictures is browsed on demand and searched to '
-    + (pics.maxSearchDepth || 10) + ' levels; deeper folders stay browsable.'));
+    + 'name and are never readable through the hub.'));
 
   place();
 }
@@ -3099,46 +3088,13 @@ document.addEventListener('contextmenu', (e) => {
   e.stopImmediatePropagation();
 }, true);
 
-async function ensurePicture(id) {
-  const generation = pictureGeneration;
-  const known = S.byId.get(id);
-  if (known && (!known.lazy || known.loaded)) return;
-  if (pictureRequests.has(id)) return pictureRequests.get(id);
-  const pending = (async () => {
-    let response;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      response = await fetch('/api/pictures?path=' + encodeURIComponent(id));
-      if (response.status !== 409) break;
-    }
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Pictures could not be loaded');
-    if (generation !== pictureGeneration) return;
-    pictureNodes.merge(data);
-    reindex(S.data);
-  })();
-  pictureRequests.set(id, pending);
-  try { await pending; } finally { if (pictureRequests.get(id) === pending) pictureRequests.delete(id); }
-}
-
-async function toggleFolder(id) {
+function toggleFolder(id) {
   if (S.open.has(id)) { S.open.delete(id); renderTree(); return; }
   S.open.add(id); renderTree();
-  if (pictureNodes.owns(id)) {
-    try { await ensurePicture(id); }
-    catch (err) { S.open.delete(id); toast(err.message + ' — click to retry'); }
-    renderTree();
-  }
 }
 
 /** Select a node, reveal it in the tree, and render its page. */
 async function go(id, heading = '') {
-  requestedNavigation = { id, heading };
-  const request = ++navigationRequest;
-  if (pictureNodes.owns(id)) {
-    try { await ensurePicture(id); }
-    catch (err) { if (request === navigationRequest) toast(err.message + ' — click to retry'); return; }
-    if (request !== navigationRequest) return;
-  }
   if (!S.byId.has(id)) return;
   if (!docCtx(tabs.active)) activateTab(tabs.lastDoc, false);
   S.sel = id;
@@ -3378,7 +3334,7 @@ window.addEventListener('hashchange', () => {
   if (leavingSearch) { S.query = ''; $('#q').value = ''; S.hit = -1; }
   const route = parseRoute(location.hash);
   const id = route.id || defaultRootId();
-  if ((id !== S.sel || route.heading !== S.heading) && (S.byId.has(id) || pictureNodes.owns(id))) go(id, route.heading);
+  if ((id !== S.sel || route.heading !== S.heading) && S.byId.has(id)) go(id, route.heading);
   else if (leavingSearch) renderView();
 });
 
@@ -3406,7 +3362,7 @@ document.addEventListener('keydown', (e) => {
  * never told which option was highlighted. The rows are already role=option inside a
  * listbox; this adds the state that makes the pair an actual combobox.
  *
- * Ids are assigned here rather than at build time because the Pictures section appends
+ * Ids are assigned here rather than at build time because the inside-documents section appends
  * its rows asynchronously, after the main list is already on the page, and the arrow
  * keys walk both lists as one sequence.
  */
@@ -3652,7 +3608,7 @@ function repoTableSection(repos, groups, dirtyCount, opts = {}) {
 // overview ------------------------------------------------------------------
 function viewOverview(page, root) {
   // Everything below used to read S.data.* directly, which was fine when a hub only
-  // ever held one project -- Documents/Skills/Pictures/Automations already existed as
+  // ever held one project -- Documents/Skills/Automations already existed as
   // separate roots before this, and silently showed this same portfolio-wide data too.
   // `inRoot` scopes every list to the root actually being viewed, via the same parent
   // chain the tree itself is built from (see topAncestorOf).
@@ -4137,7 +4093,7 @@ function folderTimesFor(id, host) {
   folderTimes.set(id, pending);
   pending.then((stamps) => {
     // A scan landing between request and response invalidates the whole cache, so a
-    // late reply must not repopulate it -- the same rule the Pictures cache follows.
+    // late reply must not repopulate it.
     if (generation !== folderTimesGen) return;
     folderTimes.set(id, stamps);
     if (host.isConnected) renderView();
@@ -4187,7 +4143,7 @@ function folderList(page, n, kids) {
     name.append(dot, el('span', '', c.name));
     // A folder's "size" is how much is in it, which is the number you actually want.
     const measure = DIRISH.has(c.kind)
-      ? (c.lazy && !c.loaded ? 'unopened' : (c.children?.length ?? 0) + ' items')
+      ? (c.children?.length ?? 0) + ' items'
       : fmtSize(c.size) || '—';
     row.append(name, el('span', 'm', KIND_LABEL[c.kind] || c.kind),
       el('span', 'm', stamps ? fmtAgo(timeOf(c)) || '—' : '…'), el('span', 's', measure));
@@ -4285,7 +4241,7 @@ function viewFolder(page, n) {
       thumb.onerror = () => thumb.remove();
       card.append(thumb);
     }
-    card.append(el('p', '', c.desc || (c.lazy && !c.loaded ? 'Open to load folder' : c.children ? `${c.children.length} items`
+    card.append(el('p', '', c.desc || (c.children ? `${c.children.length} items`
       : c.more ? `${c.more} file${c.more === 1 ? '' : 's'}` : fmtSize(c.size) || '—')));
     if (c.kind === 'repo') {
       const ft = el('div', 'ft');
@@ -4791,7 +4747,7 @@ async function loadDoc(id, host, opts = {}) {
       a.onclick = (e) => {
         e.preventDefault();
         if (!target) { toast('invalid document link'); return; }
-        if (S.byId.has(target.id) || pictureNodes.owns(target.id)) go(target.id, target.heading);
+        if (S.byId.has(target.id)) go(target.id, target.heading);
         else toast('not indexed: ' + target.id);
       };
     }
@@ -4838,7 +4794,7 @@ const KIND_SCOPES = {
   pdf: 'pdf', html: 'html', image: 'image', images: 'image',
 };
 
-// The project a search launched from, if any — Documents/Skills/Pictures/Automations
+// The project a search launched from, if any — Documents/Skills/Automations
 // and the Projects folder itself have no single project to scope to, so the toggle
 // this powers only appears when it would actually narrow something. "Is a project" is
 // "its immediate parent is the Projects folder" -- the nesting itself is the marker,
@@ -4934,14 +4890,6 @@ function viewSearch(page) {
         && (!ctxProject || !S.searchScoped || topAncestorOf(id) === ctxProject));
     }
   }
-  // Pictures is searched server-side, so the chips are applied by deciding whether to ask
-  // at all (another root is chosen, or prefix and chip disagree) and by what kind to ask for.
-  const picKind = kind || type;
-  if ((!ctxProject || !S.searchScoped) && (!root || root === pictureNodes.rootId) && (!kind || !type || kind === type)
-    && (!picKind || ['image', 'pdf', 'html', 'md', 'config', 'folder'].includes(picKind))) {
-    const pictures = el('section'); page.append(pictures);
-    searchPictures(pictures, q, picKind);
-  }
 
 }
 
@@ -5019,80 +4967,9 @@ async function searchContents(host, q, keep) {
   }
 }
 
-async function searchPictures(host, q, kind, previous = [], previousVersion = null) {
-  const generation = pictureGeneration;
-  if (!previous.length) host.textContent = 'Searching Pictures… Results load separately from project documents.';
-  const key = JSON.stringify([q, kind, previous.length]);
-  try {
-    if (!pictureSearches.has(key)) {
-      if (pictureSearches.size >= 30) pictureSearches.delete(pictureSearches.keys().next().value);
-      pictureSearches.set(key, (async () => {
-        let response;
-        const url = '/api/pictures?action=search&q=' + encodeURIComponent(q) + '&kind=' + encodeURIComponent(kind || '') + '&offset=' + previous.length;
-        for (let attempt = 0; attempt < 2; attempt++) { response = await fetch(url); if (response.status !== 409) break; }
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Pictures search unavailable');
-        return data;
-      })());
-    }
-    const data = await pictureSearches.get(key);
-    if (!host.isConnected || generation !== pictureGeneration) return;
-    if (previousVersion && data.version !== previousVersion) {
-      pictureSearches.clear(); return searchPictures(host, q, kind);
-    }
-    const hits = [...previous, ...data.hits];
-    host.textContent = '';
-    host.append(el('h2', 'sec', 'Pictures — showing ' + hits.length + ' of ' + data.total + ' matches'));
-    if (data.depthLimited) host.append(el('p', 'lede', 'Search uses the existing library depth limit. Deeper folders can still be opened in the tree.'));
-    if (data.readErrors) host.append(el('p', 'lede', data.readErrors + ' Pictures folders could not be read; results may be incomplete.'));
-    const list = el('div'); list.id = 'pictures-results'; list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', 'Pictures results');
-    for (const hit of hits) {
-      const row = el('div', 'hit');
-      row.append(el('span', 'k', KIND_LABEL[hit.kind] || hit.kind), el('span', 'n', hit.name), el('span', 'd', hit.id));
-      activate(row, () => go(hit.id), 'option'); list.append(row);
-    }
-    host.append(list);
-    // Late arrivals extend the arrow-key sequence, so the ids and selected state
-    // have to be reassigned across both lists.
-    syncCombobox();
-    if (hits.length < data.total) {
-      const more = el('button', 'btn', 'Load 200 more Pictures results');
-      more.onclick = () => { more.disabled = true; searchPictures(host, q, kind, hits, data.version); };
-      host.append(more);
-    }
-  } catch (err) {
-    pictureSearches.delete(key);
-    if (!host.isConnected) return;
-    host.textContent = err.message + ' ';
-    const retry = el('button', 'btn', 'Retry Pictures search'); retry.onclick = () => searchPictures(host, q, kind);
-    host.append(retry);
-  }
-}
-
 // ── live updates ───────────────────────────────────────────────────────────
-function refreshPictures() {
-  pictureGeneration++; navigationRequest++;
-  const destination = requestedNavigation && pictureNodes.owns(requestedNavigation.id) ? requestedNavigation : { id: S.sel, heading: S.heading };
-  const selected = destination.id;
-  const wasSelected = pictureNodes.owns(selected || '');
-  const wasExpanded = S.open.has(pictureNodes.rootId);
-  pictureNodes.clear(); pictureSearches.clear(); pictureRequests.clear();
-  if (!S.data) return;
-  for (const id of S.open) if (pictureNodes.owns(id)) S.open.delete(id);
-  reindex(S.data);
-  if (S.query) {
-    renderTree(); renderPins(); renderView();
-    if (wasSelected) ensurePicture(selected).catch(() => {});
-  }
-  else if (wasSelected) go(selected, destination.heading);
-  else if (wasExpanded) toggleFolder(pictureNodes.rootId);
-  else { renderTree(); renderPins(); }
-}
-
 function watch() {
   const es = new EventSource('/api/events');
-  let opened = false;
-  es.addEventListener('pictures', refreshPictures);
   es.addEventListener('change', () => { $('#live').classList.add('stale'); $('#live').textContent = '● changed — rescanning'; load({ quiet: true }); });
   es.onerror = () => { $('#live').classList.add('stale'); $('#live').textContent = '● disconnected'; if (S.data) { $('#connection').hidden = false; $('#connection span').textContent = 'Connection lost. Your current page is retained; reconnecting automatically.'; } };
   // Reconnecting means the server we were talking to went away -- almost always a
@@ -5100,7 +4977,7 @@ function watch() {
   // ever fire for it. Without this refetch a tab open across a restart shows the old
   // tree indefinitely, with a healthy-looking status line. load() compares `sig`, so
   // this costs nothing when the scan really is unchanged.
-  es.onopen = () => { $('#live').classList.remove('stale'); if (opened) refreshPictures(); opened = true; load({ quiet: true }); };
+  es.onopen = () => { $('#live').classList.remove('stale'); load({ quiet: true }); };
 }
 
 renderPins();

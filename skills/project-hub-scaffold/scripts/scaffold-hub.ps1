@@ -25,8 +25,8 @@ if ($RepoScopeGroups -and $RepoScopePathPrefix) { throw 'Choose groups or pathPr
 if (-not (Test-Path -LiteralPath $Dir -PathType Container)) { throw 'Workspace directory does not exist.' }
 $workspace = (Resolve-Path -LiteralPath $Dir).Path.Replace('\','/').TrimEnd('/')
 $source = (Resolve-Path -LiteralPath $HubDesignRoot).Path
-$engineFiles = @('hub.mjs','scan.mjs','markdown.mjs','index.html','navigation.mjs','open-native.mjs','pictures.mjs',
-    'pictures-client.mjs','reports.mjs','webmarks.mjs','favorites.mjs','hub.test.mjs','pictures.test.mjs','reports.test.mjs','webmarks.test.mjs','favorites.test.mjs',
+$engineFiles = @('hub.mjs','scan.mjs','markdown.mjs','index.html','navigation.mjs','open-native.mjs',
+    'reports.mjs','webmarks.mjs','favorites.mjs','hub.test.mjs','reports.test.mjs','webmarks.test.mjs','favorites.test.mjs',
     'package.json','Start-Hub.ps1','Watch-Hubs.ps1','run-watchdog-hidden.vbs')
 $required = @('hub/hub.mjs', 'project-hub/Start-Hub.ps1')
 if ($Standalone) {

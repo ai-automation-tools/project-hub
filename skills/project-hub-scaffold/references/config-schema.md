@@ -28,14 +28,15 @@ that startup project list. The old `/api/hubs` and hub-switcher model is retired
   "favicon": { "glyph": "/", "ink": "#5fe3a1", "line": "#2f6b52" },
   "sharedRoots": [
     { "name": "Documents", "dir": "D:/Work/Documents", "tint": "var(--red)" },
-    { "name": "Pictures", "dir": "C:/Users/you/Pictures", "tint": "var(--orange)" }
+    { "name": "Notes", "dir": "D:/Work/Notes", "tint": "var(--orange)" }
   ]
 }
 ```
 
 `port` is required, integer 1024–65535. `base` is required and supplies the base for
 filesystem IDs. `sharedRoots` defaults to an empty array; entries need `name` and
-`dir`, with optional `tint`. A root named `Pictures` activates lazy image browsing.
+`dir`, with optional `tint`. Every shared root is scanned in full, so a photo library
+makes scans slow; adding one from Settings asks first (see `/api/roots`).
 `name`, `title`, and favicon properties have defaults. All configured directories
 must be checked for existence by the scaffold; the loader does not check them all.
 Nested mounted roots are pruned from their parent walks to avoid duplicate IDs.
@@ -64,18 +65,16 @@ User runtimes resolve from `os.homedir()` and are shared across project overview
 
 | Route | Purpose |
 |:---|:---|
-| `/api/scan` | Cached project/document tree and metadata; `?fresh=1` rescans. Pictures is metadata-only. |
+| `/api/scan` | Cached project/document tree and metadata; `?fresh=1` rescans. |
 | `/api/stat?path=` | Immediate child modification times for folder lists. |
 | `/api/file?path=` | Rendered text; `raw=1` returns escaped source. images/PDF return 415. |
 | `/api/raw?path=` | Bytes, PDF ranges, images; `download=1` attachment. HTML redirects to preview. |
 | `/api/preview?path=` | Redirect to signed report directory. |
 | `/api/artifact/<signature>/<relative-path>` | Sandboxed HTML/SVG and contained companion assets. |
-| `/api/pictures?path=` | Lazy folder children or file plus ancestor path. |
-| `/api/pictures?action=search&q=&kind=&offset=&limit=` | Separate metadata index, up to 200 results per page. |
-| `/api/pictures?action=status` | Picture cache/index state and metrics. |
 | `/api/open?path=` | Native opening; `in=code` or `reveal=1`. Origin and path validation apply. |
-| `/api/events` | SSE `change` and separate `pictures` invalidations. |
-| `/api/health` | Scan timings, errors and Pictures state; 503 when unhealthy. |
+| `/api/events` | SSE `change` when a watched root changes. |
+| `/api/roots` | `POST {dir, name, tint?}` mounts a shared root, `DELETE {name}` unmounts one; local machine only. `POST` answers 409 when the folder holds more than 2,000 images, and `force: true` adds it anyway. |
+| `/api/health` | Scan timings and errors; 503 when unhealthy. |
 
 The server binds loopback and validates request hosts, origins and filesystem
 containment. HTML report directories remain contained after resolving links; signed
@@ -86,7 +85,7 @@ not an authenticated public hosting service.
 ## Running and verification
 
 Requires Node 18.17+ and Git; Windows launchers require PowerShell 7. No npm install
-is needed. `npm test` in `hub/` runs all five test files. `npm start` uses the sibling
+is needed. `npm test` in `hub/` runs all four test files. `npm start` uses the sibling
 server config. `npm run scan` writes an ignored filesystem index into that config
 folder. Windows launch: `project-hub/Start-Hub.ps1`; use `-Restart -NoBrowser` for
 an intentional restart. Optional `Watch-Hubs.ps1` checks health; `-Restart` enables

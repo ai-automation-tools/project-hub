@@ -88,7 +88,7 @@ Copy-Item projects/_example/hub.config.json.example projects/My_Workspace/hub.co
 
 Edit the copies before starting:
 
-- **Server config:** set `base` to your workspace base folder and `sharedRoots` to any shared document or picture folders.
+- **Server config:** set `base` to your workspace base folder and `sharedRoots` to any shared document folders.
 - **Workspace config:** set `name` and `dir` for your workspace. Adjust or remove `repoScope` to choose which repos appear.
 
 Real configs stay out of Git. See the [config reference](hub/README.md#the-config) for details.

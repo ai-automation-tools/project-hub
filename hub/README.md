@@ -31,9 +31,6 @@ mounts gets a config folder of its own under `../projects/`. See
 | `scan.mjs` | Config loader, roots and deny lists, `resolveId()`, the tree walk, git state and the scan payload. The scan worker thread loads this file alone. |
 | `markdown.mjs` | Frontmatter, the markdown renderer and `sanitizeHtml()`, heading slugs, the link check. |
 | `index.html` | The whole UI — vanilla JS, no framework, no build. Carries `%TITLE%`, `%FAVICON%`, `%PORT%` and `%NONCE%` placeholders the server fills per request. |
-| `pictures.mjs` | Independent asynchronous Pictures browse/search cache; project scans never walk this root. |
-| `pictures-client.mjs` | Attaches only requested Pictures nodes to the client tree and retains them across project refreshes. |
-| `pictures.test.mjs` | Lazy browse/search, cache invalidation, depth-limit, traversal, and watcher-noise regressions. |
 | `reports.mjs` | PDF delivery and signed directory routes for sandboxed HTML reports and their companion assets. |
 | `navigation.mjs` | Shared route helpers: heading routes, search routes, document links, search inclusion — plus the bookmark/recent list logic, kept pure so it is testable without a DOM. |
 | `open-native.mjs` | Validated native launch requests; paths are environment data, not shell command text. |
@@ -68,7 +65,7 @@ Every path-addressed route resolves through `resolveId()`: the configured roots,
 
 | Path | What it does |
 |:---|:---|
-| `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Pictures is a metadata-only root. Gzipped. |
+| `/api/scan` | Project/document tree, stats, repos, runtimes, root docs. Gzipped. |
 | `/api/file` (Markdown) | Also returns `meta`, the document's frontmatter tags, `status` and date fields, or `null` when it has none (P9-19). |
 | `/api/stat` | Modification times for one folder's immediate children, keyed by name. On demand, for the list view. |
 | `/api/links?path=` | On-demand link check over the Markdown under one folder (first 2,000 documents): relative links and images that don't resolve, heading anchors that don't exist (same slugs as the renderer), and targets outside the roots, each with its line. Never part of a scan. Same-origin only. |
@@ -76,9 +73,6 @@ Every path-addressed route resolves through `resolveId()`: the configured roots,
 | `/api/repo/diff?path=&file=` | One changed file's diff against HEAD, or an untracked file's text, cut at 256 KB. Serves only a file `git status` lists, and only if it passes the deny list. Same-origin only. |
 | `/api/file?raw=1` | The same document as escaped source instead of rendered markdown — the view-source toggle. |
 | `/api/health` | Uptime, scan history, `readErrors`, `state`, and `readErrorPaths` — the last twelve failing paths and their errno, for the status panel — and `recentChanges`, the last 20 paths the watcher reacted to. 503 when unwell. |
-| `/api/pictures?path=` | Immediate children of a Pictures folder, or a file and its ancestor path. |
-| `/api/pictures?action=search&q=&kind=&offset=&limit=` | Separate cached metadata search, up to 200 hits per page. Built only when requested. |
-| `/api/pictures?action=status` | Pictures cache/index version and read/build metrics. |
 | `/api/content?q=` | Opt-in search inside Markdown and text files (P9-04): up to 1000 files ranked by occurrences, each with a snippet, plus the index size and what it left out. The index is built on the first call, never during a scan. GET only; 400 under two characters. `/api/health` reports `contentIndex` once it exists. `q=tag:name` matches frontmatter tags exactly instead of the text (P9-19). |
 | `/api/file?path=` | One text document, rendered to HTML. PDF/image input returns 415. |
 | `/api/raw?path=` | File bytes, including PDF MIME and byte ranges; `&download=1` requests attachment delivery. HTML redirects to the contained preview route. |
@@ -88,7 +82,7 @@ Every path-addressed route resolves through `resolveId()`: the configured roots,
 | `/api/events` | Server-sent events; one `change` per settled watcher burst. |
 | `/api/webmarks?source=` | Browser profiles with favorites, and the chosen profile's tree (the first profile by default). Same-origin only. |
 | `/api/favicon?url=` | One icon per origin, resolved server-side and cached for the process. `http(s)` only, same-origin only, 404 on a miss. |
-| `/api/roots` | `POST {dir, name, tint?}` mounts a folder as a shared root, `DELETE {name}` unmounts one. Applied live (scan lists, `resolveId()` gate, watcher, and the scan worker by message, so it keeps its caches) and written back to `sharedRoots` in the config. Answers once saved; the rescan runs after and its `change` event updates the tree. Same-origin **and** a loopback `Host` — an `allowedHosts` name is refused, so a tailnet device can browse but not widen what is served. Refuses drive roots, deny-listed folders, duplicates and the Pictures root. |
+| `/api/roots` | `POST {dir, name, tint?}` mounts a folder as a shared root, `DELETE {name}` unmounts one. Applied live (scan lists, `resolveId()` gate, watcher, and the scan worker by message, so it keeps its caches) and written back to `sharedRoots` in the config. Answers once saved; the rescan runs after and its `change` event updates the tree. Same-origin **and** a loopback `Host` — an `allowedHosts` name is refused, so a tailnet device can browse but not widen what is served. Refuses drive roots, deny-listed folders and duplicates. A folder holding more than 2,000 images (`IMAGE_WARN`, counted by `countImages()` with a bounded walk) answers **409** with a plain-text warning instead of mounting; the same request with `force: true` adds it anyway, which is what the **Add anyway** button in Settings sends. |
 | `/api/favorites` | `GET` the manual favorites, `PUT` `{roots}` to replace them. Same-origin only, JSON only, 5 MB cap, and the tree is rebuilt by `cleanTree()`. |
 | `/api/frameable?url=` | `{frameable}`, which says whether the site's headers allow a hub tab to frame it. Cached per URL, same-origin only. |
 | `/api/folder-icons` | `GET` the `folderIcons` map (`{ "<top-level node id>": "<icon>" }`). `PUT {id, icon}` sets one folder's icon, `icon: null` clears it. Icon names are `[a-z0-9-]`, looked up in the page's built-in set; nothing reads a path from the id. Writes are same-origin **and** a loopback `Host`, like `/api/roots`. |
@@ -132,15 +126,11 @@ Originally implemented client-side as one `showCtxMenu()` in `index.html` (a `co
 on `#tree`, positioned/clamped to the viewport, closed on outside click/scroll/Escape) —
 launch actions now use `open-native.mjs`, with paths passed through an environment variable to a fixed PowerShell command. `/api/open` returns 403/404/400 for invalid requests and 502 for launch failures.
 
-## Pictures on demand
+## Photo libraries
 
-Pictures is a lightweight root in `/api/scan`. Expanding or opening a folder loads only its immediate children; following a picture deep link fetches that file and the ancestor path. Previously loaded folders are retained across ordinary project refreshes. Raw image delivery still uses `/api/raw`.
+The hub is a document console. Every file under a mounted folder is walked on each scan and listed in the page's tree, so a folder of thousands of photos makes scans and the sidebar slow for no gain. There was a separate lazy Pictures library until 2026-11-12 (`pictures.mjs`, `/api/pictures`); it was removed rather than maintained as a second code path. A folder named `Pictures` is now an ordinary shared root.
 
-A search that includes Pictures gets a separate results section. Its metadata index is built asynchronously on the first relevant query and reused, with up to 200 results per page. Project-only searches and repo/skill/CLI queries do not build it. Search follows the same configurable scan depth as the rest of the hub (default 10); deeper folders are still browsable, and the UI explains the search boundary. Unreadable folders are disclosed rather than silently counted as complete coverage.
-
-The Pictures watcher invalidates only Pictures and emits a `pictures` SSE event. Directory metadata `change` notifications are ignored; file changes and directory `rename` events invalidate the cache, so new empty folders appear too. `/api/health` reports `pictures.state`, version, cache counts, read errors, and search build duration. The main scan's node count now excludes the lazy subtree; Pictures counts live in the separate status data once indexed.
-
-Measured on September 8: the ordinary payload fell from 118,220 to 40,191 nodes and from 1,675,465 to 921,701 gzip bytes. Fresh-scan directory walks fell from about 6.1 to 2.0 seconds; total scan time still varied with Git. The first image search on the final build took 1.384 seconds, with no image content read. See [P7 measurements and limits](../docs/ROADMAP.md#p7-review). Refresh an existing browser tab to load this client change.
+What is left is a guard at the door: `POST /api/roots` runs `countImages()` before mounting. It counts image files with a walk that stops as soon as it passes `IMAGE_WARN` (2,000) or has looked at 50,000 entries, so the check costs about the same for a huge library as for a small one. Over the limit, the route answers 409 and Settings shows the message with **Add anyway**. A root already listed in `sharedRoots` is not checked at startup. Images inside ordinary folders still preview, thumbnail and step with the arrow keys as before.
 
 ## Report browsing and recovery
 
@@ -150,7 +140,7 @@ Search matches names, descriptions and paths only, until you press the **inside 
 
 Typo tolerance (P9-03) is a fallback, not a ranking change: `rankSearch()` in `navigation.mjs` runs the substring pass first and returns it untouched whenever it finds anything. Only an empty result falls through to an edit-distance pass (adjacent transpositions count as one edit) against each name, the name without its extension, and each word of the name. Queries under four characters get no tolerance, four to seven get one edit, eight or more get two. The count line then reads `close to “…” (no exact match)`. The Pictures section is searched server-side and stays substring-only.
 
-Under the result count, two rows of filter chips narrow a search without navigating first: one chip per top-level root (Projects, Documents, Skills, Pictures, Automations, the user-CLI root — whichever this hub has), and one per document type (DOC, HTML, PDF, IMAGE). Each row is single-choice and clicking the lit chip clears it. A chip and a typed prefix both apply, so `skill:` with PDF on is empty rather than one overriding the other. Pictures results are only fetched when no other root is chosen, and ask the server for the chosen type. The chips are toggle buttons (`aria-pressed`) in labelled groups, reachable with Tab and switched with Enter or Space; focus stays on the chip after the results redraw. A fresh search starts with no chips; refining the query keeps them.
+Under the result count, two rows of filter chips narrow a search without navigating first: one chip per top-level root (Projects, Documents, Skills, Automations, the user-CLI root — whichever this hub has), and one per document type (DOC, HTML, PDF, IMAGE). Each row is single-choice and clicking the lit chip clears it. A chip and a typed prefix both apply, so `skill:` with PDF on is empty rather than one overriding the other. Pictures results are only fetched when no other root is chosen, and ask the server for the chosen type. The chips are toggle buttons (`aria-pressed`) in labelled groups, reachable with Tab and switched with Enter or Space; focus stays on the chip after the results redraw. A fresh search starts with no chips; refining the query keeps them.
 
 PDFs use the browser's native iframe viewer, with Open and Download when the browser cannot render them. HTML previews resolve companion files through a signed directory route; nested `charts/`, scripts, styles, fonts, and JSON work within that directory. Parent-directory escapes and root-relative assets are not supported. HTML/SVG responses enforce a sandbox even when opened directly; signed preview URLs expire on server restart, so bookmark the stable Hub link instead.
 
@@ -185,15 +175,15 @@ Bookmark groups are an optional `group` name on each bookmark, so a group exists
 
 Storage is `localStorage`, so each browser and origin keeps its own list; `exportPins()` / `importPins()` in `navigation.mjs` write and merge a `project-hub-bookmarks.json` file (`{format, version, bookmarks, groups}`) from the footer icons, existing paths winning. Otherwise it is two lists of `{path, label, addedAt, group?}` plus the `hub.bmgroups` display state, and nothing else — no server component, no per-user server state, and no document contents. `parseList()` distrusts what it reads: a corrupted or older-format value returns an empty list rather than throwing, and duplicate paths collapse to one row.
 
-Every scan re-resolves bookmarks against `S.byId`. A missing path is dimmed and kept, never dropped, because a temporarily unreadable folder must not silently eat pins; where exactly one node in the same root shares the basename, a single relink offer appears, and nothing is repointed automatically. `pinExists()` also asks `pictureNodes.owns()`, so a bookmarked photo that is legitimately unloaded is not called a dead link, and nothing is marked missing before the first scan lands.
+Every scan re-resolves bookmarks against `S.byId`. A missing path is dimmed and kept, never dropped, because a temporarily unreadable folder must not silently eat pins; where exactly one node in the same root shares the basename, a single relink offer appears, and nothing is repointed automatically. Nothing is marked missing before the first scan lands.
 
 Recent excludes `DIRISH` kinds, so folders you pass through do not fill it.
 
-Rows are disambiguated in two tiers. `pinContext()` climbs the parent chain and stops at the first `repo` **or** scope-root ancestor, so one walk yields both cases: a file deep in a repo reports its repo, anything else reports its project or shared root. It renders right-aligned and dim, and is suppressed when it merely repeats the label. A path the scan does not hold — unresolved, or a Pictures node not yet loaded — has only its own parent folder to offer, so it falls back to that. Only when label *and* context still collide does the name itself pick up its parent folder, which is the two-READMEs-in-one-repo case; three `Agents` rows in three projects need no such help. That replaced an earlier collision-only rule that qualified names the context already distinguished, and it avoids keeping a hardcoded list of generic filenames.
+Rows are disambiguated in two tiers. `pinContext()` climbs the parent chain and stops at the first `repo` **or** scope-root ancestor, so one walk yields both cases: a file deep in a repo reports its repo, anything else reports its project or shared root. It renders right-aligned and dim, and is suppressed when it merely repeats the label. A path the scan does not hold has only its own parent folder to offer, so it falls back to that. Only when label *and* context still collide does the name itself pick up its parent folder, which is the two-READMEs-in-one-repo case; three `Agents` rows in three projects need no such help. That replaced an earlier collision-only rule that qualified names the context already distinguished, and it avoids keeping a hardcoded list of generic filenames.
 
 Renaming swaps the label for an input in place rather than calling `prompt()`, which would block the whole page.
 
-The search box is also a proper combobox as of the same day: `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant`, and one `syncCombobox()` that assigns row ids at sync time so the arrow keys walk the document and Pictures listboxes as one contiguous sequence.
+The search box is also a proper combobox as of the same day: `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant`, and one `syncCombobox()` that assigns row ids at sync time so the arrow keys walk the document and inside-documents listboxes as one contiguous sequence.
 
 Together the September 8–9 work passes **64 tests** plus the live HTTP and browser checks recorded in [the P7 shipping record](../docs/ROADMAP.md#p7-review).
 
@@ -263,11 +253,11 @@ Every frame is `sandbox`ed with scripts, same-origin (its own origin, not the hu
 
 `viewFolder()` renders either cards or a four-column list — name, type, modified, size — chosen by a toggle in the folder header and remembered per browser in `hub.folderview`. Cards stay the default and are unchanged; the list is flat by design, since splitting it into titled groups is what the card view is for.
 
-Columns sort by click, and **folders come first only for the name and type sorts**. Sorting by modified or size means the key *is* the question, and burying the file you edited a minute ago under seven month-old folders is the opposite of the answer. A folder's size column shows its child count, or `unopened` for a lazy Pictures node whose children have not been fetched.
+Columns sort by click, and **folders come first only for the name and type sorts**. Sorting by modified or size means the key *is* the question, and burying the file you edited a minute ago under seven month-old folders is the opposite of the answer. A folder's size column shows its child count.
 
-**Modified times are fetched per folder, not scanned into the payload.** `mtime` is deliberately non-enumerable on scanned nodes (`stampNode`), because a timestamp on all ~40,000 of them is exactly the weight the Pictures pass spent itself removing. `folderStamps()` reads one directory's immediate children — no recursion, no file contents — and `/api/stat` returns it keyed by **name**, since the client already holds the ids and repeating the folder prefix per row is the same waste at a smaller scale. The endpoint goes through the same `resolveId()` gate as every other path-addressed route: 403 outside the roots or inside a secret directory, 404 for anything that is not a readable directory.
+**Modified times are fetched per folder, not scanned into the payload.** `mtime` is deliberately non-enumerable on scanned nodes (`stampNode`), because a timestamp on all ~40,000 of them is payload weight nobody reads. `folderStamps()` reads one directory's immediate children — no recursion, no file contents — and `/api/stat` returns it keyed by **name**, since the client already holds the ids and repeating the folder prefix per row is the same waste at a smaller scale. The endpoint goes through the same `resolveId()` gate as every other path-addressed route: 403 outside the roots or inside a secret directory, 404 for anything that is not a readable directory.
 
-The client caches one response per folder and invalidates the whole cache when a new scan lands, so a timestamp can never outlive the scan it was read under; a reply arriving after that invalidation is dropped rather than repopulating it, the same rule the Pictures cache follows. Measured on a 1,250-entry folder: **39 ms and 47 KB** for the stat call, **zero long tasks and 0 ms total blocking** for the render.
+The client caches one response per folder and invalidates the whole cache when a new scan lands, so a timestamp can never outlive the scan it was read under; a reply arriving after that invalidation is dropped rather than repopulating it. Measured on a 1,250-entry folder: **39 ms and 47 KB** for the stat call, **zero long tasks and 0 ms total blocking** for the render.
 
 ## Reader tools
 
@@ -302,7 +292,7 @@ The fix negotiates on `Sec-Fetch-Dest`, which the browser sets and page script c
 
 ## Scan status detail
 
-`● scanned 09:32` was the whole story, and a green `ready` sat on top of nineteen read errors without a word. Clicking the status line (or pressing Enter on it — it is a real button) opens a panel with the numbers behind it: last successful scan and its age, duration, node count and gzipped payload, the walk/git/assemble/serialize/gzip split from `lastScan.timings`, the mounted projects, the Pictures state, and the read errors.
+`● scanned 09:32` was the whole story, and a green `ready` sat on top of nineteen read errors without a word. Clicking the status line (or pressing Enter on it — it is a real button) opens a panel with the numbers behind it: last successful scan and its age, duration, node count and gzipped payload, the walk/git/assemble/serialize/gzip split from `lastScan.timings`, the mounted projects, and the read errors.
 
 **The read errors are the point.** A count is not actionable, so `noteReadError()` keeps the last twelve failing paths with their errno — bounded, deduplicated by path, and paths only, never content. `/api/health` exposes them as `readErrorPaths` with relative ids, and any that is still in the tree is clickable straight to the document. `readErrors++` now exists in exactly one place, which a regression pins so a future call site cannot go back to a bare increment. On this workspace the panel immediately named what the count had been hiding: `EISDIR` and `ENOENT` under `~/.gemini/skills/`.
 
@@ -379,7 +369,7 @@ favicon: there's only one process now) and one small config per project it mount
   "favicon": { "glyph": "/", "ink": "#5fe3a1", "line": "#2f6b52" },
   "sharedRoots": [
     { "name": "Documents", "dir": "D:/Work/Documents", "tint": "var(--red)" },
-    { "name": "Pictures", "dir": "C:/Users/you/OneDrive/Pictures", "tint": "var(--orange)" }
+    { "name": "Notes", "dir": "D:/Work/Notes", "tint": "var(--orange)" }
   ]
 }
 ```
@@ -393,7 +383,7 @@ favicon: there's only one process now) and one small config per project it mount
 | `favicon` | | `{ glyph, ink, line }` — one or two characters and two hex colors. The SVG is built server-side. There is exactly one favicon per process; it is not per-project. |
 | `allowedHosts` | | Exact hostnames the hub answers to besides loopback, e.g. a tailnet's MagicDNS name behind `tailscale serve`. Lowercase, no port, no wildcard. The bind stays `127.0.0.1`. See [remote access](../docs/REMOTE-ACCESS.md). |
 | `folderIcons` | | `{ "<top-level node id>": "<icon>" }` — icons from the built-in Material Icon Theme folder set, shown in place of a top-level folder's dot. Set from **Settings → Folder icons** (see `/api/folder-icons`), which rewrites only this key. An entry that fails validation is dropped at load. |
-| `sharedRoots` | | `[{ name, dir, tint }]` — folders mounted next to every project. `tint` is any theme colour var and defaults to `var(--dimmer)`. A root named **`Pictures`** additionally turns on the picture library; without one those endpoints are inert. Also editable from **Settings → Folders** (see `/api/roots`), which rewrites only this key. |
+| `sharedRoots` | | `[{ name, dir, tint }]` — folders mounted next to every project. `tint` is any theme colour var and defaults to `var(--dimmer)`. Also editable from **Settings → Folders** (see `/api/roots`), which rewrites only this key. |
 | `maxDepth` | | Default directory recursion for every workspace that sets none of its own, and for the shared roots: integer 1–32, default 10. Also editable from **Settings** (see `/api/scan-settings`). |
 
 > [!NOTE]
@@ -432,7 +422,7 @@ alphabetically by folder name) and builds one node per project — but instead o
 those at the top level, `scanTree()` nests them all under one synthetic `@projects` node
 (`kind: 'projects'`) so the tree shows a single **Projects** folder rather than three more
 top-level roots next to Documents. `SHARED_ROOTS` (whatever `sharedRoots` names — here
-`Documents`, `Pictures`, `Automations`, `Links`) stay top-level, and
+`Documents`, `Automations`, `Links`) stay top-level, and
 — along with `USER_RUNTIMES`
 (`~/.claude`, `~/.codex`, `~/.gemini`, `~/.agents`, `~/.config/opencode`) — are identical
 regardless of which projects are mounted, so they stay hardcoded in `scan.mjs` and are
@@ -487,9 +477,7 @@ correctly under the workspace path, but the repo drops out of the repos list ent
 siblings keep their entries. A shared root is for a folder **no scanned workspace reaches**; the
 moment a workspace reaches it, delete the root rather than repointing it.
 
-`Pictures` is `C:/Users/<you>/OneDrive/Pictures` — outside `D:/Work` entirely, so it
-gets its own root rather than a spot under an existing one. Image files anywhere in any
-root (not just this one) render as `kind: 'image'`: `kindOfFile()` recognizes
+Image files anywhere in any root render as `kind: 'image'`: `kindOfFile()` recognizes
 `png/jpg/jpeg/gif/svg/webp/avif/bmp/ico`, and the UI shows them inline via `/api/raw`
 instead of trying to load them as text.
 
@@ -513,7 +501,7 @@ almost always the right move instead.
 ## Tests
 
 ```powershell
-npm test          # node --test hub.test.mjs reports.test.mjs pictures.test.mjs webmarks.test.mjs favorites.test.mjs
+npm test          # node --test hub.test.mjs reports.test.mjs webmarks.test.mjs favorites.test.mjs
 ```
 
 120 tests, no framework or dependencies to install. One of them (P9-22) runs `node --check` over every `hub/*.mjs` and both inline scripts in `index.html`, so a syntax error in code only the browser loads still fails the suite. In a fresh clone they run against the example configs; once you copy a real `hub.config.json`, they also check that each workspace's `dir` exists, so an unedited workspace copy fails until it points somewhere real. Report and stat tests create and clean isolated temporary fixtures, including a junction-escape check.

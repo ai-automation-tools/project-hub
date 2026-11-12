@@ -89,7 +89,7 @@ Two endpoints answer honestly rather than failing:
 
 - `/api/open` → **501** with a sentence saying opening files needs a local hub. A hosted page
   has no filesystem, and a status nobody can read is worse than a plain refusal.
-- `/api/pictures` → **404**, because no Pictures root is configured in the fixture.
+- `/api/links` → **501** for the same reason: checking links reads files on the machine running the hub.
 
 Keep that pattern for anything new: **say what is absent, do not let it look broken.** The
 demo README's "what is real, and what is not" table is part of the deliverable — update it

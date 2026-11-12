@@ -80,7 +80,7 @@ PowerShell 7; use paths appropriate to the user's machine:
 ## Current behavior to preserve
 
 Read [current features](references/current-features.md) when extending or checking
-an installation. It covers the shared Projects landing page, lazy Pictures,
+an installation. It covers the shared Projects landing page,
 sandboxed HTML/PDF report reading, search and heading routes, bookmarks and Recent,
 folder sorting, Markdown reader tools, help panels, and watchdog behavior.
 Read the design reference only for UI work; adding a workspace needs no UI edit.

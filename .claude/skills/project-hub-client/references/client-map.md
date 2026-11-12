@@ -21,7 +21,7 @@ way by those rather than by line number, which moves.
 | reader | `READ_WIDTHS`, `READ_SCALES`, outline, `loadDoc` |
 | images | `viewImage`, `imageSiblings`, zoom |
 | search | `viewSearch`, `syncCombobox` |
-| live | `watch()` — EventSource, `change` and `pictures` events |
+| live | `watch()` — EventSource, the `change` event |
 
 ## The views
 
@@ -36,7 +36,7 @@ way by those rather than by line number, which moves.
 | `viewDocFirst` | A node's README, with a "show the folder instead" escape that sets `S.docOff` |
 | `viewFile` | md (rendered/source), config, plain file, html (preview/source), pdf |
 | `viewImage` | One image, zoom levels, arrow-key stepping through siblings |
-| `viewSearch` | Hits over `S.index`, scoped or global, `hitLimit` paging, Pictures appended async |
+| `viewSearch` | Hits over `S.index`, scoped or global, `hitLimit` paging, inside-documents hits appended async |
 
 ## Keyboard
 
@@ -76,7 +76,6 @@ Only a plain ES module the Node suite imports directly:
   (`parseList`, `toggleBookmark`, `renameBookmark`, `moveBookmark`, `setBookmarkGroup`,
   `renameBookmarkGroup`, `groupBookmarks`, `pushRecent`,
   `resolveBookmarks`, `RECENT_MAX`).
-- `pictures-client.mjs` — `PictureNodes`, the async Pictures branch.
 - `reports.mjs` — server-side, but the other half of the framing contract above.
 - `favorites.mjs` — pure tree edits and the bookmarks HTML format, imported by the page and by `favorites.test.mjs`. It must stay in `build-demo.mjs`'s copy list. A name the page imports must not also be declared in the page (a test checks this; `folderList` is imported as `favoriteFolders`).
 

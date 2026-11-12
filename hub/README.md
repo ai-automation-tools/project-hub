@@ -211,6 +211,28 @@ The gear at the right end of the activity bar opens a Settings view (`#settings`
 
 The pre-paint script in `<head>` applies the theme and the interface size before first paint, so neither flashes. It also moves every viewer onto `obsidian` once, recorded in `hub.design`: the page had always stored the scheme on load, so a stored `midnight` was never a choice. Whatever is picked after that stands. The view also has favorites import and export, **Clear recent documents** and **Reset sidebar width**, which clears `hub.sbw`.
 
+### Settings file (Backup)
+
+**Settings → Backup** exports and imports everything a person has set up as one `project-hub-settings.json`:
+
+```json
+{ "format": "project-hub-settings", "version": 1,
+  "local":  { "hub.theme": "nord", "hub.bookmarks": "[…]" },
+  "server": { "folders": [], "folderIcons": {}, "scan": { "defaultDepth": 10, "workspaces": [] }, "favorites": [] } }
+```
+
+| Part | Holds | On import |
+|:---|:---|:---|
+| `local` | The raw `localStorage` string of every key in `SETTINGS_KEYS` (`navigation.mjs`): bookmarks, recents, bookmark groups, Explorer folder order (`hub.rootorder`), theme, zoom, sidebar, tab and favorites preferences, reader settings | `hub.bookmarks` and `hub.recent` merge, existing rows winning; every other key is replaced. Keys outside `SETTINGS_KEYS` are dropped |
+| `server.folders` | `sharedRoots` (`name`, `dir`, `tint`) | `POST /api/roots` for each name the hub doesn't have. A path missing on this computer is reported and skipped |
+| `server.folderIcons` | `{ top-level id: icon }` | `PUT /api/folder-icons` per entry |
+| `server.scan` | Default depth and each workspace's override | `PUT /api/scan-settings` only where the value differs, since each change rescans. Unknown workspaces are passed over |
+| `server.favorites` | The manual favorites tree | Replaces an empty list; otherwise `mergeImport()` files it under one folder. An identical list is left alone |
+
+`exportSettings()` and `importSettings()` in `navigation.mjs` own the format and are tested without a DOM. The page's part is the two buttons and `importServerSettings()`: there is **no import route** on the server. Import replays the file through the same validated, loopback-only routes the Settings view uses, so from a phone or the static demo only `local` is applied. After writing `local` the page reloads, because every preference is read from `localStorage` at startup and the page in memory would otherwise write its old lists back. Anything not applied is carried across the reload in `sessionStorage` (`hub.importnote`) and shown under the buttons.
+
+Adding a setting: a new `localStorage` key goes in `SETTINGS_KEYS`, and a test fails if the page writes a key that is neither there nor on its not-exported list (`hub.design`, a one-time marker). A new server-side setting needs the export handler, `importSettings()` and `importServerSettings()` updated together. The checklist is in [`AGENTS.md`](../AGENTS.md#adding-or-changing-a-setting).
+
 The sidebar's right edge is a drag handle and, since 2026-11-03, a focusable `role="separator"` (window-splitter pattern) that announces its width through `aria-valuenow`. Tab to it, then ←/→ (or ↓/↑) move it 16px, Shift moves 64px, Home and End jump to the 200px minimum and 480px maximum. A keyboard resize is saved to `hub.sbw` just like a drag. The key mapping is `sidebarKeyWidth()` in `navigation.mjs`.
 
 ## Favorites

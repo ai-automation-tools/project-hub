@@ -136,7 +136,7 @@ and provide the path to this checkout.
 Three agent skills cover the hub's own internals. They live in
 [**agent-skills**](https://github.com/ai-automation-tools/agent-skills/tree/main/skills/projects/project-hub),
 which is canonical for them. They are installed as an overlay into this clone's `.claude/skills/`,
-and that installed copy is committed here, next to [`CLAUDE.md`](CLAUDE.md) and a small
+and that installed copy is committed here, next to [`AGENTS.md`](AGENTS.md) and a small
 `.claude/` setup: a `hub-reviewer` agent and a `/check` command to run before committing.
 
 | Skill | Covers |

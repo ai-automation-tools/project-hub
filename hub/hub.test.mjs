@@ -16,7 +16,7 @@ import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfi
   buildContentIndex, searchContent, CONTENT_FILE, validateNewRoot, writeSharedRoots, ROOT_TINTS, validateFolderIcon, writeFolderIcons, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
 import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, keyOf, removeBookmark, duplicateBookmark,
-  resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins } from './navigation.mjs';
+  resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins, SETTINGS_KEYS, exportSettings, importSettings } from './navigation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 // P9-21: the server is three files; a source pin on scanner code reads them together.
@@ -715,6 +715,20 @@ test('bookmarks round-trip through storage and survive junk written by anything 
   assert.deepEqual(roots.map((r) => r.id), ['c', 'a', 'b', 'd']);
   assert.deepEqual(orderByIds([{ id: 'x' }, { id: 'y' }], []).map((r) => r.id), ['x', 'y']);
 
+  // The settings file: only known keys travel, lists merge with existing rows winning,
+  // scalar preferences are replaced, and anything else is not our file.
+  const settings = exportSettings({ 'hub.theme': 'nord', 'hub.bookmarks': JSON.stringify([{ path: 'a', label: 'theirs' }, { path: 'b' }]), evil: 'x' },
+    { folders: [{ name: 'Notes', dir: 'D:/Work/Notes' }, { name: 7 }], folderIcons: { Notes: 'docs' } });
+  assert.ok(!settings.includes('evil'));
+  const back = importSettings({ 'hub.bookmarks': JSON.stringify([{ path: 'a', label: 'mine' }]) }, settings);
+  assert.equal(back.local['hub.theme'], 'nord');
+  assert.deepEqual(JSON.parse(back.local['hub.bookmarks']).map((e) => e.label), ['mine', 'b']);
+  assert.deepEqual(back.server.folders.map((f) => f.name), ['Notes']);
+  assert.deepEqual(back.server.folderIcons, { Notes: 'docs' });
+  const forged = JSON.stringify({ format: 'project-hub-settings', local: { 'hub.theme': 'mono', other: 'x', 'hub.zoom': 5 } });
+  assert.deepEqual(importSettings({}, forged).local, { 'hub.theme': 'mono' });
+  for (const bad of ['', 'not json', '{}', exportPins([])]) assert.equal(importSettings({}, bad), null);
+
   // Anything that is not a usable list of paths reads back as empty, never as a throw.
   for (const junk of [undefined, null, '', 'not json', '{}', '[1,2]', '[{"label":"no path"}]']) {
     assert.deepEqual(parseList(junk), [], `parseList(${JSON.stringify(junk)}) should be empty`);
@@ -843,9 +857,17 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.doctabs'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'", "'hub.rootorder'"].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.doctabs'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'", "'hub.rootorder'", 'settingsKey'].includes(key),
       `unexpected localStorage key ${key}`);
   }
+  // Settings → Backup has to carry every preference. A key the page writes is either
+  // exported or deliberately not (a one-time marker); a new one must pick a side.
+  const notExported = ['hub.design'];
+  for (const name of written.filter((k) => k.startsWith("'")).map((k) => k.slice(1, -1))) {
+    assert.ok(SETTINGS_KEYS.includes(name) || notExported.includes(name),
+      `${name} is written to localStorage but is not in SETTINGS_KEYS, so Settings → Backup would not export it`);
+  }
+  for (const id of ['settings-export', 'settings-import', 'settings-file']) assert.ok(html.includes(`id="${id}"`), `Settings has no #${id}`);
 });
 
 // ── folder list view (P7-09) ───────────────────────────────────────────────

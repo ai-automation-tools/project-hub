@@ -152,7 +152,8 @@ folders you pass through on the way somewhere do not fill the list up.
 > Simple Browser, Chrome, Edge, each browser profile, and even `localhost` vs `127.0.0.1` each keep
 > their own list. To copy them across, use the export icon at the bottom of the Bookmarks sidebar
 > (it saves `project-hub-bookmarks.json`), then the import icon on the other side. Import merges:
-> bookmarks you already have are kept as they are, and only new paths are added.
+> bookmarks you already have are kept as they are, and only new paths are added. To move
+> everything at once (bookmarks, recents, theme, folders, favorites), use **Settings → Backup**.
 
 > [!TIP]
 > **To share a single pin, a Hub link also works.** Right-click → **Copy Hub

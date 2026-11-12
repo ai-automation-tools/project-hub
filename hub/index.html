@@ -874,6 +874,16 @@ details[open]>summary .fchev{transform:rotate(90deg)}
           <button class="btn" id="set-reset-width">Reset sidebar width</button>
         </div>
       </section>
+      <section class="set" id="set-backup">
+        <h3>Backup</h3>
+        <p class="sethelp">One file with everything you have set up: bookmarks, recent documents, theme and layout from this browser, plus the hub’s folders, folder icons, scan depth and favorites. Import it into another hub or browser to bring it all across. Bookmarks, recent documents and favorites are added to what is already there; other settings are replaced. The file lists folder paths from this computer.</p>
+        <div class="setbtns">
+          <button class="btn" id="settings-export">Export settings</button>
+          <button class="btn" id="settings-import">Import settings…</button>
+          <input type="file" id="settings-file" accept=".json,application/json" hidden>
+        </div>
+        <p class="sethelp" id="settings-status" role="status"></p>
+      </section>
     </div>
     <div id="tree"></div>
     <div class="ex-foot">
@@ -917,7 +927,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds,
-  setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins,
+  setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins, SETTINGS_KEYS, exportSettings, importSettings,
   pushRecent, resolveBookmarks, keyOf, removeBookmark, duplicateBookmark, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
@@ -1927,6 +1937,90 @@ $('#set-reset-width').onclick = () => {
   showSbw(SBW_DEFAULT);
   toast('sidebar width reset');
 };
+
+// ── settings file ──
+// Export reads this browser's preferences and asks the hub for its own; a hub that can't
+// answer (the static demo) just leaves that part out. Import writes the preferences, sends
+// the hub's part through the same routes Settings uses, and reloads -- every preference is
+// read from localStorage at startup, so a reload is the whole "apply" step.
+$('#settings-export').onclick = async () => {
+  const local = {};
+  try { for (const k of SETTINGS_KEYS) { const v = localStorage.getItem(k); if (v != null) local[k] = v; } } catch {}
+  const get = async (url) => { try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch { return null; } };
+  const [icons, scan, favs] = await Promise.all([get('/api/folder-icons'), get('/api/scan-settings'), get('/api/favorites')]);
+  const server = {
+    folders: S.data?.sharedRoots || [],
+    folderIcons: icons?.icons || {},
+    ...(scan ? { scan: { defaultDepth: scan.defaultDepth, workspaces: scan.workspaces.map((w) => ({ name: w.name, maxDepth: w.maxDepth })) } } : {}),
+    ...(favs ? { favorites: favs.roots } : {}),
+  };
+  const a = el('a');
+  a.href = URL.createObjectURL(new Blob([exportSettings(local, server)], { type: 'application/json' }));
+  a.download = 'project-hub-settings.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+/** Send the hub's half of a settings file. Returns what it refused, e.g. a folder this computer doesn't have. */
+async function importServerSettings(s) {
+  const skipped = [];
+  const send = async (url, method, body, what) => {
+    try {
+      const r = await fetch(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+    } catch (e) { skipped.push(`${what} — ${e.message}`); }
+  };
+  const have = new Set((S.data?.sharedRoots || []).map((r) => r.name.toLowerCase()));
+  for (const f of s.folders) {
+    if (!have.has(f.name.toLowerCase())) await send('/api/roots', 'POST', { name: f.name, dir: f.dir, tint: f.tint }, `folder ${f.name}`);
+  }
+  for (const [id, icon] of Object.entries(s.folderIcons)) await send('/api/folder-icons', 'PUT', { id, icon }, `icon for ${id}`);
+  if (s.scan) {
+    // Only what differs is sent: each change starts a rescan. A workspace this hub doesn't have is passed over.
+    let now = null;
+    try { const r = await fetch('/api/scan-settings'); if (r.ok) now = await r.json(); } catch {}
+    if (now && s.scan.defaultDepth !== now.defaultDepth) await send('/api/scan-settings', 'PUT', { maxDepth: s.scan.defaultDepth }, 'scan depth');
+    for (const w of s.scan.workspaces) {
+      const mine = now?.workspaces.find((x) => x.name === w.name);
+      if (mine && (mine.maxDepth ?? null) !== (w.maxDepth ?? null)) await send('/api/scan-settings', 'PUT', { workspace: w.name, maxDepth: w.maxDepth ?? null }, `scan depth for ${w.name}`);
+    }
+  }
+  if (s.favorites && countLinks(s.favorites)) {
+    const roots = await ensureFavorites(true);
+    // The same list again (a second import of one file) is left alone rather than doubled.
+    if (roots && JSON.stringify(roots) !== JSON.stringify(s.favorites)) {
+      await send('/api/favorites', 'PUT', { roots: countLinks(roots) ? mergeImport(roots, s.favorites, 'settings file') : s.favorites }, 'favorites');
+    }
+  }
+  return skipped;
+}
+
+$('#settings-import').onclick = () => $('#settings-file').click();
+$('#settings-file').onchange = async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file) return;
+  const current = {};
+  try { for (const k of SETTINGS_KEYS) current[k] = localStorage.getItem(k); } catch {}
+  const r = importSettings(current, await file.text());
+  if (!r) return toast('not a Project Hub settings file', 2400);
+  $('#settings-status').textContent = 'Importing…';
+  const skipped = LOCAL_PAGE ? await importServerSettings(r.server)
+    : ['folders, folder icons, scan depth and favorites — import on the computer running the hub'];
+  // settingsKey only ever comes from SETTINGS_KEYS; importSettings drops anything else.
+  try { for (const [settingsKey, value] of Object.entries(r.local)) localStorage.setItem(settingsKey, value); } catch {}
+  // The page in memory is now stale and would write its old lists back; reload, and carry the report across.
+  try { sessionStorage.setItem('hub.importnote', 'Settings imported.' + (skipped.length ? ' Not applied: ' + skipped.join('; ') + '.' : '')); } catch {}
+  location.reload();
+};
+try {
+  const note = sessionStorage.getItem('hub.importnote');
+  if (note) {
+    sessionStorage.removeItem('hub.importnote');
+    $('#settings-status').textContent = note;
+    toast(note.includes('Not applied') ? 'settings imported — some items were not applied, see Settings → Backup' : 'settings imported', 5000);
+  }
+} catch {}
 
 async function loadImportSources() {
   const pick = $('#fav-import-src');

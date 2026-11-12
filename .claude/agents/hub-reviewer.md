@@ -16,6 +16,7 @@ Check each changed hunk for:
 6. **Bytes** — no control characters (other than tab/LF/CR) in changed files; `.ps1`/`.vbs` CRLF, the rest LF; non-ASCII `.ps1` has a BOM.
 7. **Public hygiene** — no real paths, names, emails, hostnames or tokens; examples use `D:/Work`, `C:/Users/you`, `Example_Workspace`.
 8. **Skill copy** — a change to `skills/project-hub-scaffold/` or `.claude/skills/project-hub-*` must note that `agent-skills` is canonical.
-9. **Tests** — new logic has a test in the matching `*.test.mjs`; run `cd Hub && npm test`.
+9. **Settings file** — a new `localStorage` key is in `SETTINGS_KEYS` (`hub/navigation.mjs`) or on the test's not-exported list; a new server-side setting is read in the `#settings-export` handler, shaped in `importSettings()` and sent back in `importServerSettings()` through its own route. See "Adding or changing a setting" in `AGENTS.md`.
+10. **Tests** — new logic has a test in the matching `*.test.mjs`; run `cd Hub && npm test`.
 
 Report findings ranked by severity with `file:line`, the concrete failure, and the fix. If nothing is wrong, say so in one line. Do not edit files.

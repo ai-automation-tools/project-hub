@@ -199,6 +199,8 @@ aside{position:relative;width:min(var(--sbw,284px),50%);flex:0 0 auto;border-rig
 .node{display:flex;align-items:center;gap:6px;height:27px;padding-right:8px;cursor:pointer;border-radius:var(--r-sm);user-select:none;transition:background .15s}
 .node:hover{background:var(--surface-2)}
 .node.sel{background:color-mix(in srgb,var(--green) 13%,transparent)}
+.node.drop{box-shadow:inset 0 2px 0 var(--green)}
+.node.dragging{opacity:.4}
 .node.sel .chev{color:var(--green-hi)}
 /* The chevron is its own hit target — sized for a mouse, not for decoration. */
 .chev{font-family:var(--mono);font-size:13px;width:15px;flex:0 0 15px;height:100%;display:flex;
@@ -914,7 +916,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
-  BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark,
+  BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins,
   pushRecent, resolveBookmarks, keyOf, removeBookmark, duplicateBookmark, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
@@ -1142,7 +1144,12 @@ function toast(msg, ms = 1400) {
 }
 
 // ── data ───────────────────────────────────────────────────────────────────
+// The order the top-level Explorer folders were dragged into; per browser, like bookmarks.
+let rootOrder = [];
+try { rootOrder = JSON.parse(localStorage.getItem('hub.rootorder')) || []; } catch {}
+
 function reindex(data) {
+  orderByIds(data.tree, rootOrder);
   pictureNodes.attach(data.tree);
   contentSearches.clear();
   S.data = data;
@@ -1233,7 +1240,7 @@ async function doLoad({ quiet, fresh, force } = {}) {
   S.sig = data.sig;
   // Timestamps are only as fresh as the scan they were fetched under.
   if (!same) { folderTimesGen++; folderTimes.clear(); }
-  if (!same) reindex(data); else { pictureNodes.attach(data.tree); S.data = data; }
+  if (!same) reindex(data); else { orderByIds(data.tree, rootOrder); pictureNodes.attach(data.tree); S.data = data; }
   $('#live').textContent = stamp;
   $('#live').classList.remove('stale');
 
@@ -2557,6 +2564,7 @@ function renderTree() {
       else { dot = el('span', 'dot' + (ROUND.has(n.kind) ? ' round' : '')); dot.style.background = tintOf(n); }
       row.append(chev, dot, el('span', 'nm', n.name), el('span', 'bdg', n.badge || ''));
       frag.append(row);
+      if (depth === 0) dragRoot(row, n.id);
 
       if (hasKids && open && n.children) rec(n.children, depth + 1);
     }
@@ -2571,6 +2579,28 @@ function renderTree() {
     // Re-rendering blows away focus, and an expand/collapse re-renders. Put it back.
     if (hadFocus) wanted.focus();
   }
+}
+
+// A top-level folder drags onto another to take its place. Its own type, so nothing else
+// dragged over the tree lights a row up, and a root dropped elsewhere does nothing.
+const ROOT_DRAG = 'application/x-hub-root';
+function dragRoot(row, id) {
+  row.draggable = true;
+  row.addEventListener('dragstart', (e) => { e.dataTransfer.setData(ROOT_DRAG, id); row.classList.add('dragging'); });
+  row.addEventListener('dragend', () => row.classList.remove('dragging'));
+  row.addEventListener('dragover', (e) => { if (e.dataTransfer.types.includes(ROOT_DRAG)) { e.preventDefault(); row.classList.add('drop'); } });
+  row.addEventListener('dragleave', () => row.classList.remove('drop'));
+  row.addEventListener('drop', (e) => {
+    const from = e.dataTransfer.getData(ROOT_DRAG);
+    if (!from) return;
+    e.preventDefault();
+    const tree = S.data.tree, at = (x) => tree.findIndex((r) => r.id === x);
+    // Spliced in place: pictureNodes holds this same array.
+    tree.splice(0, tree.length, ...moveBookmark(tree, at(from), at(id)));
+    rootOrder = tree.map((r) => r.id);
+    try { localStorage.setItem('hub.rootorder', JSON.stringify(rootOrder)); } catch {}
+    renderTree(); renderFolderIcons();
+  });
 }
 
 /** Move the keyboard cursor to a row and give it focus. */
@@ -2666,6 +2696,18 @@ function onCtxEscape(e) {
 
 const copy = (value) => navigator.clipboard.writeText(value).then(() => toast('copied')).catch(() => toast('copy failed'));
 
+// A Hub link goes on the clipboard twice: as a named hyperlink for anything that pastes
+// rich text (mail, Word, chat, Obsidian) and as the bare URL for anything that doesn't.
+// The anchor is built as an element so the name and URL are escaped by the browser.
+async function copyLink(url, text) {
+  try {
+    const a = el('a', '', text); a.href = url;
+    const blob = (type, s) => new Blob([s], { type });
+    await navigator.clipboard.write([new ClipboardItem({ 'text/html': blob('text/html', a.outerHTML), 'text/plain': blob('text/plain', url) })]);
+    toast('copied link to ' + text);
+  } catch { copy(url); }   // no ClipboardItem here: the plain URL, as before
+}
+
 function ctxItem(label, handler, disabled = false) {
   const b = el('button', '', label);
   b.setAttribute('role', 'menuitem');
@@ -2724,7 +2766,7 @@ function showCtxMenu(x, y, n, opts = {}) {
     ...(opts.rename ? [ctxItem('Rename Bookmark', opts.rename)] : []),
     ...(opts.groupItems || []),
     el('hr'),
-    ctxItem('Copy Hub Link', () => copy(hubLink(n.id))),
+    ctxItem('Copy Hub Link', () => copyLink(hubLink(n.id), n.name)),
     ctxItem('Copy Path', () => copy(winPath(n.id)), virtual),
     ctxItem('Copy Relative Path', () => copy(n.id), virtual),
     ctxItem('Copy as Markdown Link', () => copy(markdownLink(n.name, hubLink(n.id)))),
@@ -3315,7 +3357,12 @@ function renderPage() {
 }
 
 function headerBlock(page, { title, tags = [], path, lede, actions = [] }) {
-  if (path && S.sel) actions.unshift(bookmarkBtn(S.sel), copyBtn(hubLink(S.sel, S.heading), 'copy Hub link'));
+  if (path && S.sel) {
+    const link = el('button', 'btn', 'copy Hub link');
+    const url = hubLink(S.sel, S.heading), name = S.byId.get(S.sel)?.name || title;
+    link.onclick = () => copyLink(url, name);
+    actions.unshift(bookmarkBtn(S.sel), link);
+  }
   const wrap = el('div'); wrap.style.cssText = 'display:flex;flex-direction:column;gap:9px';
   const row = el('div', 'row');
   const h = el('h1', 't', title); row.append(h);

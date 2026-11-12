@@ -94,6 +94,8 @@ The gear at the right end of the activity bar opens a Settings view (`#settings`
 
 The pre-paint script in `<head>` applies the theme and the interface size before first paint, so neither flashes. It also moves every viewer onto `obsidian` once, recorded in `hub.design`: the page had always stored the scheme on load, so a stored `midnight` was never a choice. Whatever is picked after that stands. The view also has favorites import and export, **Clear recent documents** and **Reset sidebar width**, which clears `hub.sbw`.
 
+**Backup**, at the bottom of the view, exports everything to one `project-hub-settings.json` and imports it on another hub or browser: `local` holds the raw `localStorage` string of every key in `SETTINGS_KEYS` (`navigation.mjs`), `server` holds the hub's folders, folder icons, scan depth and favorites. Import merges bookmarks, recents and favorites, replaces the other preferences, replays the `server` half through the Settings view's own loopback-only routes, reports what it could not apply (a folder path the computer doesn't have) and reloads. A new `localStorage` key must be added to `SETTINGS_KEYS` or the export misses it; a test enforces that.
+
 ## Favorites
 
 The fourth activity-bar view (`web`) has two sources, and the Settings switch picks one.

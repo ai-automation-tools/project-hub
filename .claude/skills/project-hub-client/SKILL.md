@@ -120,11 +120,23 @@ Per-viewer preferences are localStorage, never the scan payload:
 | Key | Holds |
 |:---|:---|
 | `hub.theme` `hub.design` `hub.rail` `hub.sbw` | scheme, the one-time move onto `obsidian`, collapsed sidebar, sidebar width |
-| `hub.collapsed` `hub.folderview` `hub.reader` | collapsed sections, grid/list, reader settings |
+| `hub.collapsed` `hub.folderview` `hub.reader` | collapsed sections (a `FOLDED_BY_DEFAULT` section such as *Changed this week* stores `open:<label>` instead, via `foldIsOpen()`), grid/list, reader settings |
 | `hub.side` `hub.websrc` | active activity-bar view, chosen browser profile for Favorites |
 | `hub.zoom` `hub.links` `hub.favsource` | interface size (also read by the pre-paint script), hub tabs on/off, manual or synced favorites |
 | `hub.bookmarks` `hub.recent` | paths only — via `navigation.mjs`, which is where the list logic is tested |
 | `hub.bmgroups` | `{closed, empty}` bookmark-group names: which are folded, which were created empty |
+
+| `hub.doctabs` `hub.rootorder` | document tabs on/off, the dragged order of top-level Explorer folders |
+
+**A new key goes in `SETTINGS_KEYS` in `navigation.mjs`.** Settings → Backup exports and
+imports every key in that list as one `project-hub-settings.json` (`exportSettings()` /
+`importSettings()`), and a test fails on a key the page writes that is neither there nor on
+the test's not-exported list (`hub.design`). Lists that should merge on import rather than be
+replaced, as `hub.bookmarks` and `hub.recent` do, need their own branch in `importSettings()`.
+The file's `server` half (folders, folder icons, scan depth, favorites) is read in the
+`#settings-export` handler and replayed by `importServerSettings()` through the same routes
+the Settings view uses; a new server-side setting needs both, plus its shape in
+`importSettings()`. The repo's `AGENTS.md` has the checklist.
 
 Every read and write is wrapped in `try/catch`. Private windows throw on access, and a
 throwing preference read must not take the page down.

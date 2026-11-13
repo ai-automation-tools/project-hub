@@ -25,6 +25,7 @@ temp/
 tmp/
 
 # Credentials and machine-specific agent/editor configuration.
+access-token
 .env
 .env.*
 !.env.example

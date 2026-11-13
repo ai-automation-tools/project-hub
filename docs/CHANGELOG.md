@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-12
 
+- **Optional access token.** Start the hub with `HUB_TOKEN` set, or an `access-token` file beside `hub.config.json`, and every request except `/api/health` needs it: scripts and other apps send it as a bearer header, and a browser gets a one-field page that sets an `HttpOnly`, `SameSite=Strict` cookie. Off by default, so nothing changes until you set one. Most useful with `allowedHosts` on a tailnet. Houston sends it from its `ACC_HUB_TOKEN`.
 - **Removed the Pictures library.** The hub is a document console, and the separate on-demand photo browser (`pictures.mjs`, `/api/pictures`, its own search section and watcher) was a second code path that was still slow on a large library. A folder named `Pictures` is now an ordinary folder, scanned in full like any other; if yours is a photo library, remove it in **Settings → Folders**, where it now has a ✕ like every other folder.
 - Adding a folder that holds more than 2,000 images shows a warning instead of adding it, with **Add anyway** for when you mean it. The count stops as soon as it passes the limit, so the check is quick on any size of library.
 - Settings is easier to scan: each group is its own bordered card with a bold title band, setting labels are brighter than their help text, and two settings in one card are split by a rule.

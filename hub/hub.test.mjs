@@ -1202,6 +1202,8 @@ test('markdown link and image targets cannot break out of their attribute or run
   assert.ok(md2html('[ok](./b.md)').includes('<a href="./b.md" data-md-link>ok</a>'));
   assert.ok(md2html('[s](https://x.y/?a=1&b=2)').includes('href="https://x.y/?a=1&amp;b=2"'));
   assert.ok(md2html('![d](./d.svg)').includes('<img src="./d.svg" alt="d">'));
+  assert.ok(md2html('| a | <https://x.y/?a=1&b=2> |').includes('<a href="https://x.y/?a=1&amp;b=2" data-md-link>https://x.y/?a=1&amp;b=2</a>'));
+  assert.ok(!md2html('<javascript:alert(1)>').includes('<a'));
 });
 
 test('resolveId.real follows junctions and refuses ones that leave the roots (P9-52)', () => {

@@ -57,6 +57,22 @@ node hub.mjs --config ..\project-hub\hub.config.json --scan   # writes scan.json
 ```
 
 `--port` overrides the configured port. Requires Node 18.17+ and `git` on PATH.
+
+### Access token (optional)
+
+Off by default: the hub answers anything that passes the Host check. To require a token, put one
+(16 characters or more) in `HUB_TOKEN`, or in a file named `access-token` beside `hub.config.json`
+(gitignored; the file is what a watchdog restart picks up). Then every request except
+`/api/health` needs it:
+
+- **Scripts and other apps** send `Authorization: Bearer <token>`. Houston sends its `ACC_HUB_TOKEN` this way.
+- **A browser** gets a one-field page; posting the token there sets an `HttpOnly`, `SameSite=Strict`
+  cookie (`hub_access`) for a year, so the token never sits in the address bar or history.
+- Anything else gets `401`. `/api/health` stays open so the watchdog can tell a running hub from a dead one.
+
+Worth it when `allowedHosts` lets other machines on a tailnet reach the hub
+([remote access](../docs/REMOTE-ACCESS.md)), or when other local programs shouldn't read what it serves.
+Changing the token logs every browser out; restart the hub after changing it.
 `open in VS Code` additionally wants `code` on PATH.
 
 ## Endpoints

@@ -137,6 +137,7 @@ certificate publishes the machine name to public Certificate Transparency logs.
 - [ ] The port is published with `serve`, never `funnel`.
 - [ ] You know a lost phone stays on the tailnet until you remove it in Admin → Machines.
 - [ ] Nobody else is on the tailnet — or you accept they can read every mounted root.
+- [ ] Or set an access token (`HUB_TOKEN`, or an `access-token` file beside the config), so a device on the tailnet still needs it: see [Access token](../hub/README.md#access-token-optional).
 
 ---
 

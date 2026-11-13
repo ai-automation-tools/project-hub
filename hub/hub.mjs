@@ -314,6 +314,61 @@ const sameOrigin = (req) => {
   return site === undefined || site === 'same-origin' || site === 'none';
 };
 
+// Optional access token. Unset (the default), the hub works as it always has: loopback plus
+// the Host check. Set, every request but /api/health needs it, as `Authorization: Bearer <token>`
+// (scripts, other apps) or the cookie the login form sets (a browser). It matters most with
+// `allowedHosts`, where other machines on a tailnet can reach the hub. The token comes from
+// HUB_TOKEN, else an `access-token` file beside hub.config.json, so a hub the watchdog restarts
+// without the variable still asks for it.
+export const ACCESS_COOKIE = 'hub_access';
+const ACCESS_TOKEN_MIN = 16;
+
+/**
+ * The configured token, or null. Too short a token is refused outright rather than half-protecting.
+ * @param {{ env?: Record<string, string | undefined>, dir: string, read?: (file: string) => string }} where
+ */
+export function accessTokenFrom({ env = process.env, dir, read = (f) => fs.readFileSync(f, 'utf8') }) {
+  let t = (env.HUB_TOKEN || '').trim();
+  if (!t) { try { t = read(path.join(dir, 'access-token')).trim(); } catch { t = ''; } }
+  if (!t) return null;
+  if (t.length < ACCESS_TOKEN_MIN) throw new Error(`The hub's access token must be at least ${ACCESS_TOKEN_MIN} characters`);
+  return t;
+}
+
+/** @param {string} token @param {unknown} given */
+function sameToken(token, given) {
+  if (typeof given !== 'string') return false;
+  const a = Buffer.from(token), b = Buffer.from(given);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+/**
+ * Whether a request may go on: no token configured, the health check, the bearer header or the cookie.
+ * @param {string | null} token @param {{ pathname: string, headers: Record<string, string | string[] | undefined> }} req
+ */
+export function accessAllowed(token, { pathname, headers }) {
+  if (!token || pathname === '/api/health') return true;
+  const auth = String(headers.authorization || '');
+  if (/^Bearer /i.test(auth) && sameToken(token, auth.slice(7).trim())) return true;
+  const cookie = String(headers.cookie || '').split(/;\s*/).find((c) => c.startsWith(`${ACCESS_COOKIE}=`));
+  if (!cookie) return false;
+  try { return sameToken(token, decodeURIComponent(cookie.slice(ACCESS_COOKIE.length + 1))); } catch { return false; }
+}
+
+/** The page a browser without the cookie gets: one field, posted, so the token stays out of history. @param {boolean} wrong */
+export function accessPage(wrong) {
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
+    + '<title>Project Hub: access token</title><style>body{font:15px system-ui,sans-serif;background:#0b0d10;color:#e4e4e7;display:grid;place-items:center;min-height:100vh;margin:0}'
+    + 'form{display:grid;gap:10px;width:min(360px,90vw)}input,button{font:inherit;padding:8px 10px;border-radius:6px;border:1px solid #343a44;background:#111418;color:inherit}'
+    + 'p{margin:0;color:#a1a1aa}.bad{color:#f87171}</style></head><body><form method="post" action="/login">'
+    + '<h1>Project Hub</h1><p>This hub asks for its access token.</p>'
+    + (wrong ? '<p class="bad">That isn\'t it.</p>' : '')
+    + '<input type="password" name="token" autocomplete="current-password" aria-label="Access token" autofocus required>'
+    + '<button>Open the hub</button></form></body></html>';
+}
+
+const ACCESS_TOKEN = accessTokenFrom({ dir: HUB_DIR });
+
 const handleReport = createReportHandler({ resolveId, toId: rel, sameOrigin });
 const BROWSER_DIRS = browserDirs({ home: os.homedir(), localAppData: process.env.LOCALAPPDATA });
 const favicons = createFavicons();
@@ -335,6 +390,28 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('content-security-policy', csp(nonce));
   res.setHeader('x-content-type-options', 'nosniff');
   res.setHeader('referrer-policy', 'no-referrer');
+
+  if (ACCESS_TOKEN) {
+    if (url.pathname === '/login' && req.method === 'POST') {
+      let body = '';
+      for await (const chunk of req) { body += chunk; if (body.length > 4096) break; }
+      const given = new URLSearchParams(body).get('token') || '';
+      if (sameOrigin(req) && sameToken(ACCESS_TOKEN, given)) {
+        res.writeHead(303, {
+          location: '/',
+          'set-cookie': `${ACCESS_COOKIE}=${encodeURIComponent(ACCESS_TOKEN)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`,
+        }).end();
+      } else {
+        res.writeHead(401, { 'content-type': 'text/html; charset=utf-8' }).end(accessPage(true));
+      }
+      return;
+    }
+    if (!accessAllowed(ACCESS_TOKEN, { pathname: url.pathname, headers: req.headers })) {
+      if (url.pathname.startsWith('/api/')) res.writeHead(401, { 'content-type': 'text/plain' }).end('this hub needs its access token');
+      else res.writeHead(401, { 'content-type': 'text/html; charset=utf-8' }).end(accessPage(false));
+      return;
+    }
+  }
 
   // HUB_DEBUG=1 node hub.mjs — per-request timing, useful when the page feels slow.
   if (process.env.HUB_DEBUG) {
@@ -874,6 +951,7 @@ server.on('error', (e) => {
 if (IS_MAIN) server.listen(PORT, '127.0.0.1', () => {
   console.log(`Project Hub (${CONFIG.name}) → http://127.0.0.1:${PORT}`);
   console.log(`config: ${CONFIG_FILE}   health: http://127.0.0.1:${PORT}/api/health`);
+  if (ACCESS_TOKEN) console.log('access token: required (HUB_TOKEN or access-token beside the config)');
   console.log(`watching: ${WATCH.length} paths — ${ROOTS.map((r) => r.dir).join('  ')} + user scope`);
   // Warm the cache so the first page load doesn't pay for 20 repos of git.
   scanJson(true).then((c) => console.log(

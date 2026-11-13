@@ -370,6 +370,8 @@ export function md2html(src) {
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt, src) => safeUrl(src) ? `<img src="${q(src)}" alt="${q(alt)}">` : alt)
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, href) => safeUrl(href) ? `<a href="${q(href)}" data-md-link>${text}</a>` : text)
+      // CommonMark autolinks `<https://…>`, already escaped to &lt;…&gt; by esc().
+      .replace(/&lt;((?:https?|mailto):[^\s<>"]+?)&gt;/gi, (m, href) => safeUrl(href) ? `<a href="${href}" data-md-link>${href}</a>` : m)
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|\W)\*([^*\n]+)\*/g, '$1<em>$2</em>');
   }

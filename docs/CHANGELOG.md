@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-16
+
+- **Show dot-folders first.** A Settings switch (`hub.dots`, exported by Backup) sorts `.claude`, `.github` and dot-files to the top of their folder, as Windows Explorer does. Off by default, which keeps the scan's dot-last order.
+
 ## 2026-11-14
 
 - **Architecture diagram re-read against the code.** Re-pinned to the current main: line ranges for every node, the access-token gate on the HTTP server, the adaptive scan gap and change-only events on the watcher, and the removed Pictures library dropped from the on-demand card.

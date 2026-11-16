@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 import { md2html, sanitizeHtml, frontmatter, blurb, loadConfig, loadProjectConfig, scopeRepos, ignoreWatchEvent, scanGap, slugifyHeading, parseLiveSites, DOC_FILE, folderStamps,
   buildContentIndex, searchContent, CONTENT_FILE, countImages, IMAGE_WARN, validateNewRoot, writeSharedRoots, ROOT_TINTS, validateFolderIcon, writeFolderIcons, scanTree, writeScanDepth, projectsDir, createResolveId, runtimeServePaths, gitSignature, gitHitValid, routineStatus, parseStatusZ, roadmapProgress, recentDocs, RECENT_DOCS_MAX, linkTargets, headingAnchors, checkLinks, docTags, docMeta } from './hub.mjs';
-import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds, pushRecent,
+import { parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds, orderDots, pushRecent,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, keyOf, removeBookmark, duplicateBookmark,
   resolveBookmarks, RECENT_MAX, absolutePath, vscodeFilePath, exportPins, importPins, SETTINGS_KEYS, exportSettings, importSettings } from './navigation.mjs';
 
@@ -737,6 +737,14 @@ test('bookmarks round-trip through storage and survive junk written by anything 
   assert.deepEqual(roots.map((r) => r.id), ['c', 'a', 'b', 'd']);
   assert.deepEqual(orderByIds([{ id: 'x' }, { id: 'y' }], []).map((r) => r.id), ['x', 'y']);
 
+  // Dot-entries move within their own group; folders stay ahead of files either way.
+  const scanned = ['docs/', 'temp/', '.claude/', '.github/', 'README.md', '.env.md'].map((name) => ({ name }));
+  const isDir = (n) => n.name.endsWith('/');
+  assert.deepEqual(orderDots(scanned, true, isDir).map((n) => n.name),
+    ['.claude/', '.github/', 'docs/', 'temp/', '.env.md', 'README.md']);
+  assert.deepEqual(orderDots(scanned, false, isDir).map((n) => n.name),
+    ['docs/', 'temp/', '.claude/', '.github/', 'README.md', '.env.md']);
+
   // The settings file: only known keys travel, lists merge with existing rows winning,
   // scalar preferences are replaced, and anything else is not our file.
   const settings = exportSettings({ 'hub.theme': 'nord', 'hub.bookmarks': JSON.stringify([{ path: 'a', label: 'theirs' }, { path: 'b' }]), evil: 'x' },
@@ -879,7 +887,7 @@ test('the sidebar keeps bookmarks and recents wired, and stores paths only', () 
   // Only the two path lists are persisted; nothing writes document text to storage.
   const written = [...html.matchAll(/localStorage\.setItem\(([^,]+),/g)].map((m) => m[1].trim());
   for (const key of written) {
-    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.doctabs'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'", "'hub.rootorder'", 'settingsKey'].includes(key),
+    assert.ok(['BOOKMARKS_KEY', 'RECENT_KEY', "'hub.rail'", "'hub.theme'", "'hub.design'", "'hub.sbw'", "'hub.collapsed'", "'hub.folderview'", "'hub.reader'", "'hub.side'", "'hub.websrc'", "'hub.links'", "'hub.doctabs'", "'hub.favsource'", "'hub.zoom'", "'hub.bmgroups'", "'hub.rootorder'", "'hub.dots'", 'settingsKey'].includes(key),
       `unexpected localStorage key ${key}`);
   }
   // Settings → Backup has to carry every preference. A key the page writes is either

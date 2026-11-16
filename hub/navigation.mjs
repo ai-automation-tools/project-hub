@@ -258,7 +258,7 @@ export const SETTINGS_FORMAT = 'project-hub-settings';
 // of localStorage already distrusts what it finds there.
 export const SETTINGS_KEYS = [BOOKMARKS_KEY, RECENT_KEY, 'hub.bmgroups', 'hub.rootorder', 'hub.theme', 'hub.zoom',
   'hub.rail', 'hub.sbw', 'hub.side', 'hub.collapsed', 'hub.folderview', 'hub.reader', 'hub.links', 'hub.doctabs',
-  'hub.favsource', 'hub.websrc'];
+  'hub.favsource', 'hub.websrc', 'hub.dots'];
 
 export function exportSettings(local, server = {}) {
   const kept = {};
@@ -410,6 +410,24 @@ export function moveBookmark(list, from, to) {
 export function orderByIds(list, ids) {
   const at = (n) => { const i = ids.indexOf(n.id); return i < 0 ? ids.length : i; };
   return list.sort((a, b) => at(a) - at(b));
+}
+
+/**
+ * Move dot-named entries (`.claude`, `.env`) to the front or back of their own group --
+ * folders among folders, files among files -- in place. Each group keeps the slots the
+ * scan gave it and its alphabetical order; the scan sends dot-entries last.
+ */
+export function orderDots(list, first, isDir) {
+  for (const dir of [true, false]) {
+    const at = [], dot = [], rest = [];
+    list.forEach((n, i) => {
+      if (!!isDir(n) !== dir) return;
+      at.push(i);
+      (String(n.name).startsWith('.') ? dot : rest).push(n);
+    });
+    (first ? [...dot, ...rest] : [...rest, ...dot]).forEach((n, k) => { list[at[k]] = n; });
+  }
+  return list;
 }
 
 /** Newest first, deduplicated by path so reopening a file moves it rather than adding a row. */

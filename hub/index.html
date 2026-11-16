@@ -828,6 +828,8 @@ details[open]>summary .fchev{transform:rotate(90deg)}
             <option value="1.15">115% (default)</option>
             <option value="1.3">130%</option>
           </select></label>
+        <label class="setrow"><span>Show dot-folders first</span><input type="checkbox" class="switch" id="set-dots" role="switch"></label>
+        <p class="sethelp">On: <code>.claude</code>, <code>.github</code> and dot-files sort to the top of their folder, as in Windows Explorer. Off: they come after the other folders and files.</p>
       </section>
       <section class="set">
         <h3>Tabs</h3>
@@ -929,7 +931,7 @@ details[open]>summary .fchev{transform:rotate(90deg)}
 
 <script type="module" nonce="%NONCE%">
 import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSearchPool, rankSearch, documentTarget, markdownLink, includeInSearch,
-  BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds,
+  BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds, orderDots,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins, SETTINGS_KEYS, exportSettings, importSettings,
   pushRecent, resolveBookmarks, keyOf, removeBookmark, duplicateBookmark, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
 import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
@@ -1153,6 +1155,10 @@ function toast(msg, ms = 1400) {
 // The order the top-level Explorer folders were dragged into; per browser, like bookmarks.
 let rootOrder = [];
 try { rootOrder = JSON.parse(localStorage.getItem('hub.rootorder')) || []; } catch {}
+// Dot-folders and dot-files first (Windows Explorer's order) or last (the scan's).
+let dotsFirst = false;
+try { dotsFirst = localStorage.getItem('hub.dots') === 'first'; } catch {}
+const isDirNode = (n) => DIRISH.has(n.kind);
 
 function reindex(data) {
   orderByIds(data.tree, rootOrder);
@@ -1170,7 +1176,7 @@ function reindex(data) {
       if (parent) S.parent.set(n.id, parent.id);
       // Plain source files are noise in results, the same rule the server applied.
       if (includeInSearch(n)) S.index.push(n);
-      if (n.children) rec(n.children, n);
+      if (n.children) rec(orderDots(n.children, dotsFirst, isDirNode), n);
     }
   })(data.tree, null);
 }
@@ -1682,6 +1688,7 @@ function renderSettings() {
   $('#set-doctabs').checked = prefs.docTabs;
   $('#set-links').checked = prefs.hubTabs;
   $('#set-favsync').checked = prefs.favSync;
+  $('#set-dots').checked = dotsFirst;
   const zoom = getComputedStyle(document.documentElement).getPropertyValue('--zoom').trim() || '1.15';
   $('#set-zoom').value = [...$('#set-zoom').options].some((o) => o.value === zoom) ? zoom : '1.15';
   $('#set-favhelp').textContent = prefs.favSync
@@ -1770,6 +1777,11 @@ $('#set-favsync').onchange = (e) => {
   try { localStorage.setItem('hub.favsource', prefs.favSync ? 'sync' : 'manual'); } catch {}
   web.q = ''; web.toggled.clear();
   renderSettings();
+};
+$('#set-dots').onchange = (e) => {
+  dotsFirst = e.target.checked;
+  try { localStorage.setItem('hub.dots', dotsFirst ? 'first' : 'last'); } catch {}
+  if (S.data) { reindex(S.data); renderTree(); renderView(); }
 };
 $('#set-zoom').onchange = (e) => {
   document.documentElement.style.setProperty('--zoom', e.target.value);

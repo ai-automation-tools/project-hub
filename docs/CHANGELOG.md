@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-17
 
+- **Quieter secret scan.** A `.gitleaksignore` lists the one gitleaks hit in `hub/access.test.mjs`, a made-up token in the access-token tests, so the weekly scan stops reporting it.
 - **Hub tabs for apps that allow only the hub.** A site whose CSP `frame-ancestors` list names the hub's own origin (such as Promptbook with `FRAME_ANCESTORS=http://localhost:4273`) now opens in a hub tab. Before, only a list with `*` counted, so an app couldn't let the hub in without letting every page in. The frame check is cached per URL and hub origin.
 - **Right-click menu on Favorites.** A favorite gets Open in New Hub Tab and Open in New Browser Tab (either one, whatever the hub-tabs setting), Copy URL, Copy as Markdown Link, Edit and Delete. A folder gets Open All in Hub Tabs or Browser Tabs (up to 20 links, subfolders included), Copy All URLs, Add Link Here, New Folder Here, Rename and Delete Folder. Synced favorites and search hits get the open and copy items. Shift+right-click keeps the browser's link menu. Open in New Hub Tab is greyed out, marked "blocked by site", for sites that refuse to be framed.
 

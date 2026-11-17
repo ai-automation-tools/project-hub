@@ -76,7 +76,8 @@ const csp = (nonce) => [
   "frame-src 'self' http: https:",
   "connect-src 'self'",
   "object-src 'none'",
-  "frame-ancestors 'none'",
+  // Refused unless frameAncestors lists the pages allowed to frame the hub (the Suite shell).
+  `frame-ancestors ${CONFIG.frameAncestors.length ? `'self' ${CONFIG.frameAncestors.join(' ')}` : "'none'"}`,
   "base-uri 'self'",
   "form-action 'none'",
 ].join('; ');
@@ -804,6 +805,7 @@ const server = http.createServer(async (req, res) => {
       .split('%TITLE%').join(CONFIG.title)
       .split('%FAVICON%').join(favicon(CONFIG.favicon))
       .split('%PORT%').join(String(PORT))
+      .split('%FRAME_ANCESTORS%').join(CONFIG.frameAncestors.join(' '))
     : fs.readFileSync(abs));
 });
 

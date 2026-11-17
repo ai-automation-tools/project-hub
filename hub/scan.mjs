@@ -34,6 +34,9 @@ const CONFIG_DEFAULTS = {
   // Extra Host names the hub answers to, besides loopback — e.g. the MagicDNS name a
   // `tailscale serve` proxy forwards with. Exact names only; the bind stays 127.0.0.1.
   allowedHosts: [],
+  // Pages allowed to show the hub in a frame (the Suite shell), as http(s) origins. Empty =
+  // framing refused (frame-ancestors 'none'). Also the only origins embed mode talks to.
+  frameAncestors: [],
   // Icons for the Explorer's top-level folders, set in Settings: { "<node id>": "<icon>" }.
   // Icon names are the hub's built-in folder set (FOLDER_ICONS in index.html).
   folderIcons: {},
@@ -79,6 +82,12 @@ export function loadConfig(file) {
   const hosts = j.allowedHosts || [];
   if (!Array.isArray(hosts) || hosts.some((h) => typeof h !== 'string' || !/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(h))) {
     throw new Error(`${file}: "allowedHosts" must be lowercase hostnames without port or wildcard, got ${JSON.stringify(hosts)}`);
+  }
+  const ancestors = j.frameAncestors || [];
+  if (!Array.isArray(ancestors) || ancestors.some((o) => {
+    try { const u = new URL(o); return !/^https?:$/.test(u.protocol) || u.origin !== o; } catch { return true; }
+  })) {
+    throw new Error(`${file}: "frameAncestors" must be exact http(s) origins such as "http://localhost:9005" (no path or trailing slash), got ${JSON.stringify(ancestors)}`);
   }
   const cfg = {
     ...CONFIG_DEFAULTS, ...j,

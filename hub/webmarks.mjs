@@ -98,19 +98,25 @@ export function saveFavorites(file, roots) {
 // iframe, and the page cannot detect that. So ask the site first: its X-Frame-Options and
 // CSP frame-ancestors headers say whether a hub tab can show it.
 
-/** Whether response headers allow a page on another origin to frame this one. */
-export function allowsFraming(headers) {
+/**
+ * Whether response headers allow a page on another origin to frame this one. `origin` is the
+ * hub's own (`http://localhost:4273`): a site that lists it in frame-ancestors, as Promptbook
+ * does under FRAME_ANCESTORS, lets the hub in while still refusing everyone else.
+ */
+export function allowsFraming(headers, origin) {
   // A header sent twice arrives joined with commas ("SAMEORIGIN, SAMEORIGIN"), so check each value.
   const xfo = (headers.get('x-frame-options') || '').toLowerCase().split(',').map((v) => v.trim());
   if (xfo.some((v) => v === 'deny' || v === 'sameorigin' || v.startsWith('allow-from'))) return false;
   const ancestors = /(?:^|;)\s*frame-ancestors\s+([^;]*)/i.exec(headers.get('content-security-policy') || '')?.[1];
-  return ancestors == null || /(^|\s)\*(\s|$)/.test(ancestors.trim());
+  if (ancestors == null) return true;
+  const sources = ancestors.trim().toLowerCase().split(/\s+/).map((s) => s.replace(/\/$/, ''));
+  return sources.includes('*') || (!!origin && sources.includes(origin.toLowerCase()));
 }
 
-/** One answer per URL, cached for the process. An unreachable or erroring site answers false: a browser tab always works. */
+/** One answer per URL and hub origin, cached for the process. An unreachable or erroring site answers false: a browser tab always works. */
 export function createFrameCheck({ fetchImpl = fetch, timeoutMs = 5000 } = {}) {
   const cache = new Map();
-  const check = async (url) => {
+  const check = async (url, origin) => {
     try {
       const r = await fetchImpl(url, {
         redirect: 'follow',
@@ -120,12 +126,13 @@ export function createFrameCheck({ fetchImpl = fetch, timeoutMs = 5000 } = {}) {
       r.body?.cancel?.().catch(() => {});
       // An error or bot-challenge page (403, 429, 5xx) carries that page's headers, not the
       // site's, so it cannot vouch for framing. A browser tab always works; a blank frame doesn't.
-      return r.status < 400 && allowsFraming(r.headers);
+      return r.status < 400 && allowsFraming(r.headers, origin);
     } catch { return false; }
   };
-  return (url) => {
-    if (!cache.has(url)) cache.set(url, check(url));
-    return cache.get(url);
+  return (url, origin) => {
+    const key = `${origin} ${url}`;
+    if (!cache.has(key)) cache.set(key, check(url, origin));
+    return cache.get(key);
   };
 }
 

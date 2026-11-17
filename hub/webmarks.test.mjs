@@ -149,6 +149,11 @@ test('framing is allowed only when neither X-Frame-Options nor frame-ancestors f
   assert.equal(allowsFraming(h({ 'content-security-policy': "frame-ancestors 'none'" })), false);
   assert.equal(allowsFraming(h({ 'content-security-policy': 'frame-ancestors *' })), true);
   assert.equal(allowsFraming(h({ 'content-security-policy': "script-src 'self'" })), true);
+  const listed = h({ 'content-security-policy': "frame-ancestors 'self' http://localhost:4273/ http://127.0.0.1:4273" });
+  assert.equal(allowsFraming(listed, 'http://localhost:4273'), true, 'a list naming the hub lets it in');
+  assert.equal(allowsFraming(listed, 'http://127.0.0.1:4273'), true);
+  assert.equal(allowsFraming(listed, 'http://localhost:9999'), false, 'another origin stays out');
+  assert.equal(allowsFraming(listed), false, 'no hub origin, no match');
 });
 
 test('the frame check caches per URL and treats an unreachable site as not frameable', async () => {
@@ -165,4 +170,6 @@ test('the frame check caches per URL and treats an unreachable site as not frame
   assert.equal(await check('https://down.example/'), false);
   assert.equal(await check('https://blocked.example/'), false, 'a bot-challenge page cannot vouch for the site');
   assert.equal(calls, 4);
+  await check('https://ok.example/', 'http://localhost:4273');
+  assert.equal(calls, 5, 'each hub origin gets its own answer');
 });

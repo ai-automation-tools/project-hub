@@ -94,6 +94,11 @@ export function countLinks(nodes) {
   return nodes.reduce((n, x) => n + (x.children ? countLinks(x.children) : 1), 0);
 }
 
+/** Every link under `nodes`, subfolders included, in list order: what a folder's "Open All" opens. */
+export function linksIn(nodes) {
+  return nodes.flatMap((x) => (x.children ? linksIn(x.children) : [x]));
+}
+
 // ── the bookmarks file every browser exports ──────────────────────────────────
 // "NETSCAPE-Bookmark-file-1": nested <DL> lists of <DT><H3>folder</H3> and <DT><A>link</A>.
 // Tokenised rather than handed to DOMParser, so the same code runs in the tests.

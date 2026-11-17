@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-17
+
+- **Right-click menu on Favorites.** A favorite gets Open in New Hub Tab and Open in New Browser Tab (either one, whatever the hub-tabs setting), Copy URL, Copy as Markdown Link, Edit and Delete. A folder gets Open All in Hub Tabs or Browser Tabs (up to 20 links, subfolders included), Copy All URLs, Add Link Here, New Folder Here, Rename and Delete Folder. Synced favorites and search hits get the open and copy items. Shift+right-click keeps the browser's link menu.
+
 ## 2026-11-16
 
 - **Show dot-folders first.** A Settings switch (`hub.dots`, exported by Backup) sorts `.claude`, `.github` and dot-files to the top of their folder, as Windows Explorer does. Off by default, which keeps the scan's dot-last order.

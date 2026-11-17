@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList, countLinks, mergeImport, parseBookmarksHtml, toBookmarksHtml } from './favorites.mjs';
+import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList, countLinks, linksIn, mergeImport, parseBookmarksHtml, toBookmarksHtml } from './favorites.mjs';
 
 const tree = () => [
   { name: 'Bar', children: [
@@ -41,6 +41,8 @@ test('moves fix up indexes the removal shifts, and refuse impossible moves', () 
 test('folders are listed with their paths; links are counted through them', () => {
   assert.deepEqual(folderList(tree()), [[[0], 'Bar'], [[0, 1], 'Bar / Dev'], [[1], 'Other']]);
   assert.equal(countLinks(tree()), 3);
+  assert.deepEqual(linksIn(tree()).map((l) => l.name), ['A', 'B', 'C'], 'subfolders included, in list order');
+  assert.deepEqual(linksIn(tree()[1].children), []);
 });
 
 test('a browser export parses to folders and web links, and round-trips', () => {

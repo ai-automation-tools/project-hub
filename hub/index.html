@@ -934,7 +934,7 @@ import { routeHash, parseRoute, searchHash, parseSearch, SEARCH_TYPES, filterSea
   BOOKMARKS_KEY, RECENT_KEY, parseList, isBookmarked, toggleBookmark, renameBookmark, moveBookmark, orderByIds, orderDots,
   setBookmarkGroup, renameBookmarkGroup, moveBookmarkGroup, groupBookmarks, exportPins, importPins, SETTINGS_KEYS, exportSettings, importSettings,
   pushRecent, resolveBookmarks, keyOf, removeBookmark, duplicateBookmark, absolutePath, vscodeFilePath, isMenuKey, menuStep, sidebarKeyWidth } from '/navigation.mjs';
-import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, mergeImport,
+import { nodeAt, insertNode, removeNode, editNode, moveNode, folderList as favoriteFolders, countLinks, linksIn, mergeImport,
   parseBookmarksHtml, toBookmarksHtml } from '/favorites.mjs';
 // P9-04: content-search answers by query, dropped whenever a new scan arrives (reindex).
 const contentSearches = new Map();
@@ -2085,10 +2085,12 @@ $('#fav-export').onclick = async () => {
 // Two sources behind one view. Manual (the default) is the hub's own list, kept by the
 // server in favorites.json beside its config and edited here the way a browser's
 // favorites are. Sync reads an Edge/Chrome/Brave profile live (/api/webmarks) and is
-// read-only. Links are real <a> elements either way: middle-click, Ctrl+click, drag and
-// the native "copy link" menu all behave as they do in a browser.
+// read-only. Links are real <a> elements either way: middle-click, Ctrl+click and drag
+// behave as they do in a browser. Right-click opens the hub's own menu (favRowMenu);
+// Shift+right-click still gets the browser's.
 const web = { data: null, error: '', q: '', toggled: new Set() };
 const fav = { roots: null, error: '', undo: null, form: null, saving: Promise.resolve() };
+const favRows = new WeakMap();   // rendered row → { n, pos }; pos is null for a search hit
 
 async function loadWebmarks() {
   if (prefs.favSync) {
@@ -2249,16 +2251,80 @@ const FAV_DRAG = 'application/x-hub-favorite';
 const posOf = (s) => { try { const p = JSON.parse(s); return Array.isArray(p) ? p : null; } catch { return null; } };
 const droppedUrl = (dt) => (dt.getData('text/uri-list') || '').split(/\r?\n/).find((l) => l && !l.startsWith('#')) || '';
 
+function deleteFavorite(n, pos) {
+  saveFavoriteList(removeNode(fav.roots, pos));
+  toast(n.children ? `folder deleted (${countLinks(n.children)} favorites) — undo is in the toolbar` : 'favorite deleted');
+}
+
+// ponytail: Open All refuses folders over this many links rather than opening hundreds of
+// tabs from one click; a confirm step is the upgrade if someone needs bigger batches.
+const OPEN_ALL_MAX = 20;
+
+/** Open each link in a hub tab, in order; sites that refuse framing are counted, not popped out. */
+async function openAllInHub(links) {
+  let refused = 0;
+  for (const l of links) if (!(await openSite(l.url, l.name, { force: true, fallback: false }))) refused++;
+  if (refused) toast(`${refused} of ${links.length} don’t allow being shown inside another page — Open All in Browser Tabs opens those`, 5000);
+}
+
+function openAllInBrowser(links) {
+  for (const l of links) openInBrowser(l.url);
+  // A browser allows one pop-up per click; the rest wait on its blocked-pop-ups prompt.
+  if (links.length > 1) toast('if only one tab opened, allow pop-ups for the hub in the address bar and try again', 5000);
+}
+
+/**
+ * Right-click on a favorite or a folder. Opening and copying work everywhere; editing only
+ * in the manual list, and not on a search hit, which has no position. Roots can't be
+ * renamed or deleted, the same as their row tools.
+ */
+function favRowMenu(row, x, y, opts) {
+  const r = favRows.get(row);
+  if (!r) return;
+  const { n, pos } = r, edit = !prefs.favSync && !!pos;
+  const form = (f) => () => { fav.form = f; renderWebmarks(); };
+  if (n.url) {
+    // Most big sites refuse framing, and openSite would quietly send them to a browser tab.
+    // Say so on the item instead: known answers apply at once, unknown ones when the check returns.
+    const blocked = (b) => {
+      if (document.activeElement === b) b.nextElementSibling?.focus();   // keyboard focus can't stay on a disabled item
+      b.disabled = true; b.textContent = 'Open in New Hub Tab (blocked by site)';
+      b.title = 'This site doesn’t allow being shown inside another page';
+      return b;
+    };
+    const inHub = ctxItem('Open in New Hub Tab', () => openSite(n.url, n.name, { force: true }));
+    if (tabs.frameable.get(n.url) === false) blocked(inHub);
+    else checkFrameable(n.url, true).then((ok) => { if (!ok && inHub.isConnected) blocked(inHub); });
+    return showCtxMenu(x, y, { name: n.name }, { ...opts, items: [
+      inHub,
+      ctxItem('Open in New Browser Tab', () => openInBrowser(n.url)),
+      el('hr'),
+      ctxItem('Copy URL', () => copy(n.url)),
+      ctxItem('Copy as Markdown Link', () => copy(markdownLink(n.name, n.url))),
+      ...(edit ? [el('hr'), ctxItem('Edit…', form({ mode: 'edit', pos })), ctxItem('Delete', () => deleteFavorite(n, pos))] : []),
+    ] });
+  }
+  const links = linksIn(n.children), many = links.length > OPEN_ALL_MAX;
+  const count = links.length + (many ? `, over ${OPEN_ALL_MAX}` : '');
+  showCtxMenu(x, y, { name: n.name }, { ...opts, items: [
+    ctxItem(`Open All in Hub Tabs (${count})`, () => openAllInHub(links), !links.length || many),
+    ctxItem(`Open All in Browser Tabs (${count})`, () => openAllInBrowser(links), !links.length || many),
+    el('hr'),
+    ctxItem('Copy All URLs', () => copy(links.map((l) => l.url).join('\n')), !links.length),
+    ...(edit ? [el('hr'),
+      ctxItem('Add Link Here…', form({ mode: 'link', parent: pos })),
+      ctxItem('New Folder Here…', form({ mode: 'folder', parent: pos })),
+      ...(pos.length > 1 ? [ctxItem('Rename…', form({ mode: 'edit', pos })), ctxItem('Delete Folder', () => deleteFavorite(n, pos))] : []),
+    ] : []),
+  ] });
+}
+
 /** Row tools for the manual list: edit, delete, and dragging to reorder or file into a folder. */
 function editable(row, n, pos) {
   const ed = el('span', 'ed', '✎'); ed.title = 'Edit'; ed.setAttribute('aria-label', 'Edit ' + n.name);
   const x = el('span', 'x', '×'); x.title = 'Delete'; x.setAttribute('aria-label', 'Delete ' + n.name);
   activate(ed, (e) => { e?.preventDefault?.(); e?.stopPropagation?.(); fav.form = { mode: 'edit', pos }; renderWebmarks(); });
-  activate(x, (e) => {
-    e?.preventDefault?.(); e?.stopPropagation?.();
-    saveFavoriteList(removeNode(fav.roots, pos));
-    toast(n.children ? `folder deleted (${countLinks(n.children)} favorites) — undo is in the toolbar` : 'favorite deleted');
-  });
+  activate(x, (e) => { e?.preventDefault?.(); e?.stopPropagation?.(); deleteFavorite(n, pos); });
   row.append(ed, x);
 
   if (pos.length > 1) {
@@ -2299,7 +2365,9 @@ function favForm() {
   const name = el('input'); name.placeholder = folder ? 'Folder name' : 'Name'; name.value = editing?.name || '';
   const url = el('input'); url.placeholder = 'https://…'; url.type = 'url'; url.value = editing?.url || '';
   const where = el('select'); where.setAttribute('aria-label', 'Folder');
-  for (const [p, label] of favoriteFolders(fav.roots)) { const o = el('option', '', label); o.value = JSON.stringify(p); where.append(o); }
+  // `parent` is set when the form came from a folder's "Add Link Here…" / "New Folder Here…".
+  const parent = f.parent && JSON.stringify(f.parent);
+  for (const [p, label] of favoriteFolders(fav.roots)) { const o = el('option', '', label); o.value = JSON.stringify(p); o.selected = o.value === parent; where.append(o); }
   const save = el('button', 'btn', editing ? 'Save' : 'Add'); save.type = 'submit';
   const cancel = el('button', 'btn', 'Cancel'); cancel.type = 'button';
   cancel.onclick = () => { fav.form = null; renderWebmarks(); };
@@ -2373,6 +2441,7 @@ function renderWebmarks() {
       const pos = [...at, i];
       if (n.url) {
         const a = webLink(n, depth);
+        favRows.set(a, { n, pos });
         if (!sync) editable(a, n, pos);
         list.append(a);
         return;
@@ -2383,6 +2452,7 @@ function renderWebmarks() {
       row.setAttribute('aria-expanded', String(open));
       row.append(el('span', 'chev', open ? '▾' : '▸'), el('span', 'nm', n.name), el('span', 'bdg', String(n.children.length)));
       activate(row, () => { web.toggled.has(key) ? web.toggled.delete(key) : web.toggled.add(key); draw(); });
+      favRows.set(row, { n, pos });
       if (!sync && depth > 0) editable(row, n, pos);
       else if (!sync) editableRoot(row, pos);
       list.append(row);
@@ -2417,7 +2487,11 @@ function renderWebmarks() {
       }
     };
     find(roots, '');
-    for (const [n, folder] of hits.slice(0, 500)) list.append(webLink(n, 0, folder));
+    for (const [n, folder] of hits.slice(0, 500)) {
+      const a = webLink(n, 0, folder);
+      favRows.set(a, { n, pos: null });
+      list.append(a);
+    }
     if (!hits.length) list.append(el('div', 'pinempty', 'no favorites match'));
     if (hits.length > 500) list.append(el('div', 'pinempty', `first 500 of ${hits.length} — narrow the search`));
   };
@@ -2448,12 +2522,19 @@ const tabs = { list: [], active: null, seq: 0, frameable: new Map(), base: { doc
 const docCtx = (id) => (id === null ? tabs.base : tabs.list.find((t) => t.id === id && 'doc' in t));
 const openInBrowser = (url) => window.open(url, '_blank', 'noopener,noreferrer');
 
-async function openSite(url, title) {
-  if (!prefs.hubTabs) return openInBrowser(url);
+/**
+ * Open url in a hub tab (or switch to the one already showing it). `force` ignores the
+ * hub-tabs setting, for an explicit "Open in New Hub Tab"; `fallback: false` skips the
+ * browser-tab fallback for a refusing site, so a batch can count refusals instead of
+ * firing pop-ups. Resolves true when a hub tab shows the site.
+ */
+async function openSite(url, title, { force = false, fallback = true } = {}) {
+  if (!prefs.hubTabs && !force) return openInBrowser(url);
   const open = tabs.list.find((t) => t.url === url);
-  if (open) return activateTab(open.id);
+  if (open) { activateTab(open.id); return true; }
   const ok = await checkFrameable(url, true);
   if (!ok) {
+    if (!fallback) return false;
     openInBrowser(url);
     let host = url;
     try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
@@ -2472,6 +2553,7 @@ async function openSite(url, title) {
   tabs.list.push(tab);
   $('#frames').append(frame);
   activateTab(tab.id);
+  return true;
 }
 
 /** Open a hub document in a new tab beside the current one. */
@@ -3072,10 +3154,12 @@ function pinRowMenu(row, x, y, opts) {
   });
 }
 
-for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pin', pinRowMenu], ['#tabs', '.tab', tabMenu]]) {
+for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pin', pinRowMenu], ['#tabs', '.tab', tabMenu], ['#webmarks', '.webrow', favRowMenu]]) {
   $(host).addEventListener('contextmenu', (e) => {
     const row = e.target.closest(sel);
     if (!row) return;
+    // A favorite is a real link: Shift+right-click keeps the browser's own link menu.
+    if (e.shiftKey && host === '#webmarks') return;
     e.preventDefault();
     open(row, e.clientX, e.clientY, { opener: row });
   });

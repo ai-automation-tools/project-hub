@@ -472,6 +472,18 @@ test('loadConfig accepts exact allowedHosts and refuses patterns', () => {
   assert.throws(() => loadConfig(tmpConfig({ ...base, allowedHosts: 'my-pc' })), /allowedHosts/);
 });
 
+// frameAncestors goes straight into the CSP and the page, so it takes exact origins only.
+test('loadConfig accepts exact frameAncestors origins and refuses anything else', () => {
+  const base = { port: 4300, base: 'D:/Work' };
+  assert.deepEqual(loadConfig(tmpConfig(base)).frameAncestors, []);
+  assert.deepEqual(loadConfig(tmpConfig({ ...base, frameAncestors: ['http://localhost:9005', 'https://suite.example'] })).frameAncestors,
+    ['http://localhost:9005', 'https://suite.example']);
+  for (const bad of ['*', 'http://localhost:9005/', 'localhost:9005', "http://a.test; script-src *", 'javascript:alert(1)', '', 42]) {
+    assert.throws(() => loadConfig(tmpConfig({ ...base, frameAncestors: [bad] })), /frameAncestors/, String(bad));
+  }
+  assert.throws(() => loadConfig(tmpConfig({ ...base, frameAncestors: 'http://localhost:9005' })), /frameAncestors/);
+});
+
 // Adding a folder asks first when it looks like a photo library. The count stops as soon
 // as the answer is known, so a huge library costs no more than a small one.
 test('countImages spots a photo library without walking all of it', () => {
@@ -662,12 +674,12 @@ test('DOC_FILE recognizes report deliverables (html/pdf/images) alongside docs, 
 
 test('index.html carries every placeholder the server substitutes', () => {
   const html = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
-  for (const token of ['%TITLE%', '%FAVICON%', '%PORT%']) {
+  for (const token of ['%TITLE%', '%FAVICON%', '%PORT%', '%FRAME_ANCESTORS%']) {
     assert.ok(html.includes(token), `index.html is missing ${token}`);
   }
   assert.equal((html.match(/%NONCE%/g) || []).length, 2, 'both inline scripts need a nonce');
   // Every placeholder in the file must be one the server actually knows how to fill.
-  const known = new Set(['%TITLE%', '%FAVICON%', '%PORT%', '%NONCE%']);
+  const known = new Set(['%TITLE%', '%FAVICON%', '%PORT%', '%NONCE%', '%FRAME_ANCESTORS%']);
   for (const found of html.match(/%[A-Z_]+%/g) || []) {
     assert.ok(known.has(found), `index.html uses ${found}, which the server does not substitute`);
   }

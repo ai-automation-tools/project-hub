@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="frame-ancestors" content="%FRAME_ANCESTORS%">
 <title>%TITLE%</title>
 <link rel="icon" href="%FAVICON%">
 <!-- Applied before first paint so a non-default scheme doesn't flash the default one.
@@ -765,6 +766,8 @@ details[open]>summary .fchev{transform:rotate(90deg)}
   .card,.card::before,.card::after,.btn,#toast,.node,.act,.tab{transition:none}
   .card:hover{transform:none}
 }
+/* Suite embed mode (?embed=1 in a frame): the shell's bar carries the theme switch and the brand. */
+html.embed .themetog,html.embed .ex-head .glyph{display:none}
 </style>
 </head>
 <body>
@@ -3405,6 +3408,31 @@ const setTheme = (name) => {
 };
 $('#theme').onchange = (e) => setTheme(e.target.value);
 for (const b of document.querySelectorAll('.themetog button')) b.onclick = () => setTheme(b.dataset.mode);
+
+// Suite embed contract v1. Framed with ?embed=1, the hub hides its theme switch and glyph,
+// says `ready`, reports every route (hash changes and the history calls that skip them) and
+// follows the shell's light or dark, keeping your palette when it already matches. It talks
+// only to the frameAncestors origins (the server fills the meta tag); empty, nothing is posted.
+const EMBED_ORIGINS = ($('meta[name="frame-ancestors"]')?.content || '').split(' ').filter((o) => /^https?:\/\//.test(o));
+if (window.parent !== window && new URLSearchParams(location.search).get('embed') === '1') {
+  document.documentElement.classList.add('embed');
+  const tell = (msg) => { for (const o of EMBED_ORIGINS) window.parent.postMessage({ suite: 1, contract: 1, ...msg }, o); };
+  const route = () => tell({ type: 'route', path: location.pathname + location.search + location.hash });
+  for (const k of ['pushState', 'replaceState']) {
+    const original = history[k].bind(history);
+    history[k] = (...args) => { original(...args); route(); };
+  }
+  window.addEventListener('hashchange', route);
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (e.source !== window.parent || !EMBED_ORIGINS.includes(e.origin) || d?.suite !== 1 || d.type !== 'theme') return;
+    const light = ['paper', 'sepia'].includes(document.documentElement.dataset.theme);
+    if (d.value === 'light' && !light) setTheme('paper');
+    if (d.value === 'dark' && light) setTheme('obsidian');
+  });
+  tell({ type: 'ready', app: 'hub' });
+  route();
+}
 
 let stored = {};
 try { stored = { rail: localStorage.getItem('hub.rail'), theme: localStorage.getItem('hub.theme'), side: localStorage.getItem('hub.side') }; } catch {}

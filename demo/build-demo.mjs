@@ -395,6 +395,7 @@ try {
   sub('%FAVICON%', 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>Project Hub</title><rect width="32" height="32" rx="7" fill="#0b0b0e"/><rect x="1" y="1" width="30" height="30" rx="6" fill="none" stroke="#297a46" stroke-width="2"/><g transform="translate(6 6) scale(0.8333333333333334)" fill="none" stroke="#4ade80" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 9v11"/></g></svg>'), 1);
   sub('%PORT%', '4273', 1);
+  sub('%FRAME_ANCESTORS%', '', 1);
   sub(' nonce="%NONCE%"', '', 2);
 
   // Asset URLs are element attributes, not fetches, so the shim cannot intercept them —

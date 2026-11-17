@@ -655,7 +655,8 @@ const server = http.createServer(async (req, res) => {
     try { page = new URL(url.searchParams.get('url') || ''); } catch {}
     if (!page || !/^https?:$/.test(page.protocol)) { res.writeHead(400).end('http(s) url required'); return; }
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' })
-      .end(JSON.stringify({ frameable: await frameable(page.href) }));
+      // ponytail: assumes the hub is reached over http; behind an https proxy the origin is wrong and a frame-ancestors list naming the hub reads as a refusal.
+      .end(JSON.stringify({ frameable: await frameable(page.href, `http://${req.headers.host}`) }));
     return;
   }
 

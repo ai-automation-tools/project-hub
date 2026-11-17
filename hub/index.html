@@ -2284,8 +2284,19 @@ function favRowMenu(row, x, y, opts) {
   const { n, pos } = r, edit = !prefs.favSync && !!pos;
   const form = (f) => () => { fav.form = f; renderWebmarks(); };
   if (n.url) {
+    // Most big sites refuse framing, and openSite would quietly send them to a browser tab.
+    // Say so on the item instead: known answers apply at once, unknown ones when the check returns.
+    const blocked = (b) => {
+      if (document.activeElement === b) b.nextElementSibling?.focus();   // keyboard focus can't stay on a disabled item
+      b.disabled = true; b.textContent = 'Open in New Hub Tab (blocked by site)';
+      b.title = 'This site doesn’t allow being shown inside another page';
+      return b;
+    };
+    const inHub = ctxItem('Open in New Hub Tab', () => openSite(n.url, n.name, { force: true }));
+    if (tabs.frameable.get(n.url) === false) blocked(inHub);
+    else checkFrameable(n.url, true).then((ok) => { if (!ok && inHub.isConnected) blocked(inHub); });
     return showCtxMenu(x, y, { name: n.name }, { ...opts, items: [
-      ctxItem('Open in New Hub Tab', () => openSite(n.url, n.name, { force: true })),
+      inHub,
       ctxItem('Open in New Browser Tab', () => openInBrowser(n.url)),
       el('hr'),
       ctxItem('Copy URL', () => copy(n.url)),

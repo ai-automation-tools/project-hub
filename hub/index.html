@@ -1147,6 +1147,16 @@ const fmtAgo = (ms) => {
 // Ids are drive-relative, except user-scope ones which the server prefixes with `~/`.
 const absOf = id => absolutePath(id, S.data?.base || '', S.data?.home || '~');
 const winPath = id => absOf(id).replace(/\//g, '\\');
+// Lowercased absolute path → id, for vscode://file links. Built on first use after each
+// scan: a per-link scan of every id cost ~250ms a link on a 140k-node tree.
+let idsByAbs = null;
+function idOfAbs(abs) {
+  if (!idsByAbs) {
+    idsByAbs = new Map();
+    for (const k of S.byId.keys()) { const a = absOf(k).toLowerCase(); if (!idsByAbs.has(a)) idsByAbs.set(a, k); }
+  }
+  return idsByAbs.get(abs.toLowerCase());
+}
 
 let toastTimer;
 function toast(msg, ms = 1400) {
@@ -1167,7 +1177,7 @@ function reindex(data) {
   orderByIds(data.tree, rootOrder);
   contentSearches.clear();
   S.data = data;
-  S.byId.clear(); S.parent.clear();
+  S.byId.clear(); S.parent.clear(); idsByAbs = null;
   // The search index used to arrive from the server as a second copy of the tree --
   // 25,731 entries, 4.42MB of a 10.23MB payload, 2.47MB of it duplicated id strings.
   // Every field it carried is on the node it was copied from, and this walk was already
@@ -4862,8 +4872,7 @@ async function loadDoc(id, host, opts = {}) {
       // target is indexed; otherwise the browser hands them to VS Code as before.
       const vsPath = vscodeFilePath(href);
       if (vsPath) {
-        const want = vsPath.toLowerCase();
-        const hit = [...S.byId.keys()].find(k => absOf(k).toLowerCase() === want);
+        const hit = idOfAbs(vsPath);
         if (hit) a.onclick = (e) => { e.preventDefault(); go(hit); };
         continue;
       }

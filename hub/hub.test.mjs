@@ -1545,3 +1545,33 @@ test('Changed this week is folded by default and remembers being opened', () => 
   const ui2 = ui.match(/d\.open = (\w+)\(key\);/g);
   assert.deepEqual(ui2, ['d.open = foldIsOpen(key);', 'd.open = foldIsOpen(key);'], 'both fold helpers go through foldIsOpen');
 });
+
+// The hosted demo carries the commit it was built from, so the org's surface-drift check can
+// tell a stale deploy from a current one (Homepage refresh, 2026-11-09). The check matches
+// `<meta name="build" content="<7-40 hex>">` with `name` first; the build stamps CI's
+// GITHUB_SHA, or HEAD locally, after the viewport tag.
+test('the demo page is stamped with the commit it was built from', async () => {
+  const { buildSha, stampTag } = await import('../demo/stamp.mjs');
+  const full = 'a'.repeat(40);
+  assert.equal(buildSha(full, () => { throw new Error('not consulted'); }), full, 'CI sha wins, git is not called');
+  assert.equal(buildSha(' ABCDEF1234567\n', null), 'abcdef1234567', 'trimmed and lowercased');
+  assert.equal(buildSha(undefined, () => `${full}\n`), full, 'a local build falls back to HEAD');
+  assert.equal(buildSha('', () => { throw new Error('no git'); }), null, 'no git gives no stamp, not a crash');
+  for (const bad of ['main', 'abc12', 'g'.repeat(40), 'a'.repeat(41), 'abc1234"><script>']) {
+    assert.equal(buildSha(bad, () => bad), null, `${bad} is not a commit id`);
+    assert.throws(() => stampTag(bad), /not a commit id/);
+  }
+  const tag = stampTag('0123456789abcdef0123456789abcdef01234567');
+  assert.equal(tag, '<meta name="build" content="0123456789abcdef0123456789abcdef01234567">');
+  // The drift check's own pattern, verbatim.
+  assert.match(tag, /<meta[^>]+name="build"[^>]+content="([0-9a-f]{7,40})"/i);
+
+  const build = fs.readFileSync(path.join(ROOT, 'demo', 'build-demo.mjs'), 'utf8');
+  assert.match(build, /import \{ buildSha, stampTag \} from '\.\/stamp\.mjs';/);
+  assert.match(build, /buildSha\(process\.env\.GITHUB_SHA,/);
+  const viewport = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+  assert.ok(build.includes(`const viewport = '${viewport}';`), 'the build anchors the stamp on the viewport tag');
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.equal(ui.split(viewport).length - 1, 1, 'index.html still has exactly one viewport tag to anchor on');
+  assert.ok(!/<meta[^>]+name="build"/i.test(ui), 'the local hub page carries no stamp of its own');
+});

@@ -17,6 +17,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { buildSha, stampTag } from './stamp.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
@@ -397,6 +398,22 @@ try {
   sub('%PORT%', '4273', 1);
   sub('%FRAME_ANCESTORS%', '', 1);
   sub(' nonce="%NONCE%"', '', 2);
+
+  // Build stamp: the commit this page was built from, so the org's surface-drift check can
+  // tell a stale deploy from a current one. CI stamps the pushed commit (GITHUB_SHA); a local
+  // build stamps HEAD. A CI build with nothing to stamp fails rather than ship an unstamped
+  // page that would read as "no build stamp" until someone noticed.
+  const sha = buildSha(process.env.GITHUB_SHA, () => execFileSync('git', ['-C', REPO, 'rev-parse', 'HEAD'],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+  const viewport = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+  if (sha) {
+    sub(viewport, `${viewport}\n${stampTag(sha)}`, 1);
+    log('stamped build', sha.slice(0, 9));
+  } else if (process.env.CI) {
+    throw new Error('no commit to stamp the demo page with (GITHUB_SHA unset and git rev-parse HEAD failed)');
+  } else {
+    log('no git commit found; the page is left unstamped');
+  }
 
   // Asset URLs are element attributes, not fetches, so the shim cannot intercept them —
   // they are rewritten to the static path instead. Balanced: only the prefix is replaced,

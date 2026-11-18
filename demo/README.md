@@ -43,6 +43,7 @@ fails loudly.
 | `static/demo.js` | The shim that answers `/api/*` from the captured files |
 | `static/CNAME` | The custom domain, copied into the published site |
 | `build-demo.mjs` | The whole build |
+| `stamp.mjs` | The page's build stamp, kept apart from the build so the hub's tests can pin it |
 
 Three workspaces on purpose, because one of the things worth showing is that a single
 server mounts several: `Example_Workspace` scopes its repos by group, the other two by
@@ -86,6 +87,13 @@ To look at the result before pushing, serve `demo/site` with any static server â
 `hub/` or `demo/`, and deploys `demo/site` to GitHub Pages. The domain is set by
 `static/CNAME`; Pages must be set to **GitHub Actions** as its source in the repository
 settings for the workflow to have anywhere to publish.
+
+The published page carries `<meta name="build" content="<sha>">`, the commit it was built
+from: `GITHUB_SHA` in CI, `git rev-parse HEAD` locally. View the page source to see which
+commit is live; the org's surface-drift check compares it with `main`. A CI build with no
+commit to stamp fails; a local build without Git writes the page unstamped. Because the
+workflow skips pushes that don't touch `hub/` or `demo/`, the stamp falls behind `main`
+after a docs-only merge even though the page itself is unchanged.
 
 ## Changing the fixture
 

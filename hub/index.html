@@ -3193,7 +3193,27 @@ function groupMenu(head, x, y, opts) {
     ctxItem('Collapse All Groups', () => fold(names, true)),
     el('hr'),
     ctxItem('Ungroup (Keep Bookmarks)', () => head.querySelector('.x')?.click()),
+    deleteGroupItem(name),
   ] });
+}
+
+// Deletes the group and every bookmark in it. A group with bookmarks takes a second click
+// on the same item: no undo, and confirm() would block the page.
+function deleteGroupItem(name) {
+  const count = pins.bookmarks.filter((b) => b.group === name).length;
+  const remove = () => {
+    pins.bookmarks = pins.bookmarks.filter((b) => b.group !== name);
+    emptyGroups = emptyGroups.filter((n) => n !== name);
+    closedGroups.delete(name);
+    savePins(); renderPins(); renderView();
+    toast(`deleted ${name}` + (count ? ` and ${count} bookmark${count === 1 ? '' : 's'}` : ''));
+  };
+  const item = ctxItem('Delete Group', remove);
+  if (count) item.onclick = () => {
+    if (!item.dataset.armed) { item.dataset.armed = '1'; item.textContent = `Click again to delete ${count} bookmark${count === 1 ? '' : 's'}`; return; }
+    closeCtxMenu(); remove();
+  };
+  return item;
 }
 
 // Any row in the page or breadcrumbs that opens a node (cards, search hits, lists) gets

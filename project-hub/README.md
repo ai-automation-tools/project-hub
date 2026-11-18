@@ -571,7 +571,9 @@ to promote something you keep going back to.
 
 **Right-click a group header** for **Rename Group…**, **Collapse / Expand Group**, **Open All
 in New Tabs**, **Copy Hub Links**, **New Group…**, **Expand / Collapse All Groups**, and
-**Ungroup (Keep Bookmarks)**.
+**Ungroup (Keep Bookmarks)**, which removes the header and leaves its bookmarks ungrouped, and
+**Delete Group**, which removes the header and every bookmark in it. A group that has
+bookmarks asks for a second click on the same item first.
 
 The same node menu is on everything in the page that opens a file or folder: folder and repo
 cards, list rows, search results, the breadcrumbs, and links in a document that point to an

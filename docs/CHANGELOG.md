@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-17
 
+- **Quieter secret scan.** A `.gitleaksignore` lists the one gitleaks hit in `hub/access.test.mjs`, a made-up token in the access-token tests, so the weekly scan stops reporting it.
 - **The demo says which commit it was built from.** The hosted demo's page carries `<meta name="build" content="<sha>">` (`GITHUB_SHA` in CI, HEAD locally), so a stale deploy can be told from a current one; `demo/stamp.mjs`, pinned by a test. *(roadmap: Stamp the demo build)*
 - **The hub can sit inside the Suite shell.** A new `frameAncestors` config key lists the origins allowed to frame the hub; empty, framing is still refused. Framed with `?embed=1` by one of them, the hub hides its theme switch and sidebar glyph, tells the shell `ready` and its route, and follows the shell's light or dark theme. It talks to no other origin.
 - **Hub tabs for apps that allow only the hub.** A site whose CSP `frame-ancestors` list names the hub's own origin (such as Promptbook with `FRAME_ANCESTORS=http://localhost:4273`) now opens in a hub tab. Before, only a list with `*` counted, so an app couldn't let the hub in without letting every page in. The frame check is cached per URL and hub origin.

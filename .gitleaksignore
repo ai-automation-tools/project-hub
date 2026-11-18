@@ -1,0 +1,4 @@
+# hub/access.test.mjs: made-up access tokens in the access-token tests (a counting string
+# and a "from-env" sample). Neither is used by any hub; they only exercise the length check
+# and the token comparison.
+c4a5ee7af15390fac3884611006fb47cc7eb86ae:hub/access.test.mjs:generic-api-key:16

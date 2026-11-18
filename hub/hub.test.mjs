@@ -472,6 +472,18 @@ test('loadConfig accepts exact allowedHosts and refuses patterns', () => {
   assert.throws(() => loadConfig(tmpConfig({ ...base, allowedHosts: 'my-pc' })), /allowedHosts/);
 });
 
+// frameAncestors goes straight into the CSP and the page, so it takes exact origins only.
+test('loadConfig accepts exact frameAncestors origins and refuses anything else', () => {
+  const base = { port: 4300, base: 'D:/Work' };
+  assert.deepEqual(loadConfig(tmpConfig(base)).frameAncestors, []);
+  assert.deepEqual(loadConfig(tmpConfig({ ...base, frameAncestors: ['http://localhost:9005', 'https://suite.example'] })).frameAncestors,
+    ['http://localhost:9005', 'https://suite.example']);
+  for (const bad of ['*', 'http://localhost:9005/', 'localhost:9005', "http://a.test; script-src *", 'javascript:alert(1)', '', 42]) {
+    assert.throws(() => loadConfig(tmpConfig({ ...base, frameAncestors: [bad] })), /frameAncestors/, String(bad));
+  }
+  assert.throws(() => loadConfig(tmpConfig({ ...base, frameAncestors: 'http://localhost:9005' })), /frameAncestors/);
+});
+
 // Adding a folder asks first when it looks like a photo library. The count stops as soon
 // as the answer is known, so a huge library costs no more than a small one.
 test('countImages spots a photo library without walking all of it', () => {
@@ -662,12 +674,12 @@ test('DOC_FILE recognizes report deliverables (html/pdf/images) alongside docs, 
 
 test('index.html carries every placeholder the server substitutes', () => {
   const html = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
-  for (const token of ['%TITLE%', '%FAVICON%', '%PORT%']) {
+  for (const token of ['%TITLE%', '%FAVICON%', '%PORT%', '%FRAME_ANCESTORS%']) {
     assert.ok(html.includes(token), `index.html is missing ${token}`);
   }
   assert.equal((html.match(/%NONCE%/g) || []).length, 2, 'both inline scripts need a nonce');
   // Every placeholder in the file must be one the server actually knows how to fill.
-  const known = new Set(['%TITLE%', '%FAVICON%', '%PORT%', '%NONCE%']);
+  const known = new Set(['%TITLE%', '%FAVICON%', '%PORT%', '%NONCE%', '%FRAME_ANCESTORS%']);
   for (const found of html.match(/%[A-Z_]+%/g) || []) {
     assert.ok(known.has(found), `index.html uses ${found}, which the server does not substitute`);
   }
@@ -1532,4 +1544,34 @@ test('Changed this week is folded by default and remembers being opened', () => 
   assert.equal(api.foldIsOpen('Repos'), false);
   const ui2 = ui.match(/d\.open = (\w+)\(key\);/g);
   assert.deepEqual(ui2, ['d.open = foldIsOpen(key);', 'd.open = foldIsOpen(key);'], 'both fold helpers go through foldIsOpen');
+});
+
+// The hosted demo carries the commit it was built from, so the org's surface-drift check can
+// tell a stale deploy from a current one (Homepage refresh, 2026-11-09). The check matches
+// `<meta name="build" content="<7-40 hex>">` with `name` first; the build stamps CI's
+// GITHUB_SHA, or HEAD locally, after the viewport tag.
+test('the demo page is stamped with the commit it was built from', async () => {
+  const { buildSha, stampTag } = await import('../demo/stamp.mjs');
+  const full = 'a'.repeat(40);
+  assert.equal(buildSha(full, () => { throw new Error('not consulted'); }), full, 'CI sha wins, git is not called');
+  assert.equal(buildSha(' ABCDEF1234567\n', null), 'abcdef1234567', 'trimmed and lowercased');
+  assert.equal(buildSha(undefined, () => `${full}\n`), full, 'a local build falls back to HEAD');
+  assert.equal(buildSha('', () => { throw new Error('no git'); }), null, 'no git gives no stamp, not a crash');
+  for (const bad of ['main', 'abc12', 'g'.repeat(40), 'a'.repeat(41), 'abc1234"><script>']) {
+    assert.equal(buildSha(bad, () => bad), null, `${bad} is not a commit id`);
+    assert.throws(() => stampTag(bad), /not a commit id/);
+  }
+  const tag = stampTag('0123456789abcdef0123456789abcdef01234567');
+  assert.equal(tag, '<meta name="build" content="0123456789abcdef0123456789abcdef01234567">');
+  // The drift check's own pattern, verbatim.
+  assert.match(tag, /<meta[^>]+name="build"[^>]+content="([0-9a-f]{7,40})"/i);
+
+  const build = fs.readFileSync(path.join(ROOT, 'demo', 'build-demo.mjs'), 'utf8');
+  assert.match(build, /import \{ buildSha, stampTag \} from '\.\/stamp\.mjs';/);
+  assert.match(build, /buildSha\(process\.env\.GITHUB_SHA,/);
+  const viewport = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+  assert.ok(build.includes(`const viewport = '${viewport}';`), 'the build anchors the stamp on the viewport tag');
+  const ui = fs.readFileSync(path.join(HERE, 'index.html'), 'utf8');
+  assert.equal(ui.split(viewport).length - 1, 1, 'index.html still has exactly one viewport tag to anchor on');
+  assert.ok(!/<meta[^>]+name="build"/i.test(ui), 'the local hub page carries no stamp of its own');
 });

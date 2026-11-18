@@ -17,6 +17,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { buildSha, stampTag } from './stamp.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
@@ -395,7 +396,24 @@ try {
   sub('%FAVICON%', 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>Project Hub</title><rect width="32" height="32" rx="7" fill="#0b0b0e"/><rect x="1" y="1" width="30" height="30" rx="6" fill="none" stroke="#297a46" stroke-width="2"/><g transform="translate(6 6) scale(0.8333333333333334)" fill="none" stroke="#4ade80" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 9v11"/></g></svg>'), 1);
   sub('%PORT%', '4273', 1);
+  sub('%FRAME_ANCESTORS%', '', 1);
   sub(' nonce="%NONCE%"', '', 2);
+
+  // Build stamp: the commit this page was built from, so the org's surface-drift check can
+  // tell a stale deploy from a current one. CI stamps the pushed commit (GITHUB_SHA); a local
+  // build stamps HEAD. A CI build with nothing to stamp fails rather than ship an unstamped
+  // page that would read as "no build stamp" until someone noticed.
+  const sha = buildSha(process.env.GITHUB_SHA, () => execFileSync('git', ['-C', REPO, 'rev-parse', 'HEAD'],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+  const viewport = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+  if (sha) {
+    sub(viewport, `${viewport}\n${stampTag(sha)}`, 1);
+    log('stamped build', sha.slice(0, 9));
+  } else if (process.env.CI) {
+    throw new Error('no commit to stamp the demo page with (GITHUB_SHA unset and git rev-parse HEAD failed)');
+  } else {
+    log('no git commit found; the page is left unstamped');
+  }
 
   // Asset URLs are element attributes, not fetches, so the shim cannot intercept them —
   // they are rewritten to the static path instead. Balanced: only the prefix is replaced,

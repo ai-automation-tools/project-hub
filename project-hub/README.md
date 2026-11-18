@@ -569,6 +569,15 @@ Reveal in Explorer, Open in VS Code — plus **Remove Bookmark**, and **Rename B
 bookmark. Right-clicking a **Recent** row offers **Add Bookmark**, which is the quickest way
 to promote something you keep going back to.
 
+**Right-click a group header** for **Rename Group…**, **Collapse / Expand Group**, **Open All
+in New Tabs**, **Copy Hub Links**, **New Group…**, **Expand / Collapse All Groups**, and
+**Ungroup (Keep Bookmarks)**.
+
+The same node menu is on everything in the page that opens a file or folder: folder and repo
+cards, list rows, search results, the breadcrumbs, and links in a document that point to an
+indexed file. Outline entries are real links, so the browser's own **Copy link** copies a
+link to that section.
+
 A pinned file that gets **moved or deleted** goes dim and struck through after the next scan
 rather than silently disappearing, and a move usually brings a one-click **relink** offer
 naming where it went. Nothing is ever repointed for you. Its launch actions grey out, but the

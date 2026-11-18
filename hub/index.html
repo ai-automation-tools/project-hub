@@ -1124,6 +1124,8 @@ const activate = (node, handler, role = 'button') => {
   node.setAttribute('role', role);
   return node;
 };
+// A row that opens a node. `data-go` is also what gives it the node's right-click menu.
+const openNode = (node, id, role) => { node.dataset.go = id; return activate(node, () => go(id), role); };
 
 /** Wrap the matched run of `q` in <mark>, without ever building HTML from input. */
 function mark(text, q) {
@@ -1565,6 +1567,7 @@ const GROUP_DRAG = 'application/x-hub-group';
 function groupHeader(name, count) {
   const open = !closedGroups.has(name);
   const head = el('div', 'pingrp');
+  head.dataset.group = name;
   head.setAttribute('aria-expanded', String(open));
   const label = el('span', 'nm', name);
   const x = el('span', 'x', '×');
@@ -3167,7 +3170,41 @@ function pinRowMenu(row, x, y, opts) {
   });
 }
 
-for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pin', pinRowMenu], ['#tabs', '.tab', tabMenu], ['#webmarks', '.webrow', favRowMenu]]) {
+// A bookmark group header: the actions its double-click, × and drag already offer, plus
+// the whole-group ones a single row can't. Rename reuses the double-click editor.
+function groupMenu(head, x, y, opts) {
+  const name = head.dataset.group;
+  const open = !closedGroups.has(name);
+  const ids = pins.bookmarks.filter((b) => b.group === name && S.byId.has(b.path)).map((b) => b.path);
+  const fold = (all, close) => {
+    for (const g of all) if (close) closedGroups.add(g); else closedGroups.delete(g);
+    savePins(); renderPins();
+  };
+  const names = groupBookmarks(pins.bookmarks, emptyGroups).map((g) => g.name).filter(Boolean);
+  showCtxMenu(x, y, { name }, { ...opts, items: [
+    ctxItem('Rename Group…', () => head.querySelector('.nm')?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))),
+    ctxItem(open ? 'Collapse Group' : 'Expand Group', () => fold([name], open)),
+    el('hr'),
+    ...(prefs.docTabs ? [ctxItem(`Open All in New Tabs (${ids.length})`, () => ids.forEach((id) => openDocTab(id)), !ids.length)] : []),
+    ctxItem(`Copy Hub Links (${ids.length})`, () => copy(ids.map((id) => hubLink(id)).join('\n')), !ids.length),
+    el('hr'),
+    ctxItem('New Group…', () => $('#pins .pinaddbtn')?.click()),
+    ctxItem('Expand All Groups', () => fold(names, false)),
+    ctxItem('Collapse All Groups', () => fold(names, true)),
+    el('hr'),
+    ctxItem('Ungroup (Keep Bookmarks)', () => head.querySelector('.x')?.click()),
+  ] });
+}
+
+// Any row in the page or breadcrumbs that opens a node (cards, search hits, lists) gets
+// the same menu as that node's tree row.
+function goRowMenu(row, x, y, opts) {
+  const n = S.byId.get(row.dataset.go);
+  if (n) showCtxMenu(x, y, n, opts);
+}
+
+for (const [host, sel, open] of [['#tree', '.node', treeRowMenu], ['#pins', '.pin', pinRowMenu], ['#pins', '.pingrp', groupMenu],
+  ['#tabs', '.tab', tabMenu], ['#webmarks', '.webrow', favRowMenu], ['#view', '[data-go]', goRowMenu], ['#crumbs', '[data-go]', goRowMenu]]) {
   $(host).addEventListener('contextmenu', (e) => {
     const row = e.target.closest(sel);
     if (!row) return;
@@ -3259,9 +3296,8 @@ function renderCrumbs() {
   chain.forEach((id, i) => {
     if (i) c.append(el('span', '', '/'));
     const s = el('span', '', S.byId.get(id)?.name || id);
-    s.dataset.go = id;
     s.style.color = i === chain.length - 1 ? 'var(--fg-hi)' : 'var(--dim)';
-    activate(s, () => go(id));
+    openNode(s, id);
     c.append(s);
   });
 }
@@ -3609,13 +3645,13 @@ function linkCheckBtn(id) {
       for (const [doc, ps] of byDoc) {
         const head = el('div', 'lpdoc');
         head.append(el('span', '', doc.slice(id.length + 1) || doc));
-        activate(head, () => go(doc));
+        openNode(head, doc);
         list.append(head);
         for (const p of ps) {
           const row = el('div');
           row.append(el('i', '', String(p.line)), el('b', '', p.kind), el('span', '', p.href));
           row.title = `${doc}, line ${p.line}: ${p.kind}`;
-          activate(row, () => go(doc));
+          openNode(row, doc);
           list.append(row);
         }
       }
@@ -3730,7 +3766,7 @@ function repoTableSection(repos, groups, dirtyCount, opts = {}) {
     const cm = el('div', 'c'); cm.append(document.createTextNode(r.commit));
     if (r.ago) { const a = el('span', '', ' · ' + r.ago); a.style.color = 'var(--dimmer)'; cm.append(a); }
     tr.append(n, el('span', 'm', r.group), br, st, roadmapBar(r.roadmap), cm);
-    activate(tr, () => go(r.id));
+    openNode(tr, r.id);
     rows.append(tr);
   }
   if (!sorted.length) rows.append(el('div', 'empty', 'no repos match that filter'));
@@ -3803,7 +3839,7 @@ function viewOverview(page, root) {
       const dot = el('span', 'dot round'); dot.style.background = TINT.draft;
       const hd = el('div', 'hd'); hd.append(dot, el('b', '', d.name), el('em', '', 'DRAFT'));
       c.append(hd, el('p', '', d.desc || '\u2014'));
-      activate(c, () => go(d.id));
+      openNode(c, d.id);
       cards.append(c);
     }
     page.append(foldable('Draft Initiatives',
@@ -3841,7 +3877,7 @@ function viewOverview(page, root) {
       const dot = el('span', 'dot'); dot.style.background = TINT.md;
       hd.append(dot, el('b', '', d.name), el('em', '', d.where));
       c.append(hd, el('p', '', d.desc || '—'));
-      activate(c, () => go(d.id));
+      openNode(c, d.id);
       docs.append(c);
     }
     page.append(foldable('Readmes',
@@ -3877,7 +3913,7 @@ function viewPortfolio(page, n) {
     const dirty = S.data.repos.filter((r) => topAncestorOf(r.id) === p && r.state !== 'clean').length;
     const hd = el('div', 'hd'); hd.append(dot, el('b', '', p.name), el('em', '', `${repoCount} repos`));
     c.append(hd, el('p', '', dirty ? `${dirty} need attention` : p.desc || 'all clean'));
-    activate(c, () => go(p.id));
+    openNode(c, p.id);
     cards.append(c);
   }
   page.append(foldable('Projects', sectionWith('Projects', `${projects.length}`, 'sec-projects'), cards));
@@ -3917,7 +3953,7 @@ function viewPortfolio(page, n) {
       const dot = el('span', 'dot'); dot.style.background = TINT.md;
       hd.append(dot, el('b', '', d.name), el('em', '', d.where));
       c.append(hd, el('p', '', d.desc || '—'));
-      activate(c, () => go(d.id));
+      openNode(c, d.id);
       docs.append(c);
     }
     page.append(foldable('Readmes',
@@ -3986,7 +4022,7 @@ function recentSection(recent) {
       const where = d.id.split('/').slice(0, -1).join('/');
       row.append(el('span', '', d.name), el('em', '', where), el('b', '', fmtAgo(d.mtime) || 'just now'));
       row.title = d.id;
-      activate(row, () => go(d.id));
+      openNode(row, d.id);
       list.append(row);
     }
     const hidden = (all ? recent.docs.length : Math.min(12, recent.docs.length));
@@ -4062,7 +4098,7 @@ function runtimeCards(list) {
     if (k.routine) ft.append(count(k.routine, 'routines', TINT.routine));
     if (size(r.plugins)) ft.append(count(size(r.plugins), 'plugins', TINT.agent));
     c.append(ft);
-    activate(c, () => go(r.id));
+    openNode(c, r.id);
     rt.append(c);
   }
   return rt;
@@ -4091,7 +4127,7 @@ function viewCli(page, n) {
       const c = el('div', 'chip');
       const d = el('span', 'dot'); d.style.cssText = `background:${tintOf(f)};width:6px;height:6px;flex:0 0 6px`;
       c.append(d, el('span', '', f.name), el('em', '', fmtSize(f.size)));
-      activate(c, () => go(f.id));
+      openNode(c, f.id);
       chips.append(c);
     }
     page.append(chips);
@@ -4110,7 +4146,7 @@ function viewCli(page, n) {
     note.style.cssText = 'font-size:11.5px;color:var(--dimmer);margin:-6px 0 10px';
     const link = el('span', '', 'open ' + u.name + ' →');
     link.style.cssText = 'margin-left:8px;color:var(--green);cursor:pointer';
-    activate(link, () => go(u.id));
+    openNode(link, u.id);
     note.append(link);
     page.append(note);
     page.append(bucketGrid(u, 'user:'));
@@ -4158,7 +4194,7 @@ function bucketGrid(n, keyPrefix) {
       top.append(nm, tg);
       row.append(top);
       if (it.desc) row.append(el('p', '', it.desc));
-      activate(row, () => go(it.id));
+      openNode(row, it.id);
       panel.append(row);
     }
     grid.append(panel);
@@ -4185,7 +4221,7 @@ function bucketGrid(n, keyPrefix) {
       tg.style.cssText = 'font-size:10.5px;color:var(--dimmer);max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
       top.append(nm, tg);
       row.append(top);
-      if (srcId && S.byId.has(srcId)) activate(row, () => go(srcId));
+      if (srcId && S.byId.has(srcId)) openNode(row, srcId);
       panel.append(row);
     }
     grid.append(panel);
@@ -4282,7 +4318,7 @@ function folderList(page, n, kids) {
     row.append(name, el('span', 'm', KIND_LABEL[c.kind] || c.kind),
       el('span', 'm', stamps ? fmtAgo(timeOf(c)) || '—' : '…'), el('span', 's', measure));
     row.title = c.desc || c.id;
-    activate(row, () => go(c.id));
+    openNode(row, c.id);
     wrap.append(row);
   }
   page.append(wrap);
@@ -4383,7 +4419,7 @@ function viewFolder(page, n) {
       ft.append(el('span', '', c.branch || ''), st);
       card.append(ft);
     }
-    activate(card, () => go(c.id));
+    openNode(card, c.id);
     cards.append(card);
   }
   if (cards.children.length) {
@@ -4435,7 +4471,7 @@ function viewRepo(page, n) {
     b.append(el('div', 'cap', 'Agent contract'));
     const list = el('div', 'linklist');
     const d = el('div', '', n.agentDoc.split('/').pop());
-    activate(d, () => go(n.agentDoc));
+    openNode(d, n.agentDoc);
     list.append(d); b.append(list); side.append(b);
   }
   if (n.children?.length || n.more) { side.append(contentsBox('Contents', n)); }
@@ -4456,7 +4492,7 @@ function contentsBox(cap, n) {
     const dir = DIRISH.has(c.kind);
     const row = el('div');
     row.append(el('i', '', dir ? '▸' : '·'), el('span', '', c.name + (dir ? '/' : '')));
-    activate(row, () => go(c.id));
+    openNode(row, c.id);
     list.append(row);
   }
   if (n.more) {
@@ -4635,7 +4671,8 @@ function buildOutline(host, into) {
   if (!heads.length) { into.append(el('div', 'empty', 'no headings in this document')); return; }
   for (const h of heads) {
     const link = el('a', h.tagName.toLowerCase(), h.textContent);
-    link.href = '#';
+    // A real route, so the browser's own "Copy link" gives a working link to the section.
+    link.href = h.id && S.sel ? routeHash(S.sel, h.id) : '#';
     link.onclick = (e) => {
       e.preventDefault();
       h.scrollIntoView({ block: 'start' });
@@ -4873,10 +4910,12 @@ async function loadDoc(id, host, opts = {}) {
       const vsPath = vscodeFilePath(href);
       if (vsPath) {
         const hit = idOfAbs(vsPath);
-        if (hit) a.onclick = (e) => { e.preventDefault(); go(hit); };
+        if (hit) { a.dataset.go = hit; a.onclick = (e) => { e.preventDefault(); go(hit); }; }
         continue;
       }
       const target = documentTarget(id, href);
+      // An indexed document gets its node menu; a heading link keeps the browser's own.
+      if (target && !target.heading && S.byId.has(target.id)) a.dataset.go = target.id;
       a.onclick = (e) => {
         e.preventDefault();
         if (!target) { toast('invalid document link'); return; }
@@ -4996,7 +5035,7 @@ function viewSearch(page) {
     const name = el('span', 'n'); name.append(mark(h.name, q));
     row.append(k, name, el('span', 'd', h.id + (h.desc ? ' — ' + h.desc : '')));
     row.title = h.id;
-    activate(row, () => go(h.id), 'option');
+    openNode(row, h.id, 'option');
     list.append(row);
   }
   if (!hits.length) {
@@ -5085,7 +5124,7 @@ async function searchContents(host, q, keep) {
       snip.style.cssText = 'grid-column:2/-1;white-space:normal';
       row.append(k, el('span', 'n', n.name), el('span', 'd', (h.count >= 100 ? '100+' : h.count) + ' match' + (h.count === 1 ? '' : 'es') + ' · ' + h.id), snip);
       row.title = h.id;
-      activate(row, () => go(h.id), 'option');
+      openNode(row, h.id, 'option');
       list.append(row);
     }
     if (!hits.length) list.append(el('div', 'empty', 'no document contains that text' + (found.length < data.hits.length ? ' under the current filters' : '')));

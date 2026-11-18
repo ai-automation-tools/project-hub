@@ -118,7 +118,7 @@ is loopback or a name listed in `allowedHosts` ([remote access](../docs/REMOTE-A
 
 ## Sidebar context menu
 
-Right-click any row in the tree — folder or file — for copy and launch actions (updated 2026-09-09). The same menu is on the sidebar's **Bookmarks** and **Recent** rows. From the keyboard, the **ContextMenu** key or **Shift+F10** on the focused row opens it under the row's name with focus on the first item; ↑/↓ move (wrapping), Home/End jump, Enter runs an item, Tab closes it, and Escape closes it and puts focus back on the row:
+Right-click any row in the tree — folder or file — for copy and launch actions (updated 2026-09-09). The same menu is on the sidebar's **Bookmarks** and **Recent** rows, and on any element in `#view` or `#crumbs` carrying `data-go` (set by `openNode()`, which every card, list row and search hit that opens a node goes through, and by `loadDoc()` on links to an indexed document). Bookmark group headers get `groupMenu()` instead: rename, fold, open all, copy links, new group, fold all, ungroup. From the keyboard, the **ContextMenu** key or **Shift+F10** on the focused row opens it under the row's name with focus on the first item; ↑/↓ move (wrapping), Home/End jump, Enter runs an item, Tab closes it, and Escape closes it and puts focus back on the row:
 
 | Action | What it does |
 |:---|:---|

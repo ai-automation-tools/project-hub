@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-18
+
+- **Architecture diagram re-pinned to ec4b044.** Line ranges follow the moved code in `hub.mjs`, `scan.mjs`, `index.html` and `build-demo.mjs`; the refusals card now notes that framing is refused unless `frameAncestors` lists the page, and the demo card notes the commit stamp.
+
 ## 2026-11-17
 
 - **Quieter secret scan.** A `.gitleaksignore` lists the one gitleaks hit in `hub/access.test.mjs`, a made-up token in the access-token tests, so the weekly scan stops reporting it.

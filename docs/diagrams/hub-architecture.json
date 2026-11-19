@@ -10,7 +10,7 @@
       "url": "https://github.com/ai-automation-tools/project-hub.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "623a0e9661936ff8ea8d3670b399bafbfd95630b"
+      "revision": "ec4b044bf3d3feb957932a2ebf496c16c7b681d2"
     }
   },
   "components": [
@@ -46,20 +46,20 @@
       "sources": [
         {
           "path": "hub/index.html",
-          "line": 1220,
-          "end_line": 1228,
+          "line": 1241,
+          "end_line": 1249,
           "label": "load the tree from /api/scan"
         },
         {
           "path": "hub/index.html",
-          "line": 4713,
-          "end_line": 4718,
+          "line": 4904,
+          "end_line": 4909,
           "label": "open a document via /api/file"
         },
         {
           "path": "hub/index.html",
-          "line": 4971,
-          "end_line": 4981,
+          "line": 5163,
+          "end_line": 5173,
           "label": "EventSource on /api/events"
         }
       ]
@@ -81,20 +81,20 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 378,
-          "end_line": 392,
+          "line": 379,
+          "end_line": 393,
           "label": "Host allowlist and CSP nonce"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 394,
-          "end_line": 414,
+          "line": 395,
+          "end_line": 415,
           "label": "optional access token gate"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 793,
-          "end_line": 806,
+          "line": 795,
+          "end_line": 809,
           "label": "index.html placeholders per request"
         }
       ]
@@ -115,20 +115,20 @@
       "sources": [
         {
           "path": "hub/scan.mjs",
-          "line": 1467,
-          "end_line": 1490,
+          "line": 1476,
+          "end_line": 1499,
           "label": "scanPayload: serialize and gzip"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 156,
-          "end_line": 185,
+          "line": 157,
+          "end_line": 186,
           "label": "rescan on a worker thread, inline fallback"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 422,
-          "end_line": 430,
+          "line": 423,
+          "end_line": 431,
           "label": "/api/scan serves the cache"
         }
       ]
@@ -149,20 +149,20 @@
       "sources": [
         {
           "path": "hub/scan.mjs",
-          "line": 706,
-          "end_line": 725,
+          "line": 715,
+          "end_line": 734,
           "label": "scanTree walk"
         },
         {
           "path": "hub/scan.mjs",
-          "line": 1355,
-          "end_line": 1366,
+          "line": 1364,
+          "end_line": 1375,
           "label": "scan: walk, then git per repo"
         },
         {
           "path": "hub/scan.mjs",
-          "line": 1196,
-          "end_line": 1229,
+          "line": 1205,
+          "end_line": 1238,
           "label": "git state kept until its files or tree change"
         }
       ]
@@ -183,14 +183,14 @@
       "sources": [
         {
           "path": "hub/scan.mjs",
-          "line": 432,
-          "end_line": 462,
+          "line": 441,
+          "end_line": 471,
           "label": "deny list, and .real() judges link targets"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 680,
-          "end_line": 697,
+          "line": 682,
+          "end_line": 699,
           "label": "/api/file renders through it"
         }
       ]
@@ -211,8 +211,8 @@
       "sources": [
         {
           "path": "hub/scan.mjs",
-          "line": 258,
-          "end_line": 276,
+          "line": 267,
+          "end_line": 285,
           "label": "PROJECTS and ROOTS"
         }
       ]
@@ -233,14 +233,14 @@
       "sources": [
         {
           "path": "hub/scan.mjs",
-          "line": 71,
-          "end_line": 96,
+          "line": 74,
+          "end_line": 105,
           "label": "loadConfig validates port, base, hosts"
         },
         {
           "path": "hub/scan.mjs",
-          "line": 243,
-          "end_line": 257,
+          "line": 252,
+          "end_line": 266,
           "label": "discoverProjects"
         }
       ]
@@ -261,14 +261,14 @@
       "sources": [
         {
           "path": "hub/hub.mjs",
-          "line": 850,
-          "end_line": 883,
+          "line": 853,
+          "end_line": 886,
           "label": "gap from the last scan, then SSE only on change"
         },
         {
           "path": "hub/hub.mjs",
-          "line": 885,
-          "end_line": 903,
+          "line": 888,
+          "end_line": 906,
           "label": "fs.watch per root"
         }
       ]
@@ -295,8 +295,8 @@
         },
         {
           "path": "hub/hub.mjs",
-          "line": 766,
-          "end_line": 781,
+          "line": 768,
+          "end_line": 783,
           "label": "/api/open, same-origin only"
         }
       ]
@@ -347,14 +347,14 @@
         },
         {
           "path": "demo/build-demo.mjs",
-          "line": 210,
-          "end_line": 232,
+          "line": 211,
+          "end_line": 233,
           "label": "spawn hub.mjs on the fixture"
         },
         {
           "path": "demo/build-demo.mjs",
-          "line": 364,
-          "end_line": 381,
+          "line": 365,
+          "end_line": 382,
           "label": "manifest and the unmodified UI"
         }
       ]
@@ -494,6 +494,7 @@
         "Any Host header other than loopback or a listed allowedHosts name gets a 403, which stops DNS rebinding",
         "resolveId() admits only paths under a mounted root, never a secrets folder or a key or certificate file, and follows a symlink or junction to judge where it really points",
         "/api/open, raw and preview files, repo diffs, the link check, favorites and webmarks are same-origin only; mounting a root also needs a loopback Host",
+        "Framing the hub is refused (frame-ancestors 'none') unless frameAncestors lists the page, such as the Suite shell, that may embed it",
         "With an access token set (HUB_TOKEN or an access-token file), every request but /api/health needs it as a bearer header or a login cookie"
       ]
     },
@@ -521,6 +522,7 @@
       "items": [
         "Watch-Hubs.ps1 runs every 15 minutes and restarts an unhealthy hub through Start-Hub.ps1",
         "The demo build runs the real hub against demo/Workspace and captures every API response as a file",
+        "The demo build stamps the page with the commit it was built from, so a stale deploy can be told from a current one",
         "The hosted demo has no server, so launching files, searching inside documents and the link check are unavailable there"
       ]
     }

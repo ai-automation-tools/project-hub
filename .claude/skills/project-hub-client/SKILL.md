@@ -125,8 +125,8 @@ Per-viewer preferences are localStorage, never the scan payload:
 | `hub.zoom` `hub.links` `hub.favsource` | interface size (also read by the pre-paint script), hub tabs on/off, manual or synced favorites |
 | `hub.bookmarks` `hub.recent` | paths only — via `navigation.mjs`, which is where the list logic is tested |
 | `hub.bmgroups` | `{closed, empty}` bookmark-group names: which are folded, which were created empty |
-
 | `hub.doctabs` `hub.rootorder` | document tabs on/off, the dragged order of top-level Explorer folders |
+| `hub.dots` | `first` / `last`: dot-folders and dot-files sorted to the top of their group by `orderDots()` in `reindex()`, or left last as the scan sends them |
 
 **A new key goes in `SETTINGS_KEYS` in `navigation.mjs`.** Settings → Backup exports and
 imports every key in that list as one `project-hub-settings.json` (`exportSettings()` /

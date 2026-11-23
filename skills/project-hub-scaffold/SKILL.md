@@ -93,3 +93,7 @@ Read the design reference only for UI work; adding a workspace needs no UI edit.
 - Committing `hub.config.json`, `scan.json`, logs, or private design exports.
 - Claiming current-file sanitization also removes Git history or hosted attachments.
 - Claiming browser checks, native launches, or scheduled tasks passed without executing them.
+
+## Licence
+
+This skill is Apache-2.0, canonical in [`ai-automation-tools/agent-skills`](https://github.com/ai-automation-tools/agent-skills), with a byte-identical travel copy in `ai-automation-tools/project-hub`. The Project Hub server and explorer it installs are MIT, from [`ai-automation-tools/project-hub`](https://github.com/ai-automation-tools/project-hub).

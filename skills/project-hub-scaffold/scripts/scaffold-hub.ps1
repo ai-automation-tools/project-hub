@@ -1,3 +1,4 @@
+#requires -Version 7
 <#
 .SYNOPSIS
     Add a workspace to one shared Project Hub or create a portable installation.

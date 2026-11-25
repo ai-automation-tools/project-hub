@@ -80,7 +80,7 @@ function Get-PortOwnerInfo {
 
 try {
     if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-        throw "node is not on PATH. Install Node 18+ and try again."
+        throw "node is not on PATH. Install Node 22+ and try again."
     }
 
     $ConfigDir = (Resolve-Path -LiteralPath $ConfigDir).Path

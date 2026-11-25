@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## 2026-11-24
+
+- **Node 22 is the new floor.** Node 18 and 20 are end of life, so `engines` now asks for `>=22`, CI tests 22.0, 24 and 26 instead of 18.17 and 22, and the workflows use `actions/checkout` and `actions/setup-node` v7. The badges, requirements and `AGENTS.md` say the same. No code changed *(roadmap: P9-64)*.
+
 ## 2026-11-22
 
 - **Skill copies back in step with agent-skills.** `.claude/skills/project-hub-client` gains the `hub.dots` row it missed from agent-skills #120, and the `project-hub-scaffold` travel copy's `scaffold-hub.ps1` now requires PowerShell 7 up front instead of failing under 5.1 after copying files, and its `SKILL.md` gains a Licence section (the skill is Apache-2.0, the hub code MIT) (agent-skills audit AS-11, AS-17). agent-skills now checks all four copies weekly (`scripts/check-copies.py`).

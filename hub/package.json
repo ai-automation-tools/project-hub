@@ -5,7 +5,7 @@
   "type": "module",
   "description": "One config-driven server that scans a project workspace plus Documents and serves the Project Hub navigation UI. Zero runtime dependencies.",
   "engines": {
-    "node": ">=18.17"
+    "node": ">=22"
   },
   "scripts": {
     "test": "node --test hub.test.mjs reports.test.mjs webmarks.test.mjs favorites.test.mjs access.test.mjs",

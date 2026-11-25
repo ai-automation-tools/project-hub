@@ -42,12 +42,12 @@ node hub/hub.mjs --config project-hub/hub.config.json --scan   # write scan.json
 ./project-hub/Start-Hub.ps1 -Restart -NoBrowser      # restart the running hub after hub.mjs changes
 ```
 
-CI (`.github/workflows/test.yml`) runs `npm test` on Node 18.17 and 22, plus the demo build
+CI (`.github/workflows/test.yml`) runs `npm test` on Node 22.0, 24 and 26, plus the demo build
 with a >100-captured-responses check. `demo.yml` deploys the demo on push to `main` touching `hub/` or `demo/`.
 
 ## Hard rules
 
-- **Zero dependencies.** No `npm install`, no lockfile, no bundler, no framework. Node ≥18.17 stdlib only — CI tests 18.17, so don't use newer APIs.
+- **Zero dependencies.** No `npm install`, no lockfile, no bundler, no framework. Node ≥22 stdlib only — CI tests 22.0, so don't use newer APIs.
 - **No build step for the UI.** `hub/index.html` is served as-is.
 - **Every path-addressed endpoint goes through `resolveId()`** (roots + `SECRET_DIRS` + `CREDENTIAL_FILE` deny gate). A new `/api/*` route that reads a path without it is a vulnerability. Tests pin several of these wirings.
 - **Loopback only.** Host-header check and CSP on every response; `/api/open` is same-origin only. Never bind `0.0.0.0`.

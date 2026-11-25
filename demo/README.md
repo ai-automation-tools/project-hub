@@ -73,7 +73,7 @@ exception for them.
 node demo/build-demo.mjs
 ```
 
-Needs Node 18.17+ and Git. It stages the fixture in `demo/.build`, initialises the
+Needs Node 22+ and Git. It stages the fixture in `demo/.build`, initialises the
 fixture repositories, starts the hub on port 4399, crawls it, and writes `demo/site`.
 Both folders are ignored; nothing generated is committed. Pass `--keep` to leave
 `demo/.build` behind when you want to inspect what was scanned.

@@ -46,7 +46,7 @@ node ..\hub\hub.mjs --config .\hub.config.json --port 5000
 node ..\hub\hub.mjs --config .\hub.config.json --scan         # write scan.json and exit
 ```
 
-Requires Node 18+ and `git` on PATH. No dependencies, no build step.
+Requires Node 22+ and `git` on PATH. No dependencies, no build step.
 
 ## What you get
 

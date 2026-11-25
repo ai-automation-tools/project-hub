@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Project Hub — scans every mounted project workspace + the shared roots (Documents,
-// skills, Automations) and serves the navigation UI. Zero dependencies. Node 18+.
+// skills, Automations) and serves the navigation UI. Zero dependencies. Node 22+.
 //
 // One process, one config folder, any number of projects: this file's own
 // hub.config.json holds only the server's own settings (port, title, favicon); each

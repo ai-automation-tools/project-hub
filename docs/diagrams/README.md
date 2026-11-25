@@ -78,7 +78,7 @@ To bring it up to date:
 4. Commit the JSON and the generated files here with a [CHANGELOG](../CHANGELOG.md) line, and the two
    copies in `project-hub-site` there.
 
-Building needs Node 18+, Chrome, and the [Archify](https://github.com/tt-a1i/archify) skill
+Building needs Node 22+, Chrome, and the [Archify](https://github.com/tt-a1i/archify) skill
 (default path `~/.claude/skills/archify/bin/archify.mjs`; pass `--archify <path>` to point
 elsewhere). The check needs only git. A failed build exits 1 and leaves the last good HTML and
 PNG in place; the reason is in `docs/diagrams/.build/hub-architecture.finalize-summary.json`.

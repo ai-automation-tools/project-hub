@@ -14,6 +14,10 @@ Why each change was made, and how it was measured, lives in the [roadmap](ROADMA
 This file is the short version. Every item ticked in [P9](ROADMAP.md#remaining) adds a line here
 in the same commit, tagged *(roadmap: P9-NN)*.
 
+## Unreleased
+
+- **Roadmap refresh: P9-70 added, a read-only MCP endpoint.** MCP's 2026-07-28 spec dropped the session handshake, so a stateless `POST /mcp` with `search` and `read` tools now fits the zero-dependency server; it lets an agent query the workspace through the hub's deny-listed index.
+
 ## 2026-11-27
 
 - **The scaffold skill's home is here.** `skills/project-hub-scaffold/` was a byte-identical travel copy of `agent-skills`' Core skill; it is a skill for *using* this tool from any repo, so it lives with the tool now (org skills landscape audit, decision D2). `agent-skills` installs it to user scope from this repo's `main` and drops its own copy. The `scaffold copy` CI job is gone. The helper's tests came with the skill: `scripts/test-scaffold-skill.ps1`, run by a new `scaffold skill` CI job, and agent-skills' open eval-gap item is P9-69 here. `AGENTS.md`, the README, the `hub-reviewer` agent, the skill's Licence section and two roadmap items say to edit it here.

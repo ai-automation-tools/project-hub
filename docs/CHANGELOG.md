@@ -16,6 +16,7 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 
 ## 2026-11-27
 
+- **The scaffold skill's home is here.** `skills/project-hub-scaffold/` was a byte-identical travel copy of `agent-skills`' Core skill; it is a skill for *using* this tool from any repo, so it lives with the tool now (org skills landscape audit, decision D2). `agent-skills` installs it to user scope from this repo's `main` and drops its own copy. The `scaffold copy` CI job is gone; `AGENTS.md`, the README, the `hub-reviewer` agent, the skill's Licence section and two roadmap items say to edit it here.
 - **The three maintainer skills are owned here.** `.claude/skills/project-hub-{scan,client,demo}` were copies installed from agent-skills; agent-skills stops keeping project skills (org skills landscape audit, decision D1), so they're edited here now. `AGENTS.md`, `README.md` and the `hub-reviewer` agent say so. The scaffold skill is unchanged: `agent-skills` stays canonical for it and the `scaffold copy` CI job still guards it.
 
 ## 2026-11-22

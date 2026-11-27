@@ -96,4 +96,4 @@ Read the design reference only for UI work; adding a workspace needs no UI edit.
 
 ## Licence
 
-This skill is Apache-2.0, canonical in [`ai-automation-tools/agent-skills`](https://github.com/ai-automation-tools/agent-skills), with a byte-identical travel copy in `ai-automation-tools/project-hub`. The Project Hub server and explorer it installs are MIT, from [`ai-automation-tools/project-hub`](https://github.com/ai-automation-tools/project-hub).
+This skill is Apache-2.0 and lives in [`ai-automation-tools/project-hub`](https://github.com/ai-automation-tools/project-hub) under `skills/project-hub-scaffold/`; [`agent-skills`](https://github.com/ai-automation-tools/agent-skills)' installer installs it from there. The Project Hub server and explorer it installs are MIT, from the same repo.

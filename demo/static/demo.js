@@ -93,26 +93,27 @@
   var REPO = 'https://github.com/ai-automation-tools/project-hub';
 
   /**
-   * The way back to the source, and the only one this page has: the banner below is
-   * dismissed for the session on first click, so the repo link inside it cannot be the
-   * whole answer. This bar outlives it.
+   * The way back to the source, and the only one this page has: the shared source bar
+   * every ai-automation-tools site carries in the same place — full width at the very
+   * top, the demo notice on the left, repo link in the right corner. It is also the
+   * demo's only notice and only repo link (the standard allows one per site).
    *
-   * The shared source bar every ai-automation-tools site carries in the same place:
-   * full width at the very top, note on the left, repo link in the right corner.
-   *
-   * In normal flow above #app rather than fixed over it, because `html{zoom}` scales a
-   * fixed strip too and #app already divides the zoom out of its own height. One
-   * injected rule shortens #app by the bar; the interface's own stylesheet is still
-   * copied verbatim and still has nothing added to it.
+   * In normal flow above #app rather than fixed over it; #app never scrolls the page, so
+   * the bar never leaves the top. `zoom` on the bar divides out the interface's own
+   * `html{zoom}`, so it is the standard 34px / 12px at every text size the visitor picks,
+   * and #app is shortened by those same 34 screen pixels. The interface's own stylesheet
+   * is still copied verbatim and still has nothing added to it.
    */
   function mountSourceBar() {
     var style = document.createElement('style');
     style.textContent = ':root{--demo-bar-h:34px}'
-      + '#app{height:calc(100vh / var(--zoom) - var(--demo-bar-h))}';
+      + '#app{height:calc((100vh - var(--demo-bar-h)) / var(--zoom));'
+      + 'height:calc((100dvh - var(--demo-bar-h)) / var(--zoom))}';
     document.head.append(style);
 
     var bar = document.createElement('div');
-    bar.style.cssText = 'display:flex;align-items:center;gap:16px;height:34px;padding:0 14px;'
+    bar.style.cssText = 'zoom:calc(1 / var(--zoom));'
+      + 'display:flex;align-items:center;gap:16px;height:var(--demo-bar-h);padding:0 16px;'
       + 'box-sizing:border-box;background:var(--panel);border-bottom:1px solid var(--line);'
       + 'font:12px/1.4 ui-sans-serif,system-ui,sans-serif';
 
@@ -136,33 +137,8 @@
     document.body.prepend(bar);
   }
 
-  // A one-line banner, dismissed for the session once. Inline styles on purpose: the
-  // interface's own stylesheet is copied verbatim and nothing is added to it.
   document.addEventListener('DOMContentLoaded', function () {
     linkTheMark();
     mountSourceBar();
-    try { if (sessionStorage.getItem('demo.banner') === 'off') return; } catch (_) { /* private mode */ }
-    var bar = document.createElement('div');
-    bar.setAttribute('role', 'note');
-    // Colours come from the page's own scheme variables, so the banner follows whichever
-    // scheme the visitor has picked.
-    bar.style.cssText = 'position:fixed;z-index:9999;left:50%;bottom:16px;transform:translateX(-50%);'
-      + 'max-width:min(760px,calc(100vw - 32px));display:flex;gap:14px;align-items:center;'
-      + 'padding:9px 14px;border:1px solid var(--green-line);border-radius:10px;background:var(--card);'
-      + 'color:var(--fg-mid);font:13px/1.5 ui-sans-serif,system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.5)';
-    var text = document.createElement('span');
-    text.innerHTML = 'Read-only demo over a fictional workspace. '
-      + '<a href="https://github.com/ai-automation-tools/project-hub" '
-      + 'style="color:var(--green)">Run it on your own files &rarr;</a>';
-    var close = document.createElement('button');
-    close.textContent = 'dismiss';
-    close.style.cssText = 'margin-left:auto;border:1px solid var(--line);border-radius:6px;background:var(--card-hi);'
-      + 'color:var(--dim);font:inherit;padding:3px 10px;cursor:pointer;flex:none';
-    close.onclick = function () {
-      bar.remove();
-      try { sessionStorage.setItem('demo.banner', 'off'); } catch (_) { /* private mode */ }
-    };
-    bar.append(text, close);
-    document.body.append(bar);
   });
 }());

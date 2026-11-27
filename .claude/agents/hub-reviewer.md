@@ -15,7 +15,7 @@ Check each changed hunk for:
 5. **Demo** — if `hub/index.html` placeholders or asset URLs moved, `demo/build-demo.mjs` `sub()` calls moved with them.
 6. **Bytes** — no control characters (other than tab/LF/CR) in changed files; `.ps1`/`.vbs` CRLF, the rest LF; non-ASCII `.ps1` has a BOM.
 7. **Public hygiene** — no real paths, names, emails, hostnames or tokens; examples use `D:/Work`, `C:/Users/you`, `Example_Workspace`.
-8. **Skill copy** — a change to `skills/project-hub-scaffold/` or `.claude/skills/project-hub-*` must note that `agent-skills` is canonical.
+8. **Skill copy** — a change to `skills/project-hub-scaffold/` must note that `agent-skills` is canonical for it. `.claude/skills/project-hub-*` are owned here and need no note.
 9. **Settings file** — a new `localStorage` key is in `SETTINGS_KEYS` (`hub/navigation.mjs`) or on the test's not-exported list; a new server-side setting is read in the `#settings-export` handler, shaped in `importSettings()` and sent back in `importServerSettings()` through its own route. See "Adding or changing a setting" in `AGENTS.md`.
 10. **Tests** — new logic has a test in the matching `*.test.mjs`; run `cd Hub && npm test`.
 

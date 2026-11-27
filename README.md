@@ -133,24 +133,15 @@ and provide the path to this checkout.
 
 ### 🧠 Skills for working on this repo
 
-Three agent skills cover the hub's own internals. They live in
-[**agent-skills**](https://github.com/ai-automation-tools/agent-skills/tree/main/skills/projects/project-hub),
-which is canonical for them. They are installed as an overlay into this clone's `.claude/skills/`,
-and that installed copy is committed here, next to [`AGENTS.md`](AGENTS.md) and a small
-`.claude/` setup: a `hub-reviewer` agent and a `/check` command to run before committing.
+Three agent skills cover the hub's own internals. They live in this repo's
+[`.claude/skills/`](.claude/skills/), next to [`AGENTS.md`](AGENTS.md) and a small `.claude/`
+setup: a `hub-reviewer` agent and a `/check` command to run before committing. Edit them here.
 
 | Skill | Covers |
 |:---|:---|
-| [`project-hub-scan`](https://github.com/ai-automation-tools/agent-skills/blob/main/skills/projects/project-hub/project-hub-scan/SKILL.md) | `hub/hub.mjs` — the scan filter chain, node kinds, the agent-runtime tables, the `resolveId()` deny gate, caching and the watcher |
-| [`project-hub-client`](https://github.com/ai-automation-tools/agent-skills/blob/main/skills/projects/project-hub/project-hub-client/SKILL.md) | `hub/index.html` — the view dispatch, the eight colour schemes, state and routes, the CSP nonce contract |
-| [`project-hub-demo`](https://github.com/ai-automation-tools/agent-skills/blob/main/skills/projects/project-hub/project-hub-demo/SKILL.md) | `demo/build-demo.mjs` — the fixture, the capture, the literal assertions against `index.html`, and the Pages deploy |
-
-```powershell
-pwsh scripts/install-skills.ps1 -Project project-hub -Destination <this-clone>/.claude/skills
-```
-
-Run that from an `agent-skills` checkout to refresh the committed copy after the skills change
-there, and commit the result. Don't edit the copies here.
+| [`project-hub-scan`](.claude/skills/project-hub-scan/SKILL.md) | `hub/hub.mjs` — the scan filter chain, node kinds, the agent-runtime tables, the `resolveId()` deny gate, caching and the watcher |
+| [`project-hub-client`](.claude/skills/project-hub-client/SKILL.md) | `hub/index.html` — the view dispatch, the eight colour schemes, state and routes, the CSP nonce contract |
+| [`project-hub-demo`](.claude/skills/project-hub-demo/SKILL.md) | `demo/build-demo.mjs` — the fixture, the capture, the literal assertions against `index.html`, and the Pages deploy |
 
 ## 🔒 Privacy and publishing
 

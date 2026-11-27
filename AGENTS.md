@@ -74,13 +74,13 @@ writes `local`, sends `server` through the same routes the Settings view uses, t
 - **A new server-side setting** needs three edits: read it in the `#settings-export` handler, shape it in `importSettings()`, and send it back in `importServerSettings()` through the setting's own validated route. Never add a route that writes the config wholesale.
 - **Import must stay safe to repeat** and must report what it could not apply (a folder the computer doesn't have) instead of failing the whole import.
 - **Changing the meaning of an existing key or field** means old files still import: keep reading the old shape, and bump `version` only when you can't.
-- Update the docs that list settings in the same change: `hub/README.md` (Settings), `project-hub/README.md` (Settings), and, in `agent-skills` first, the `project-hub-client` skill's key table and the scaffold skill's `current-features.md`.
+- Update the docs that list settings in the same change: `hub/README.md` (Settings), `project-hub/README.md` (Settings), the `project-hub-client` skill's key table (`.claude/skills/`, here), and, in `agent-skills` first, the scaffold skill's `current-features.md`.
 
 ## Skills & agents
 
 Claude Code specifics; other agents can ignore this section.
 
-- `.claude/skills/project-hub-{scan,client,demo}` — maintainer skills, **overlay installed from `agent-skills`** (`skills/projects/project-hub/`). Edit them there and reinstall with `pwsh scripts/install-skills.ps1 -Project project-hub -Destination <this-clone>/.claude/skills` — don't edit the copies here.
+- `.claude/skills/project-hub-{scan,client,demo}` — maintainer skills, **owned by this repo** since 2026-11-27 (before that, copies installed from `agent-skills`, which no longer keeps project skills). Edit them here.
 - `.claude/agents/hub-reviewer.md` — reviews a diff against the rules above.
 - `/check` — tests + demo build + public-hygiene grep, before committing.
 

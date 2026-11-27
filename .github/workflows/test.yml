@@ -63,3 +63,12 @@ jobs:
           captured=$(node -p "Object.keys(require('./demo/site/api/manifest.json')).length")
           echo "captured $captured API responses"
           test "$captured" -gt 100
+
+  scaffold-skill:
+    # skills/project-hub-scaffold/scripts/scaffold-hub.ps1 against a fake checkout in a temp
+    # directory. Moved from agent-skills with the skill on 2026-11-27.
+    name: scaffold skill
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pwsh -NoProfile -File scripts/test-scaffold-skill.ps1

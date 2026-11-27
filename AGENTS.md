@@ -40,10 +40,11 @@ node hub/hub.mjs --config project-hub/hub.config.json --scan   # write scan.json
 
 ```powershell
 ./project-hub/Start-Hub.ps1 -Restart -NoBrowser      # restart the running hub after hub.mjs changes
+pwsh -NoProfile -File scripts/test-scaffold-skill.ps1  # after changing the scaffold skill's helper
 ```
 
 CI (`.github/workflows/test.yml`) runs `npm test` on Node 18.17 and 22, plus the demo build
-with a >100-captured-responses check. `demo.yml` deploys the demo on push to `main` touching `hub/` or `demo/`.
+with a >100-captured-responses check, and `scripts/test-scaffold-skill.ps1` (the scaffold skill's helper, on a fake checkout). `demo.yml` deploys the demo on push to `main` touching `hub/` or `demo/`.
 
 ## Hard rules
 

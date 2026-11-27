@@ -152,6 +152,7 @@ dated notes in [the P9 record](#p9).
 - [ ] P9-61 · Backlinks (audit B1). After P9-11: invert its link index to show "linked from" under a document's outline, each entry jumping to the source
 - [ ] P9-62 · Weekly status digest (audit E1). After P9-12 and P9-18: one button (and `--digest` on the CLI) writes a dated Markdown file of repos that moved, documents changed this week, routine pass/fail, and attention items, all from the current scan
 - [ ] P9-63 · Split the inline script out of `index.html` (audit S1). P9-21 covers `hub.mjs` only; `index.html` is 234 KB with about 3,650 lines of inline module script (2026-11-06). Move it out one seam per PR (tree + context menu, favorites/tabs, views), each new module added to `build-demo.mjs`'s copy list and the scaffold's `$engineFiles` (`skills/project-hub-scaffold/`, here), with `npm test` and the demo build green. Do it after P9-21
+- [ ] P9-69 · Close the gaps the scaffold skill's eval pass found (moved from agent-skills' roadmap with the skill, 2026-11-27). In `skills/project-hub-scaffold/SKILL.md`, step 5 restarts the server "when authorized" without saying whether to ask; the description promises theme matching that mode C limits to static pages. Fix both and re-run its `evals/`
 
 <a id="the-record"></a>
 

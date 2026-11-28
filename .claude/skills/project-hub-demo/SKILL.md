@@ -23,7 +23,7 @@ Which is why the demo build is wired into `test.yml` as an integration test, not
 the deploy. A red demo build usually means the interface moved, not that the demo broke.
 
 ```sh
-node demo/build-demo.mjs          # Node 18.17+ and Git. --keep leaves demo/.build to inspect
+node demo/build-demo.mjs          # Node 22+ and Git. --keep leaves demo/.build to inspect
 ```
 
 Both `demo/.build` and `demo/site` are gitignored. Nothing generated is committed.

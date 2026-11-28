@@ -32,7 +32,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Node.js-18.17+-339933?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js 18.17 or later">
+  <img src="https://img.shields.io/badge/Node.js-22+-339933?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js 22 or later">
   <img src="https://img.shields.io/badge/JavaScript-vanilla-F7DF1E?style=flat-square&amp;logo=javascript&amp;logoColor=black" alt="Vanilla JavaScript">
   <img src="https://img.shields.io/badge/dependencies-none-6B7280?style=flat-square" alt="No runtime dependencies">
 </p>
@@ -76,7 +76,7 @@ Sample workspaces with fictional content. Click an image for the full view.
 
 ## 🔧 Setup
 
-Requires Node 18.17+ and Git on PATH. Windows launchers also need PowerShell 7 (`pwsh`).
+Requires Node 22+ and Git on PATH. Windows launchers also need PowerShell 7 (`pwsh`).
 
 From the repository root, copy the example configs:
 

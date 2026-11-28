@@ -23,6 +23,10 @@ in the same commit, tagged *(roadmap: P9-NN)*.
 - **The scaffold skill's home is here.** `skills/project-hub-scaffold/` was a byte-identical travel copy of `agent-skills`' Core skill; it is a skill for *using* this tool from any repo, so it lives with the tool now (org skills landscape audit, decision D2). `agent-skills` installs it to user scope from this repo's `main` and drops its own copy. The `scaffold copy` CI job is gone. The helper's tests came with the skill: `scripts/test-scaffold-skill.ps1`, run by a new `scaffold skill` CI job, and agent-skills' open eval-gap item is P9-69 here. `AGENTS.md`, the README, the `hub-reviewer` agent, the skill's Licence section and two roadmap items say to edit it here.
 - **The three maintainer skills are owned here.** `.claude/skills/project-hub-{scan,client,demo}` were copies installed from agent-skills; agent-skills stops keeping project skills (org skills landscape audit, decision D1), so they're edited here now. `AGENTS.md`, `README.md` and the `hub-reviewer` agent say so. The scaffold skill is unchanged: `agent-skills` stays canonical for it and the `scaffold copy` CI job still guards it.
 
+## 2026-11-24
+
+- **Node 22 is the new floor.** Node 18 and 20 are end of life, so `engines` now asks for `>=22`, CI tests 22.0, 24 and 26 instead of 18.17 and 22, and the workflows use `actions/checkout` and `actions/setup-node` v7. The badges, requirements and `AGENTS.md` say the same. No code changed *(roadmap: P9-64)*.
+
 ## 2026-11-22
 
 - **Skill copies back in step with agent-skills.** `.claude/skills/project-hub-client` gains the `hub.dots` row it missed from agent-skills #120, and the `project-hub-scaffold` travel copy's `scaffold-hub.ps1` now requires PowerShell 7 up front instead of failing under 5.1 after copying files, and its `SKILL.md` gains a Licence section (the skill is Apache-2.0, the hub code MIT) (agent-skills audit AS-11, AS-17). agent-skills now checks all four copies weekly (`scripts/check-copies.py`).

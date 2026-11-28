@@ -23,12 +23,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 18.17 is the floor the README and hub/package.json both claim, and nothing has
-        # ever verified it. 22 is what the demo deploy runs on.
-        node: ['18.17', '22']
+        # 22.0 is the floor the README and hub/package.json both claim (22 is the oldest
+        # LTS still supported; 18 and 20 are end of life), so test that exact release, not
+        # the newest 22.x. 24 is the maintenance LTS, 26 the active one.
+        node: ['22.0', '24', '26']
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
       # No lockfile and no dependencies — npm ci would have nothing to do.
@@ -43,8 +44,8 @@ jobs:
     name: demo build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
       # Warns, never fails: rebuilding needs Chrome + Archify, which CI doesn't have, and the
@@ -70,5 +71,5 @@ jobs:
     name: scaffold skill
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: pwsh -NoProfile -File scripts/test-scaffold-skill.ps1

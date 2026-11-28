@@ -8,7 +8,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/deps-0-2ea44f?style=for-the-badge" alt="Zero dependencies">
-  <img src="https://img.shields.io/badge/node-≥18.17-339933?style=for-the-badge" alt="Node 18.17+">
+  <img src="https://img.shields.io/badge/node-≥22-339933?style=for-the-badge" alt="Node 22+">
   <img src="https://img.shields.io/badge/tests-node--test-8B5CF6?style=for-the-badge" alt="node --test">
   <a href="../README.md"><img src="https://img.shields.io/badge/↩-Project_Hub-6B7280?style=for-the-badge" alt="Back to Project Hub"></a>
 </p>
@@ -56,7 +56,7 @@ node hub.mjs --config ..\project-hub\hub.config.json
 node hub.mjs --config ..\project-hub\hub.config.json --scan   # writes scan.json into that folder
 ```
 
-`--port` overrides the configured port. Requires Node 18.17+ and `git` on PATH.
+`--port` overrides the configured port. Requires Node 22+ and `git` on PATH.
 
 ### Access token (optional)
 

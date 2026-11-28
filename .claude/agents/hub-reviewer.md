@@ -8,7 +8,7 @@ You review changes to Project Hub (`ai-automation-tools/project-hub`). Read `AGE
 
 Check each changed hunk for:
 
-1. **Dependencies** — any `import` of a non-`node:` module, any `dependencies` in `hub/package.json`, or a Node API newer than 18.17.
+1. **Dependencies** — any `import` of a non-`node:` module, any `dependencies` in `hub/package.json`, or a Node API newer than 22.0.
 2. **Path gate** — every new or changed `/api/*` handler that takes a path must pass it through `resolveId()` before touching the filesystem. Trace it; don't assume.
 3. **Serving** — no `0.0.0.0` bind, Host/Origin checks intact, new inline `<script>` carries `nonce="%NONCE%"`, CSP not weakened, HTML/SVG outside `<img>` keeps its sandbox.
 4. **Sanitizer** — `sanitizeHtml()` changes add to allowlists only; `href`/`src` stay scheme-checked.

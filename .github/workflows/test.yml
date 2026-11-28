@@ -65,19 +65,11 @@ jobs:
           echo "captured $captured API responses"
           test "$captured" -gt 100
 
-  scaffold-copy:
-    # skills/project-hub-scaffold/ is a travel copy; agent-skills' main is canonical. A
-    # feature PR here that updates only this copy used to drift silently (P2-12), so the
-    # copy must match canonical exactly, line endings aside. On a failure, make the same
-    # edit in agent-skills/skills/core/web/project-hub-scaffold/ and copy it back here.
-    name: scaffold copy
+  scaffold-skill:
+    # skills/project-hub-scaffold/scripts/scaffold-hub.ps1 against a fake checkout in a temp
+    # directory. Moved from agent-skills with the skill on 2026-11-27.
+    name: scaffold skill
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/checkout@v7
-        with:
-          repository: ai-automation-tools/agent-skills
-          ref: main
-          path: _agent-skills
-          sparse-checkout: skills/core/web/project-hub-scaffold
-      - run: diff -r --strip-trailing-cr _agent-skills/skills/core/web/project-hub-scaffold skills/project-hub-scaffold
+      - run: pwsh -NoProfile -File scripts/test-scaffold-skill.ps1

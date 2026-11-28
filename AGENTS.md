@@ -22,7 +22,7 @@ it. Don't add a `CLAUDE.md` or another per-tool copy beside it.
 | `project-hub/` | Server config folder + launcher shim. Real `hub.config.json` is gitignored |
 | `projects/<Name>/hub.config.json` | One per mounted workspace. Only `projects/_example/` is tracked |
 | `demo/` | Fixture workspace + `build-demo.mjs` → static capture published to project-hub-demo.ai-automation-tools.dev |
-| `skills/project-hub-scaffold/` | **Travel copy** of the scaffold skill — canonical in `agent-skills`; CI's `scaffold copy` job fails if it drifts, so edit there first and copy here |
+| `skills/project-hub-scaffold/` | The scaffold skill, **canonical here** since 2026-11-27 (it's for *using* this tool from any repo). `agent-skills`' installer installs it to user scope from this folder; edit it here like any other code |
 | `docs/` | `ROADMAP.md` (P9 is the live work queue), `CHANGELOG.md`, user/engine docs |
 | `docs/diagrams/` + `scripts/build-diagram.mjs` | Code-pinned Archify architecture diagram, embedded on the homepage (`project-hub-site`). Edit only the `.json`; rebuild with `node scripts/build-diagram.mjs --pin-head`, `--check` reports drift. Procedure: `docs/diagrams/README.md` |
 
@@ -40,10 +40,11 @@ node hub/hub.mjs --config project-hub/hub.config.json --scan   # write scan.json
 
 ```powershell
 ./project-hub/Start-Hub.ps1 -Restart -NoBrowser      # restart the running hub after hub.mjs changes
+pwsh -NoProfile -File scripts/test-scaffold-skill.ps1  # after changing the scaffold skill's helper
 ```
 
 CI (`.github/workflows/test.yml`) runs `npm test` on Node 22.0, 24 and 26, plus the demo build
-with a >100-captured-responses check. `demo.yml` deploys the demo on push to `main` touching `hub/` or `demo/`.
+with a >100-captured-responses check, and `scripts/test-scaffold-skill.ps1` (the scaffold skill's helper, on a fake checkout). `demo.yml` deploys the demo on push to `main` touching `hub/` or `demo/`.
 
 ## Hard rules
 
@@ -59,7 +60,7 @@ with a >100-captured-responses check. `demo.yml` deploys the demo on push to `ma
 - **Demo literals.** `build-demo.mjs` asserts exact string literals in `index.html` (placeholders, asset URLs). Moving them breaks the demo build — update both together.
 - **Public repo hygiene.** No personal names, emails, hostnames, or machine paths in tracked files — use `D:/Work`, `C:/Users/you`, `Example_Workspace`. Real configs, `scan.json`, logs, `src/`, most of `images/` are gitignored; keep it that way.
 - **Line endings** per `.gitattributes`: LF for js/mjs/json/md/html, CRLF for `.ps1`/`.vbs`. A `.ps1` with non-ASCII must be UTF-8 **with BOM**.
-- **Scaffold skill changes land in `agent-skills` first**, then copy here byte-identical.
+- **The scaffold skill is edited here.** Until 2026-11-27 `agent-skills` was canonical and this was a byte-identical travel copy; now `agent-skills` lists it in `scripts/tool-skills.json` and installs it from `main` here.
 
 ## Adding or changing a setting
 
@@ -74,13 +75,13 @@ writes `local`, sends `server` through the same routes the Settings view uses, t
 - **A new server-side setting** needs three edits: read it in the `#settings-export` handler, shape it in `importSettings()`, and send it back in `importServerSettings()` through the setting's own validated route. Never add a route that writes the config wholesale.
 - **Import must stay safe to repeat** and must report what it could not apply (a folder the computer doesn't have) instead of failing the whole import.
 - **Changing the meaning of an existing key or field** means old files still import: keep reading the old shape, and bump `version` only when you can't.
-- Update the docs that list settings in the same change: `hub/README.md` (Settings), `project-hub/README.md` (Settings), and, in `agent-skills` first, the `project-hub-client` skill's key table and the scaffold skill's `current-features.md`.
+- Update the docs that list settings in the same change: `hub/README.md` (Settings), `project-hub/README.md` (Settings), the `project-hub-client` skill's key table (`.claude/skills/`, here), and the scaffold skill's `references/current-features.md`.
 
 ## Skills & agents
 
 Claude Code specifics; other agents can ignore this section.
 
-- `.claude/skills/project-hub-{scan,client,demo}` — maintainer skills, **overlay installed from `agent-skills`** (`skills/projects/project-hub/`). Edit them there and reinstall with `pwsh scripts/install-skills.ps1 -Project project-hub -Destination <this-clone>/.claude/skills` — don't edit the copies here.
+- `.claude/skills/project-hub-{scan,client,demo}` — maintainer skills, **owned by this repo** since 2026-11-27 (before that, copies installed from `agent-skills`, which no longer keeps project skills). Edit them here.
 - `.claude/agents/hub-reviewer.md` — reviews a diff against the rules above.
 - `/check` — tests + demo build + public-hygiene grep, before committing.
 
